@@ -28,7 +28,7 @@ ATTENDEE;CN="Sarah Novotny";ROLE=OPT-PARTICIPANT;RSVP=TRUE:mailto:Sarah.Nov
 ATTENDEE;CN="Short, Todd";ROLE=OPT-PARTICIPANT;RSVP=TRUE:mailto:tshort@akam
 	ai.com
 CLASS:PUBLIC
-CREATED:20211102T131539Z
+CREATED:20211102T145222Z
 DESCRIPTION:Open meeting to discuss OpenSSL's announced plans to focus on Q
 	UIC.\n\n__________________________________________________________________
 	______________ \nMicrosoft Teams meeting \nJoin on your computer or mobile
@@ -47,13 +47,13 @@ DESCRIPTION:Open meeting to discuss OpenSSL's announced plans to focus on Q
 	readId=19_meeting_MTgwYzQ4OTMtZmY4OC00NTRiLTg5N2QtYWE5MWQwZDI4OGI5@thread.
 	v2&messageId=0&language=en-US>  \n________________________________________
 	________________________________________ \n
-DTEND;TZID="Eastern Standard Time":20211110T160000
-DTSTAMP:20211101T225637Z
-DTSTART;TZID="Eastern Standard Time":20211110T143000
-LAST-MODIFIED:20211102T131539Z
+DTEND;TZID="Eastern Standard Time":20211110T150000
+DTSTAMP:20211102T145123Z
+DTSTART;TZID="Eastern Standard Time":20211110T133000
+LAST-MODIFIED:20211102T145222Z
 ORGANIZER;CN="Nick Banks":mailto:nibanks@microsoft.com
 PRIORITY:5
-SEQUENCE:0
+SEQUENCE:1
 SUMMARY;LANGUAGE=en-us:OpenSSL and QUIC Side Meeting
 TRANSP:OPAQUE
 UID:040000008200E00074C5B7101A82E008000000004C7684B673CFD701000000000000000
@@ -121,8 +121,8 @@ X-ALT-DESC;FMTTYPE=text/html:<html>\n<head>\n\n</head>\n<body>\n<div style=
 	/span>\n</div>\n</body>\n</html>\n
 X-MICROSOFT-CDO-BUSYSTATUS:BUSY
 X-MICROSOFT-CDO-IMPORTANCE:1
-X-MS-OLK-APPTLASTSEQUENCE:0
-X-MS-OLK-APPTSEQTIME:20211101T225637Z
+X-MS-OLK-APPTLASTSEQUENCE:1
+X-MS-OLK-APPTSEQTIME:20211102T145123Z
 BEGIN:VALARM
 TRIGGER:-PT15M
 ACTION:DISPLAY
