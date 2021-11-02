@@ -1,0 +1,132 @@
+BEGIN:VCALENDAR
+PRODID:-//Microsoft Corporation//Outlook 16.0 MIMEDIR//EN
+VERSION:2.0
+METHOD:REQUEST
+X-MS-OLK-FORCEINSPECTOROPEN:TRUE
+BEGIN:VTIMEZONE
+TZID:Eastern Standard Time
+BEGIN:STANDARD
+DTSTART:16011104T020000
+RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:16010311T020000
+RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+ATTENDEE;CN="Salz, Rich";RSVP=TRUE:mailto:rsalz@akamai.com
+ATTENDEE;CN=m.duke@f5.com;RSVP=TRUE:mailto:m.duke@f5.com
+ATTENDEE;CN="Sam Spencer";RSVP=TRUE:mailto:Sam.Spencer@microsoft.com
+ATTENDEE;CN=kaduk@mit.edu;RSVP=TRUE:mailto:kaduk@mit.edu
+ATTENDEE;CN="Sarah Novotny";ROLE=OPT-PARTICIPANT;RSVP=TRUE:mailto:Sarah.Nov
+	otny@microsoft.com
+ATTENDEE;CN="Short, Todd";ROLE=OPT-PARTICIPANT;RSVP=TRUE:mailto:tshort@akam
+	ai.com
+CLASS:PUBLIC
+CREATED:20211102T131539Z
+DESCRIPTION:Open meeting to discuss OpenSSL's announced plans to focus on Q
+	UIC.\n\n__________________________________________________________________
+	______________ \nMicrosoft Teams meeting \nJoin on your computer or mobile
+	 app \nClick here to join the meeting <https://teams.microsoft.com/l/meetu
+	p-join/19%3ameeting_MTgwYzQ4OTMtZmY4OC00NTRiLTg5N2QtYWE5MWQwZDI4OGI5%40thr
+	ead.v2/0?context=%7b%22Tid%22%3a%2272f988bf-86f1-41af-91ab-2d7cd011db47%22
+	%2c%22Oid%22%3a%220b5173e2-6590-4d27-b6ae-a43af6b297d7%22%7d>  \nOr join b
+	y entering a meeting ID\nMeeting ID: 273 854 559 583 42 \nOr call in (audi
+	o only) \n+1 213-458-7614\,\,228215809# <tel:+12134587614\,\,228215809#>  
+	  United States\, Los Angeles \nPhone Conference ID: 228 215 809# \nFind a
+	 local number <https://dialin.teams.microsoft.com/48b4c613-cc67-4825-8175-
+	29628d9715e5?id=228215809>  | Reset PIN <https://mysettings.lync.com/pstnc
+	onferencing>  \nLearn More <https://aka.ms/JoinTeamsMeeting>  | Meeting op
+	tions <https://teams.microsoft.com/meetingOptions/?organizerId=0b5173e2-65
+	90-4d27-b6ae-a43af6b297d7&tenantId=72f988bf-86f1-41af-91ab-2d7cd011db47&th
+	readId=19_meeting_MTgwYzQ4OTMtZmY4OC00NTRiLTg5N2QtYWE5MWQwZDI4OGI5@thread.
+	v2&messageId=0&language=en-US>  \n________________________________________
+	________________________________________ \n
+DTEND;TZID="Eastern Standard Time":20211110T160000
+DTSTAMP:20211101T225637Z
+DTSTART;TZID="Eastern Standard Time":20211110T143000
+LAST-MODIFIED:20211102T131539Z
+ORGANIZER;CN="Nick Banks":mailto:nibanks@microsoft.com
+PRIORITY:5
+SEQUENCE:0
+SUMMARY;LANGUAGE=en-us:OpenSSL and QUIC Side Meeting
+TRANSP:OPAQUE
+UID:040000008200E00074C5B7101A82E008000000004C7684B673CFD701000000000000000
+	010000000B272087E8255324095B4A2F5CF5967F5
+X-ALT-DESC;FMTTYPE=text/html:<html>\n<head>\n\n</head>\n<body>\n<div style=
+	"font-family: Calibri\, Arial\, Helvetica\, sans-serif\; font-size: 12pt\;
+	 color: rgb(0\, 0\, 0)\; background-color: rgb(255\, 255\, 255)\;">\n<span
+	 style="color: rgb(0\, 0\, 0)\; font-family: Verdana\, Arial\, &quot\;Bits
+	tream Vera Sans&quot\;\, Helvetica\, sans-serif\; font-size: 13px\; backgr
+	ound-color: rgb(255\, 255\, 255)\; display: inline !important\;">Open meet
+	ing to discuss OpenSSL's announced plans to focus on QUIC.</span></div>\n<
+	br>\n<div style="width:100%\;height: 20px\;"><span style="white-space:nowr
+	ap\;color:#5F5F5F\;opacity:.36\;">________________________________________
+	________________________________________</span>\n</div>\n<div class="me-em
+	ail-text" style="color:#252424\;font-family:'Segoe UI'\,'Helvetica Neue'\,
+	Helvetica\,Arial\,sans-serif\;" lang="en-US">\n<div style="margin-top: 24p
+	x\; margin-bottom: 20px\;"><span style="font-size: 24px\; color:#252424">M
+	icrosoft Teams meeting</span>\n</div>\n<div style="margin-bottom: 20px\;">
+	\n<div style="margin-top: 0px\; margin-bottom: 0px\; font-weight: bold"><s
+	pan style="font-size: 14px\; color:#252424">Join on your computer or mobil
+	e app</span>\n</div>\n<a class="me-email-headline" style="font-size: 14px\
+	;font-family:'Segoe UI Semibold'\,'Segoe UI'\,'Helvetica Neue'\,Helvetica\
+	,Arial\,sans-serif\;text-decoration: underline\;color: #6264a7\;" href="ht
+	tps://teams.microsoft.com/l/meetup-join/19%3ameeting_MTgwYzQ4OTMtZmY4OC00N
+	TRiLTg5N2QtYWE5MWQwZDI4OGI5%40thread.v2/0?context=%7b%22Tid%22%3a%2272f988
+	bf-86f1-41af-91ab-2d7cd011db47%22%2c%22Oid%22%3a%220b5173e2-6590-4d27-b6ae
+	-a43af6b297d7%22%7d" target="_blank" rel="noreferrer noopener">Click\n her
+	e to join the meeting</a> </div>\n<div style="margin-bottom:20px\; margin-
+	top:20px">\n<div style="margin-bottom:4px"><span style="font-size: 14px\; 
+	color:#252424\; font-weight: bold">Or join by entering a meeting ID</span>
+	<br>\n<span data-tid="meeting-code" style="font-size: 14px\;">Meeting ID: 
+	273 854 559 583 42\n</span></div>\n</div>\n<div style="margin-bottom: 4px\
+	;">\n<div style="margin-bottom: 4px\;"><span style="font-size: 14px\; colo
+	r:#252424\; font-weight: bold">Or call in (audio only)</span>\n</div>\n<di
+	v style="margin-bottom: 4px\;"><a style="font-size: 14px\;text-decoration:
+	 underline\;color: #6264a7\;" href="tel:+12134587614\,\,228215809# ">+1 21
+	3-458-7614\,\,228215809#</a>\n<span style="font-size: 14px\; color:#252424
+	\;">&nbsp\; United States\, Los Angeles </span>\n</div>\n</div>\n<span sty
+	le="font-size: 14px\; color:#252424\;">Phone Conference ID: </span><span s
+	tyle="font-size: 16px\; color:#252424\;">228 215 809#\n</span>\n<div style
+	="margin-bottom: 20px\;"><a class="me-email-link" style="font-size: 14px\;
+	text-decoration: underline\;color: #6264a7\;font-family:'Segoe UI'\,'Helve
+	tica Neue'\,Helvetica\,Arial\,sans-serif\;" target="_blank" href="https://
+	dialin.teams.microsoft.com/48b4c613-cc67-4825-8175-29628d9715e5?id=2282158
+	09" rel="noreferrer noopener">Find\n a local number</a> | <a class="me-ema
+	il-link" style="font-size: 14px\;text-decoration: underline\;color: #6264a
+	7\;" target="_blank" href="https://mysettings.lync.com/pstnconferencing" r
+	el="noreferrer noopener">\nReset PIN</a> </div>\n<div style="margin-bottom
+	: 24px\;margin-top: 20px\;"><a class="me-email-link" style="font-size: 14p
+	x\;text-decoration: underline\;color: #6264a7\;font-family:'Segoe UI'\,'He
+	lvetica Neue'\,Helvetica\,Arial\,sans-serif\;" target="_blank" href="https
+	://aka.ms/JoinTeamsMeeting" rel="noreferrer noopener">Learn\n More</a> | <
+	a class="me-email-link" style="font-size: 14px\;text-decoration: underline
+	\;color: #6264a7\;font-family:'Segoe UI'\,'Helvetica Neue'\,Helvetica\,Ari
+	al\,sans-serif\;" target="_blank" href="https://teams.microsoft.com/meetin
+	gOptions/?organizerId=0b5173e2-6590-4d27-b6ae-a43af6b297d7&amp\;tenantId=7
+	2f988bf-86f1-41af-91ab-2d7cd011db47&amp\;threadId=19_meeting_MTgwYzQ4OTMtZ
+	mY4OC00NTRiLTg5N2QtYWE5MWQwZDI4OGI5@thread.v2&amp\;messageId=0&amp\;langua
+	ge=en-US" rel="noreferrer noopener">\nMeeting options</a> </div>\n</div>\n
+	<div style="font-size: 14px\; margin-bottom: 4px\;font-family:'Segoe UI'\,
+	'Helvetica Neue'\,Helvetica\,Arial\,sans-serif\;">\n</div>\n<div style="fo
+	nt-size: 12px\;"></div>\n<div></div>\n<div style="width:100%\;height: 20px
+	\;"><span style="white-space:nowrap\;color:#5F5F5F\;opacity:.36\;">_______
+	_________________________________________________________________________<
+	/span>\n</div>\n</body>\n</html>\n
+X-MICROSOFT-CDO-BUSYSTATUS:BUSY
+X-MICROSOFT-CDO-IMPORTANCE:1
+X-MS-OLK-APPTLASTSEQUENCE:0
+X-MS-OLK-APPTSEQTIME:20211101T225637Z
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+END:VCALENDAR
