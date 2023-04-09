@@ -354,10 +354,11 @@ QuicConnFree(
         CxPlatRecvDataReturn(Connection->ReceiveQueue);
         Connection->ReceiveQueue = NULL;
     }
-    QUIC_PATH* Path = &Connection->Paths[0];
-    if (Path->Binding != NULL) {
-        QuicLibraryReleaseBinding(Path->Binding);
-        Path->Binding = NULL;
+    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+        if (Connection->Paths[i].Binding != NULL) {
+            QuicLibraryReleaseBinding(Connection->Paths[i].Binding);
+            Connection->Paths[i].Binding = NULL;
+        }
     }
     CxPlatDispatchLockUninitialize(&Connection->ReceiveQueueLock);
     QuicOperationQueueUninitialize(&Connection->OperQ);
@@ -952,6 +953,28 @@ QuicConnGenerateNewSourceCids(
             break;
         }
     }
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+uint16_t
+QuicConnUnusedDestCidsCount(
+    _In_ const QUIC_CONNECTION* Connection
+    )
+{
+    uint16_t Count = 0;
+    for (CXPLAT_LIST_ENTRY* Entry = Connection->DestCids.Flink;
+            Entry != &Connection->DestCids;
+            Entry = Entry->Flink) {
+        QUIC_CID_LIST_ENTRY* DestCid =
+            CXPLAT_CONTAINING_RECORD(
+                Entry,
+                QUIC_CID_LIST_ENTRY,
+                Link);
+        if (!DestCid->CID.UsedLocally && !DestCid->CID.Retired) {
+            ++Count;
+        }
+    }
+    return Count;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -5388,20 +5411,22 @@ QuicConnRecvDatagrams(
         QuicConnSilentlyAbort(Connection);
     }
 
-    //
-    // Any new paths created here were created before packet validation. Now
-    // remove any non-active paths that didn't get any valid packets.
-    // NB: Traversing the array backwards is simpler and more efficient here due
-    // to the array shifting that happens in QuicPathRemove.
-    //
-    for (uint8_t i = Connection->PathsCount - 1; i > 0; --i) {
-        if (!Connection->Paths[i].GotValidPacket) {
-            QuicTraceLogConnInfo(
-                PathDiscarded,
-                Connection,
-                "Removing invalid path[%hhu]",
-                Connection->Paths[i].ID);
-            QuicPathRemove(Connection, i);
+    if (QuicConnIsServer(Connection)) {
+        //
+        // Any new paths created here were created before packet validation. Now
+        // remove any non-active paths that didn't get any valid packets.
+        // NB: Traversing the array backwards is simpler and more efficient here due
+        // to the array shifting that happens in QuicPathRemove.
+        //
+        for (uint8_t i = Connection->PathsCount - 1; i > 0; --i) {
+            if (!Connection->Paths[i].GotValidPacket) {
+                QuicTraceLogConnInfo(
+                    PathDiscarded,
+                    Connection,
+                    "Removing invalid path[%hhu]",
+                    Connection->Paths[i].ID);
+                QuicPathRemove(Connection, i);
+            }
         }
     }
 
@@ -6030,6 +6055,124 @@ QuicConnParamSet(
         Status = QUIC_STATUS_SUCCESS;
         break;
 
+    case QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS: {
+
+        if (BufferLength != sizeof(QUIC_ADDR)) {
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        if (QuicConnIsServer(Connection)) {
+            Status = QUIC_STATUS_INVALID_STATE;
+            break;
+        }
+
+        if (!Connection->State.Started) {
+            Status = QUIC_STATUS_INVALID_STATE;
+            break;
+        }
+
+        QUIC_CID_LIST_ENTRY* NewDestCid = QuicConnGetUnusedDestCid(Connection);
+        if (NewDestCid == NULL) {
+            Status = QUIC_STATUS_INVALID_STATE;
+            break;
+        }
+
+        const QUIC_ADDR* LocalAddress = (const QUIC_ADDR*)Buffer;
+
+        if (!QuicAddrIsValid(LocalAddress)) {
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+            if (QuicAddrCompare(
+                &Connection->Paths[i].Route.LocalAddress,
+                LocalAddress)) {
+                Status = QUIC_STATUS_SUCCESS;
+                break;
+            }
+        }
+
+        if (Connection->PathsCount == QUIC_MAX_PATH_COUNT) {
+            //
+            // Already tracking the maximum number of paths, and can't free
+            // any more.
+            //
+            Status = QUIC_STATUS_OUT_OF_MEMORY;
+            break;
+        }
+
+        CXPLAT_DBG_ASSERT(Connection->State.RemoteAddressSet);
+        CXPLAT_DBG_ASSERT(Connection->Configuration != NULL);
+
+        CXPLAT_UDP_CONFIG UdpConfig = {0};
+        UdpConfig.LocalAddress = LocalAddress;
+        UdpConfig.RemoteAddress = &Connection->Paths[0].Route.RemoteAddress;
+        UdpConfig.Flags = Connection->State.ShareBinding ? CXPLAT_SOCKET_FLAG_SHARE : 0;
+        UdpConfig.InterfaceIndex = 0;
+#ifdef QUIC_COMPARTMENT_ID
+        UdpConfig.CompartmentId = Connection->Configuration->CompartmentId;
+#endif
+#ifdef QUIC_OWNING_PROCESS
+        UdpConfig.OwningProcess = Connection->Configuration->OwningProcess;
+#endif
+
+        QUIC_BINDING* NewBinding = NULL;
+        Status =
+            QuicLibraryGetBinding(
+                &UdpConfig,
+                &NewBinding);
+        if (QUIC_FAILED(Status)) {
+            break;
+        }
+
+        if (Connection->PathsCount > 1) {
+            //
+            // Make room for the new path (at index 1).
+            //
+            CxPlatMoveMemory(
+                &Connection->Paths[2],
+                &Connection->Paths[1],
+                (Connection->PathsCount - 1) * sizeof(QUIC_PATH));
+        }
+        
+        QUIC_PATH* Path = &Connection->Paths[1];
+        QuicPathInitialize(Connection, Path);
+        Connection->PathsCount++;
+
+        Path->Binding = NewBinding;
+
+        QuicBindingGetLocalAddress(
+            Path->Binding,
+            &Path->Route.LocalAddress);
+        CxPlatCopyMemory(&Path->Route.RemoteAddress, &Connection->Paths[0].Route.RemoteAddress, sizeof(QUIC_ADDR));
+
+        Path->Allowance = UINT32_MAX;
+        
+        Path->DestCid = NewDestCid;
+        QUIC_CID_SET_PATH(Connection, Path->DestCid, Path);
+        Path->DestCid->CID.UsedLocally = TRUE;
+
+        CXPLAT_DBG_ASSERT(Path->DestCid != NULL);
+        QuicPathValidate(Path);
+        Path->SendChallenge = TRUE;
+        Path->PathValidationStartTime = CxPlatTimeUs32();
+
+        CxPlatRandom(sizeof(Path->Challenge), Path->Challenge);
+
+        QuicTraceEvent(
+            ConnLocalAddrAdded,
+            "[conn][%p] New Local IP: %!ADDR!",
+            Connection,
+            CASTED_CLOG_BYTEARRAY(sizeof(Path->Route.LocalAddress), &Path->Route.LocalAddress));
+
+        QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_PATH_CHALLENGE);
+
+        Status = QUIC_STATUS_SUCCESS;
+        break;
+    }
+
     //
     // Private
     //
@@ -6526,7 +6669,24 @@ QuicConnParamGet(
 
         Status = QUIC_STATUS_SUCCESS;
         break;
+    case QUIC_PARAM_CONN_LOCAL_UNUSED_DEST_CID_COUNT:
+        if (*BufferLength < sizeof(uint16_t)) {
+            *BufferLength = sizeof(uint16_t);
+            Status = QUIC_STATUS_BUFFER_TOO_SMALL;
+            break;
+        }
 
+        if (Buffer == NULL) {
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        *BufferLength = sizeof(uint16_t);
+        *(uint16_t*)Buffer =
+            QuicConnUnusedDestCidsCount(Connection);
+
+        Status = QUIC_STATUS_SUCCESS;
+        break;
     default:
         Status = QUIC_STATUS_INVALID_PARAMETER;
         break;

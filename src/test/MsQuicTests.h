@@ -249,6 +249,11 @@ QuicTestConnectExpiredClientCertificate(
 //
 
 void
+QuicTestProbePath(
+    _In_ int Family
+    );
+
+void
 QuicTestNatPortRebind(
     _In_ int Family,
     _In_ uint16_t KeepAlivePaddingSize
@@ -947,4 +952,8 @@ typedef struct {
 #define IOCTL_QUIC_RUN_STREAM_ABORT_CONN_FLOW_CONTROL \
     QUIC_CTL_CODE(79, METHOD_BUFFERED, FILE_WRITE_DATA)
 
-#define QUIC_MAX_IOCTL_FUNC_CODE 79
+#define IOCTL_QUIC_RUN_PROBE_PATH \
+    QUIC_CTL_CODE(80, METHOD_BUFFERED, FILE_WRITE_DATA)
+    // int - Family
+
+#define QUIC_MAX_IOCTL_FUNC_CODE 80

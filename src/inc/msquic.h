@@ -661,6 +661,8 @@ typedef enum QUIC_PARAM_LEVEL {
 #define QUIC_PARAM_CONN_RESUMPTION_TICKET               0x14000010  // uint8_t[]
 #define QUIC_PARAM_CONN_PEER_CERTIFICATE_VALID          0x14000011  // uint8_t (BOOLEAN)
 #define QUIC_PARAM_CONN_LOCAL_INTERFACE                 0x14000012  // uint32_t
+#define QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS               0x14000013  // QUIC_ADDR
+#define QUIC_PARAM_CONN_LOCAL_UNUSED_DEST_CID_COUNT     0x14000014  // uint16_t
 
 //
 // Parameters for QUIC_PARAM_LEVEL_TLS.
@@ -900,6 +902,8 @@ typedef enum QUIC_CONNECTION_EVENT_TYPE {
     QUIC_CONNECTION_EVENT_RESUMED                           = 13,   // Server-only; provides resumption data, if any.
     QUIC_CONNECTION_EVENT_RESUMPTION_TICKET_RECEIVED        = 14,   // Client-only; provides ticket to persist, if any.
     QUIC_CONNECTION_EVENT_PEER_CERTIFICATE_RECEIVED         = 15,   // Only with QUIC_CREDENTIAL_FLAG_INDICATE_CERTIFICATE_RECEIVED set
+    QUIC_CONNECTION_EVENT_PEER_ADDRESS_ADDED                = 16,
+    QUIC_CONNECTION_EVENT_PEER_ADDRESS_VALIDATED            = 17,
 } QUIC_CONNECTION_EVENT_TYPE;
 
 typedef struct QUIC_CONNECTION_EVENT {
