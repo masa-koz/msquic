@@ -1444,7 +1444,8 @@ QuicBindingFindConnectionByLocalCid(
     _In_ QUIC_BINDING* Binding,
     _In_reads_(CIDLen)
         const uint8_t* const CID,
-    _In_ uint8_t CIDLen
+    _In_ uint8_t CIDLen,
+    _Out_ QUIC_CID_HASH_ENTRY** SourceCid
     )
 {
     CxPlatDispatchRwLockAcquireShared(&Binding->RwLock);
@@ -1459,13 +1460,14 @@ QuicBindingFindConnectionByLocalCid(
         for (CXPLAT_SLIST_ENTRY* Entry1 = ConnListEntry->Connection->SourceCids.Next;
             Entry1 != NULL;
             Entry1 = Entry1->Next) {
-            const QUIC_CID_HASH_ENTRY* SourceCid =
+            QUIC_CID_HASH_ENTRY* SourceCid1 =
                 CXPLAT_CONTAINING_RECORD(
                     Entry1,
                     QUIC_CID_HASH_ENTRY,
                     Link);
-            if (SourceCid->CID.Length == CIDLen &&
-                memcmp(SourceCid->CID.Data, CID, SourceCid->CID.Length) == 0) {
+            if (SourceCid1->CID.Length == CIDLen &&
+                memcmp(SourceCid1->CID.Data, CID, SourceCid1->CID.Length) == 0) {
+                *SourceCid = SourceCid1;
                 QuicConnAddRef(ConnListEntry->Connection, QUIC_CONN_REF_LOOKUP_RESULT);
                 CxPlatDispatchRwLockReleaseExclusive(&Binding->RwLock);
                 return ConnListEntry->Connection;
@@ -1473,6 +1475,7 @@ QuicBindingFindConnectionByLocalCid(
         }
     }
     CxPlatDispatchRwLockReleaseExclusive(&Binding->RwLock);
+    *SourceCid = NULL;
     return NULL;
 }
 
@@ -1533,11 +1536,16 @@ QuicBindingDeliverDatagrams(
                 Packet->DestCid,
                 Packet->DestCidLen);
         if (Connection == NULL) {
+            QUIC_CID_HASH_ENTRY* SourceCid;
             Connection = 
                 QuicBindingFindConnectionByLocalCid(
                     Binding,
                     Packet->DestCid,
-                    Packet->DestCidLen);
+                    Packet->DestCidLen,
+                    &SourceCid);
+            if (SourceCid != NULL && !SourceCid->CID.IsInLookupTable) {
+                QuicBindingAddSourceConnectionID(Binding, SourceCid);
+            }
         }
     } else {
         Connection =

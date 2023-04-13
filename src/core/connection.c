@@ -871,7 +871,23 @@ QuicConnGenerateNewSourceCid(
             QuicConnFatalError(Connection, QUIC_STATUS_INTERNAL_ERROR, NULL);
             return NULL;
         }
-        if (!QuicBindingAddSourceConnectionID(Connection->Paths[0].Binding, SourceCid)) {
+
+        BOOLEAN Collision = FALSE;
+        const CXPLAT_SLIST_ENTRY* Entry = Connection->SourceCids.Next;
+        while (Entry != NULL) {
+            QUIC_CID_HASH_ENTRY *CID =
+                CXPLAT_CONTAINING_RECORD(
+                    Entry,
+                    QUIC_CID_HASH_ENTRY,
+                    Link);
+            if (memcmp(CID->CID.Data, SourceCid->CID.Data, CID->CID.Length) == 0) {
+                Collision = TRUE;
+                break;
+            }
+            Entry = Entry->Next;
+        }
+
+        if (Collision) {
             CXPLAT_FREE(SourceCid, QUIC_POOL_CIDHASH);
             SourceCid = NULL;
             if (++TryCount > QUIC_CID_MAX_COLLISION_RETRY) {
@@ -890,6 +906,8 @@ QuicConnGenerateNewSourceCid(
         }
     } while (SourceCid == NULL);
 
+    SourceCid->CID.SequenceNumber = Connection->NextSourceCidSequenceNumber++;
+
     QuicTraceEvent(
         ConnSourceCidAdded,
         "[conn][%p] (SeqNum=%llu) New Source CID: %!CID!",
@@ -897,7 +915,6 @@ QuicConnGenerateNewSourceCid(
         SourceCid->CID.SequenceNumber,
         CASTED_CLOG_BYTEARRAY(SourceCid->CID.Length, SourceCid->CID.Data));
 
-    SourceCid->CID.SequenceNumber = Connection->NextSourceCidSequenceNumber++;
     if (SourceCid->CID.SequenceNumber > 0) {
         SourceCid->CID.NeedsToSend = TRUE;
         QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_NEW_CONNECTION_ID);
