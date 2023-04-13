@@ -692,3 +692,24 @@ std::ostream& operator << (std::ostream& o, const RebindPaddingArgs& args) {
 class WithRebindPaddingArgs : public testing::Test,
     public testing::WithParamInterface<RebindPaddingArgs> {
 };
+
+struct ProbePathArgs {
+    int Family;
+    BOOLEAN ShareBinding;
+    static ::std::vector<ProbePathArgs> Generate() {
+        ::std::vector<ProbePathArgs> list;
+        for (int Family : { 4, 6 })
+        for (BOOLEAN ShareBinding : { TRUE, FALSE })
+            list.push_back({ Family, ShareBinding });
+        return list;
+    }
+};
+
+std::ostream& operator << (std::ostream& o, const ProbePathArgs& args) {
+    return o << (args.Family == 4 ? "v4" : "v6") << "/"
+        << (args.ShareBinding ? "ShareBinding" : "not ShareBinding");
+}
+
+class WithProbePathArgs : public testing::Test,
+    public testing::WithParamInterface<ProbePathArgs> {
+};

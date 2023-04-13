@@ -993,12 +993,16 @@ TEST_P(WithFamilyArgs, ServerRejected) {
     }
 }
 
-TEST_P(WithFamilyArgs, ProbePath) {
-    TestLoggerT<ParamType> Logger("QuicTestNatPortRebind", GetParam());
+TEST_P(WithProbePathArgs, ProbePath) {
+    TestLoggerT<ParamType> Logger("QuicTestProbePath", GetParam());
     if (TestingKernelMode) {
-        ASSERT_TRUE(DriverClient.Run(IOCTL_QUIC_RUN_NAT_PORT_REBIND, GetParam().Family));
+        QUIC_RUN_PROBE_PATH_PARAMS Params = {
+            GetParam().Family,
+            GetParam().ShareBinding
+        };
+        ASSERT_TRUE(DriverClient.Run(IOCTL_QUIC_RUN_PROBE_PATH, Params));
     } else {
-        QuicTestProbePath(GetParam().Family);
+        QuicTestProbePath(GetParam().Family, GetParam().ShareBinding);
     }
 }
 
@@ -1594,6 +1598,11 @@ INSTANTIATE_TEST_SUITE_P(
     Basic,
     WithFamilyArgs,
     ::testing::ValuesIn(FamilyArgs::Generate()));
+
+INSTANTIATE_TEST_SUITE_P(
+    Basic,
+    WithProbePathArgs,
+    ::testing::ValuesIn(ProbePathArgs::Generate()));
 
 #ifdef QUIC_TEST_DATAPATH_HOOKS_ENABLED
 

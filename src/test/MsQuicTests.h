@@ -250,7 +250,8 @@ QuicTestConnectExpiredClientCertificate(
 
 void
 QuicTestProbePath(
-    _In_ int Family
+    _In_ int Family,
+    _In_ BOOLEAN ShareBinding
     );
 
 void
@@ -951,6 +952,11 @@ typedef struct {
 
 #define IOCTL_QUIC_RUN_STREAM_ABORT_CONN_FLOW_CONTROL \
     QUIC_CTL_CODE(79, METHOD_BUFFERED, FILE_WRITE_DATA)
+
+typedef struct {
+    int Family;
+    BOOLEAN ShareBinding;
+} QUIC_RUN_PROBE_PATH_PARAMS;
 
 #define IOCTL_QUIC_RUN_PROBE_PATH \
     QUIC_CTL_CODE(80, METHOD_BUFFERED, FILE_WRITE_DATA)

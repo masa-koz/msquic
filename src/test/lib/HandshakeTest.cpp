@@ -328,7 +328,8 @@ struct ProbeContext {
 
 void
 QuicTestProbePath(
-    _In_ int Family
+    _In_ int Family,
+    _In_ BOOLEAN ShareBinding
     )
 {
     ProbeContext ServerContext, ClientContext;
@@ -351,6 +352,17 @@ QuicTestProbePath(
 
     MsQuicConnection Connection(Registration, MsQuicCleanUpMode::CleanUpManual, ProbeContext::ConnCallback, &ClientContext);
     TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
+
+    if (ShareBinding) {
+        uint8_t Param = 1;
+        TEST_QUIC_SUCCEEDED(
+            Connection.SetParam(
+                QUIC_PARAM_LEVEL_CONNECTION,
+                QUIC_PARAM_CONN_SHARE_UDP_BINDING,
+                sizeof(Param),
+                &Param));
+    }
+
 
     TEST_QUIC_SUCCEEDED(Connection.StartLocalhost(ClientConfiguration, ServerLocalAddr));
     TEST_TRUE(Connection.HandshakeCompleteEvent.WaitTimeout(TestWaitTimeout));
