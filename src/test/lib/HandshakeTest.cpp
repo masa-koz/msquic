@@ -311,6 +311,7 @@ QuicTestConnect(
 struct ProbeContext {
     bool Connected {false};
     CxPlatEvent HandshakeCompleteEvent;
+    CxPlatEvent PathValidatedEvent;
     static QUIC_STATUS ConnCallback(_In_ MsQuicConnection*, _In_opt_ void* Context, _Inout_ QUIC_CONNECTION_EVENT* Event) {
         auto This = static_cast<ProbeContext*>(Context);
         if (Event->Type == QUIC_CONNECTION_EVENT_SHUTDOWN_COMPLETE) {
@@ -318,6 +319,8 @@ struct ProbeContext {
         } else if (Event->Type == QUIC_CONNECTION_EVENT_CONNECTED) {
             This->Connected = true;
             This->HandshakeCompleteEvent.Set();
+        } else if (Event->Type == QUIC_CONNECTION_EVENT_PATH_VALIDATED) {
+            This->PathValidatedEvent.Set();
         }
         return QUIC_STATUS_SUCCESS;
     }
@@ -328,7 +331,7 @@ QuicTestProbePath(
     _In_ int Family
     )
 {
-    ProbeContext Context;
+    ProbeContext ServerContext, ClientContext;
     MsQuicRegistration Registration(true);
     TEST_TRUE(Registration.IsValid());
 
@@ -339,20 +342,20 @@ QuicTestProbePath(
     MsQuicConfiguration ClientConfiguration(Registration, "MsQuicTest", ClientCredConfig);
     TEST_TRUE(ClientConfiguration.IsValid());
 
-    MsQuicAutoAcceptListener Listener(Registration, ServerConfiguration, ProbeContext::ConnCallback, &Context);
+    MsQuicAutoAcceptListener Listener(Registration, ServerConfiguration, ProbeContext::ConnCallback, &ServerContext);
     TEST_QUIC_SUCCEEDED(Listener.GetInitStatus());
     QUIC_ADDRESS_FAMILY QuicAddrFamily = (Family == 4) ? QUIC_ADDRESS_FAMILY_INET : QUIC_ADDRESS_FAMILY_INET6;
     QuicAddr ServerLocalAddr(QuicAddrFamily);
     TEST_QUIC_SUCCEEDED(Listener.Start("MsQuicTest", &ServerLocalAddr.SockAddr));
     TEST_QUIC_SUCCEEDED(Listener.GetLocalAddr(ServerLocalAddr));
 
-    MsQuicConnection Connection(Registration);
+    MsQuicConnection Connection(Registration, MsQuicCleanUpMode::CleanUpManual, ProbeContext::ConnCallback, &ClientContext);
     TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
 
     TEST_QUIC_SUCCEEDED(Connection.StartLocalhost(ClientConfiguration, ServerLocalAddr));
     TEST_TRUE(Connection.HandshakeCompleteEvent.WaitTimeout(TestWaitTimeout));
-    TEST_TRUE(Context.HandshakeCompleteEvent.WaitTimeout(TestWaitTimeout));
-    TEST_TRUE(Context.Connected);
+    TEST_TRUE(ServerContext.HandshakeCompleteEvent.WaitTimeout(TestWaitTimeout));
+    TEST_TRUE(ServerContext.Connected);
 
     uint16_t Count = 0;
     uint32_t Try = 0;
@@ -385,7 +388,8 @@ QuicTestProbePath(
             sizeof(SecondLocalAddr.SockAddr),
             &SecondLocalAddr.SockAddr));
 
-    CxPlatSleep(200);
+    TEST_TRUE(ClientContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));
+    TEST_TRUE(ServerContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));
     
     Connection.Shutdown(1);
 }
