@@ -604,6 +604,11 @@ typedef struct QUIC_CONNECTION {
 
 } QUIC_CONNECTION;
 
+typedef struct QUIC_CONNECTION_LIST_ENTRY {
+    CXPLAT_LIST_ENTRY Link;
+    QUIC_CONNECTION *Connection;
+} QUIC_CONNECTION_LIST_ENTRY;
+
 typedef struct QUIC_SERIALIZED_RESUMPTION_STATE {
 
     uint32_t QuicVersion;
@@ -1106,7 +1111,7 @@ QuicConnGetSourceCidFromSeq(
         if (SourceCid->CID.SequenceNumber == SequenceNumber) {
             if (RemoveFromList) {
                 QuicBindingRemoveSourceConnectionID(
-                    Connection->Paths[0].Binding,
+                    SourceCid->Binding,
                     SourceCid,
                     Entry);
                 QuicTraceEvent(

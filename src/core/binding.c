@@ -63,6 +63,7 @@ QuicBindingInitialize(
     CxPlatDispatchRwLockInitialize(&Binding->RwLock);
     CxPlatDispatchLockInitialize(&Binding->StatelessOperLock);
     CxPlatListInitializeHead(&Binding->Listeners);
+    CxPlatListInitializeHead(&Binding->Connections);
     QuicLookupInitialize(&Binding->Lookup);
     if (!CxPlatHashtableInitializeEx(&Binding->StatelessOperTable, CXPLAT_HASH_MIN_SIZE)) {
         Status = QUIC_STATUS_OUT_OF_MEMORY;
@@ -197,6 +198,7 @@ QuicBindingUninitialize(
 
     CXPLAT_TEL_ASSERT(Binding->RefCount == 0);
     CXPLAT_TEL_ASSERT(CxPlatListIsEmpty(&Binding->Listeners));
+    CXPLAT_TEL_ASSERT(CxPlatListIsEmpty(&Binding->Connections));
 
     //
     // Delete the datapath binding. This function blocks until all receive
@@ -493,6 +495,51 @@ QuicBindingUnregisterListener(
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+QuicBindingRegisterConnection(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_CONNECTION* Connection
+    )
+{
+    QUIC_CONNECTION_LIST_ENTRY* Entry =
+        (QUIC_CONNECTION_LIST_ENTRY*)CXPLAT_ALLOC_NONPAGED(
+            sizeof(QUIC_CONNECTION_LIST_ENTRY),
+            QUIC_POOL_CONNLIST);
+    if (Entry == NULL) {
+        return QUIC_STATUS_OUT_OF_MEMORY;
+    }
+    Entry->Connection = Connection;
+
+    CxPlatDispatchRwLockAcquireExclusive(&Binding->RwLock);
+    CxPlatListInsertTail(&Binding->Connections, &Entry->Link);    
+    CxPlatDispatchRwLockReleaseExclusive(&Binding->RwLock);
+    return QUIC_STATUS_SUCCESS;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicBindingUnregisterConnection(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_CONNECTION* Connection
+    )
+{
+    CxPlatDispatchRwLockAcquireExclusive(&Binding->RwLock);
+    for (CXPLAT_LIST_ENTRY* Link = Binding->Connections.Flink;
+        Link != &Binding->Connections;
+        Link = Link->Flink) {
+
+        QUIC_CONNECTION_LIST_ENTRY* Entry =
+            CXPLAT_CONTAINING_RECORD(Link, QUIC_CONNECTION_LIST_ENTRY, Link);
+        if (Entry->Connection == Connection) {
+            CxPlatListEntryRemove(&Entry->Link);
+            CXPLAT_FREE(Entry, QUIC_POOL_CONNLIST);
+            break;
+        }
+    }
+    CxPlatDispatchRwLockReleaseExclusive(&Binding->RwLock);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
 void
 QuicBindingAcceptConnection(
     _In_ QUIC_BINDING* Binding,
@@ -559,6 +606,7 @@ QuicBindingAddSourceConnectionID(
     _In_ QUIC_CID_HASH_ENTRY* SourceCid
     )
 {
+    SourceCid->Binding = Binding;
     return QuicLookupAddLocalCid(&Binding->Lookup, SourceCid, NULL);
 }
 
@@ -575,6 +623,17 @@ QuicBindingRemoveSourceConnectionID(
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 void
+QuicBindingRemoveRemoteHash(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_REMOTE_HASH_ENTRY* RemoteHashEntry
+    )
+{
+    QuicLookupRemoveRemoteHash(&Binding->Lookup, RemoteHashEntry);
+}
+
+/*
+_IRQL_requires_max_(DISPATCH_LEVEL)
+void
 QuicBindingRemoveConnection(
     _In_ QUIC_BINDING* Binding,
     _In_ QUIC_CONNECTION* Connection
@@ -585,6 +644,7 @@ QuicBindingRemoveConnection(
     }
     QuicLookupRemoveLocalCids(&Binding->Lookup, Connection);
 }
+*/
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 void
@@ -1315,6 +1375,12 @@ QuicBindingCreateConnection(
     BindingRefAdded = TRUE;
     NewConnection->Paths[0].Binding = Binding;
 
+    QUIC_STATUS Status = QuicBindingRegisterConnection(Binding, NewConnection);
+    if (QUIC_FAILED(Status)) {
+        QuicPacketLogDrop(Binding, Packet, "Failed to insert connection list");
+        goto Exit;
+    }
+
     if (!QuicLookupAddRemoteHash(
             &Binding->Lookup,
             NewConnection,
@@ -1330,6 +1396,8 @@ QuicBindingCreateConnection(
         }
         goto Exit;
     }
+    CXPLAT_DBG_ASSERT(NewConnection->RemoteHashEntry != NULL);
+    NewConnection->RemoteHashEntry->Binding = Binding;
 
     QuicWorkerQueueConnection(NewConnection->Worker, NewConnection);
 
@@ -1368,6 +1436,44 @@ Exit:
     }
 
     return Connection;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+QUIC_CONNECTION*
+QuicBindingFindConnectionByLocalCid(
+    _In_ QUIC_BINDING* Binding,
+    _In_reads_(CIDLen)
+        const uint8_t* const CID,
+    _In_ uint8_t CIDLen
+    )
+{
+    CxPlatDispatchRwLockAcquireShared(&Binding->RwLock);
+    for (CXPLAT_LIST_ENTRY* Entry = Binding->Connections.Flink;
+        Entry != &Binding->Connections;
+        Entry = Entry->Flink) {
+        const QUIC_CONNECTION_LIST_ENTRY* ConnListEntry =
+            CXPLAT_CONTAINING_RECORD(
+                Entry,
+                QUIC_CONNECTION_LIST_ENTRY,
+                Link);
+        for (CXPLAT_SLIST_ENTRY* Entry1 = ConnListEntry->Connection->SourceCids.Next;
+            Entry1 != NULL;
+            Entry1 = Entry1->Next) {
+            const QUIC_CID_HASH_ENTRY* SourceCid =
+                CXPLAT_CONTAINING_RECORD(
+                    Entry1,
+                    QUIC_CID_HASH_ENTRY,
+                    Link);
+            if (SourceCid->CID.Length == CIDLen &&
+                memcmp(SourceCid->CID.Data, CID, SourceCid->CID.Length) == 0) {
+                QuicConnAddRef(ConnListEntry->Connection, QUIC_CONN_REF_LOOKUP_RESULT);
+                CxPlatDispatchRwLockReleaseExclusive(&Binding->RwLock);
+                return ConnListEntry->Connection;
+            }
+        }
+    }
+    CxPlatDispatchRwLockReleaseExclusive(&Binding->RwLock);
+    return NULL;
 }
 
 //
@@ -1426,6 +1532,13 @@ QuicBindingDeliverDatagrams(
                 &Binding->Lookup,
                 Packet->DestCid,
                 Packet->DestCidLen);
+        if (Connection == NULL) {
+            Connection = 
+                QuicBindingFindConnectionByLocalCid(
+                    Binding,
+                    Packet->DestCid,
+                    Packet->DestCidLen);
+        }
     } else {
         Connection =
             QuicLookupFindConnectionByRemoteHash(

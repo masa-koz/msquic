@@ -219,6 +219,11 @@ typedef struct QUIC_BINDING {
     CXPLAT_LIST_ENTRY Listeners;
 
     //
+    // The connections registered on this binding.
+    //
+    CXPLAT_LIST_ENTRY Connections;
+
+    //
     // Lookup tables for connection IDs.
     //
     QUIC_LOOKUP Lookup;
@@ -330,6 +335,21 @@ QuicBindingUnregisterListener(
     _In_ QUIC_LISTENER* Listener
     );
 
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+QuicBindingRegisterConnection(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_CONNECTION* Connection
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicBindingUnregisterConnection(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_CONNECTION* Connection
+    );
+
 //
 // Passes the connection to the binding to (possibly) accept it.
 //
@@ -361,6 +381,13 @@ QuicBindingRemoveSourceConnectionID(
     _In_ QUIC_BINDING* Binding,
     _In_ QUIC_CID_HASH_ENTRY* SourceCid,
     _In_ CXPLAT_SLIST_ENTRY** Entry
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+void
+QuicBindingRemoveRemoteHash(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_REMOTE_HASH_ENTRY* RemoteHashEntry
     );
 
 //

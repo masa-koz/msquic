@@ -140,6 +140,8 @@ typedef struct CXPLAT_SLIST_ENTRY {
 #define QUIC_POOL_DATAPATH_ADDRESSES        '64cQ' // Qc46 - QUIC Datapath Addresses
 #define QUIC_POOL_TLS_TICKET_KEY            '74cQ' // Qc47 - QUIC Platform TLS ticket key
 #define QUIC_POOL_TLS_CIPHER_SUITE_STRING   '84cQ' // Qc48 - QUIC TLS cipher suite string
+#define QUIC_POOL_CONNLIST                  '94cQ' // Qc49 - QUIC connection list
+
 
 typedef enum CXPLAT_THREAD_FLAGS {
     CXPLAT_THREAD_FLAG_NONE               = 0x0000,

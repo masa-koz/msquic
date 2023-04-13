@@ -449,8 +449,36 @@ QuicConnUninitialize(
     // Remove all entries in the binding's lookup tables so we don't get any
     // more packets queued.
     //
-    if (Connection->Paths[0].Binding != NULL) {
-        QuicBindingRemoveConnection(Connection->Paths[0].Binding, Connection);
+    if (Connection->RemoteHashEntry != NULL) {
+        CXPLAT_DBG_ASSERT(Connection->RemoteHashEntry->Binding != NULL);
+        QuicBindingRemoveRemoteHash(
+            Connection->RemoteHashEntry->Binding,
+            Connection->RemoteHashEntry);
+    }
+
+    while (Connection->SourceCids.Next != NULL) {
+        CXPLAT_SLIST_ENTRY* Entry = CxPlatListPopEntry(&Connection->SourceCids);
+        QUIC_CID_HASH_ENTRY *CID =
+            CXPLAT_CONTAINING_RECORD(
+                Entry,
+                QUIC_CID_HASH_ENTRY,
+                Link);
+        if (CID->CID.IsInLookupTable) {
+            QuicBindingRemoveSourceConnectionID(
+                CID->Binding,
+                CID,
+                &Entry);
+            CID->CID.IsInLookupTable = FALSE;
+        }
+        CXPLAT_FREE(CID, QUIC_POOL_CIDHASH);
+    }
+
+    if (Connection->State.ShareBinding) {
+        for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+            if (Connection->Paths[i].Binding != NULL) {
+                QuicBindingUnregisterConnection(Connection->Paths[i].Binding, Connection);
+            }
+        }
     }
 
     //
@@ -1866,6 +1894,13 @@ QuicConnStart(
             &Path->Binding);
     if (QUIC_FAILED(Status)) {
         goto Exit;
+    }
+
+    if (Connection->State.ShareBinding) {
+        Status = QuicBindingRegisterConnection(Path->Binding, Connection);
+        if (QUIC_FAILED(Status)) {
+            goto Exit;
+        }
     }
 
     //
@@ -4978,7 +5013,8 @@ QuicConnRecvPostProcessing(
     if (!(*Path)->GotValidPacket) {
         (*Path)->GotValidPacket = TRUE;
 
-        if (!(*Path)->IsActive) {
+        if (!(*Path)->IsActive &&
+            QuicConnIsServer(Connection)) {
 
             //
             // This is the first valid packet received on this non-active path.
@@ -6127,6 +6163,37 @@ QuicConnParamSet(
             break;
         }
 
+        if (!Connection->State.ShareBinding) {
+            QUIC_CID_HASH_ENTRY* SourceCid = QuicCidNewNullSource(Connection);
+            if (SourceCid == NULL) {
+                QuicLibraryReleaseBinding(NewBinding);
+                Status = QUIC_STATUS_OUT_OF_MEMORY;
+                break;
+            }
+
+            Connection->NextSourceCidSequenceNumber++;
+            QuicTraceEvent(
+                ConnSourceCidAdded,
+                "[conn][%p] (SeqNum=%llu) New Source CID: %!CID!",
+                Connection,
+                SourceCid->CID.SequenceNumber,
+                CASTED_CLOG_BYTEARRAY(SourceCid->CID.Length, SourceCid->CID.Data));
+            CxPlatListPushEntry(&Connection->SourceCids, &SourceCid->Link);
+
+            if (!QuicBindingAddSourceConnectionID(NewBinding, SourceCid)) {
+                QuicLibraryReleaseBinding(NewBinding);
+                Status = QUIC_STATUS_OUT_OF_MEMORY;
+                break;
+            }
+        } else {
+            Status = QuicBindingRegisterConnection(NewBinding, Connection);
+            if (QUIC_FAILED(Status)) {
+                QuicLibraryReleaseBinding(NewBinding);
+                Status = QUIC_STATUS_OUT_OF_MEMORY;
+                break;
+            }
+        }
+ 
         if (Connection->PathsCount > 1) {
             //
             // Make room for the new path (at index 1).
