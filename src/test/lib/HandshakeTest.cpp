@@ -426,6 +426,101 @@ QuicTestConnect(
     }
 }
 
+struct ProbeContext {
+    bool Connected {false};
+    CxPlatEvent HandshakeCompleteEvent;
+    CxPlatEvent PathValidatedEvent;
+    static QUIC_STATUS ConnCallback(_In_ MsQuicConnection*, _In_opt_ void* Context, _Inout_ QUIC_CONNECTION_EVENT* Event) {
+        auto This = static_cast<ProbeContext*>(Context);
+        if (Event->Type == QUIC_CONNECTION_EVENT_SHUTDOWN_COMPLETE) {
+            This->HandshakeCompleteEvent.Set();
+        } else if (Event->Type == QUIC_CONNECTION_EVENT_CONNECTED) {
+            This->Connected = true;
+            This->HandshakeCompleteEvent.Set();
+        } else if (Event->Type == QUIC_CONNECTION_EVENT_PATH_VALIDATED) {
+            This->PathValidatedEvent.Set();
+        }
+        return QUIC_STATUS_SUCCESS;
+    }
+};
+
+void
+QuicTestProbePath(
+    _In_ int Family,
+    _In_ BOOLEAN ShareBinding
+    )
+{
+    ProbeContext ServerContext, ClientContext;
+    MsQuicRegistration Registration(true);
+    TEST_TRUE(Registration.IsValid());
+
+    MsQuicConfiguration ServerConfiguration(Registration, "MsQuicTest", ServerSelfSignedCredConfig);
+    TEST_TRUE(ServerConfiguration.IsValid());
+
+    MsQuicCredentialConfig ClientCredConfig;
+    MsQuicConfiguration ClientConfiguration(Registration, "MsQuicTest", ClientCredConfig);
+    TEST_TRUE(ClientConfiguration.IsValid());
+
+    MsQuicAutoAcceptListener Listener(Registration, ServerConfiguration, ProbeContext::ConnCallback, &ServerContext);
+    TEST_QUIC_SUCCEEDED(Listener.GetInitStatus());
+    QUIC_ADDRESS_FAMILY QuicAddrFamily = (Family == 4) ? QUIC_ADDRESS_FAMILY_INET : QUIC_ADDRESS_FAMILY_INET6;
+    QuicAddr ServerLocalAddr(QuicAddrFamily);
+    TEST_QUIC_SUCCEEDED(Listener.Start("MsQuicTest", &ServerLocalAddr.SockAddr));
+    TEST_QUIC_SUCCEEDED(Listener.GetLocalAddr(ServerLocalAddr));
+
+    MsQuicConnection Connection(Registration, MsQuicCleanUpMode::CleanUpManual, ProbeContext::ConnCallback, &ClientContext);
+    TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
+
+    if (ShareBinding) {
+        uint8_t Param = 1;
+        TEST_QUIC_SUCCEEDED(
+            Connection.SetParam(
+                QUIC_PARAM_CONN_SHARE_UDP_BINDING,
+                sizeof(Param),
+                &Param));
+    }
+
+
+    TEST_QUIC_SUCCEEDED(Connection.Start(ClientConfiguration, ServerLocalAddr.GetFamily(), QUIC_TEST_LOOPBACK_FOR_AF(ServerLocalAddr.GetFamily()), ServerLocalAddr.GetPort()));
+    TEST_TRUE(Connection.HandshakeCompleteEvent.WaitTimeout(TestWaitTimeout));
+    TEST_TRUE(ServerContext.HandshakeCompleteEvent.WaitTimeout(TestWaitTimeout));
+    TEST_TRUE(ServerContext.Connected);
+
+    uint16_t Count = 0;
+    uint32_t Try = 0;
+
+    do {
+        if (Try != 0) {
+            CxPlatSleep(100);
+        }
+        uint32_t Size = sizeof(Count);
+        QUIC_STATUS Status =
+            Connection.GetParam(
+                QUIC_PARAM_CONN_LOCAL_UNUSED_DEST_CID_COUNT,
+                &Size,
+                &Count);
+        if (QUIC_FAILED(Status)) {
+            break;
+        }
+    } while (Count == 0 && ++Try <= 3);
+    TEST_NOT_EQUAL(Count, 0);
+
+    QuicAddr SecondLocalAddr;
+    TEST_QUIC_SUCCEEDED(Connection.GetLocalAddr(SecondLocalAddr));
+    SecondLocalAddr.IncrementPort();
+
+    TEST_QUIC_SUCCEEDED(
+        Connection.SetParam(
+            QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS,
+            sizeof(SecondLocalAddr.SockAddr),
+            &SecondLocalAddr.SockAddr));
+
+    TEST_TRUE(ClientContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));
+    TEST_TRUE(ServerContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));
+
+    Connection.Shutdown(1);
+}
+
 struct RebindContext {
     bool Connected {false};
     CxPlatEvent HandshakeCompleteEvent;

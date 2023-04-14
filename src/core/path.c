@@ -240,6 +240,10 @@ QuicConnGetPathForDatagram(
         }
     }
 
+    if (!QuicLibraryTryAddRefBinding(Connection->Paths[0].Binding)) {
+        return NULL;
+    }
+
     if (Connection->PathsCount > 1) {
         //
         // Make room for the new path (at index 1).

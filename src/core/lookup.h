@@ -11,6 +11,7 @@ typedef struct QUIC_REMOTE_HASH_ENTRY {
 
     CXPLAT_HASHTABLE_ENTRY Entry;
     QUIC_CONNECTION* Connection;
+    QUIC_BINDING* Binding;
     QUIC_ADDR RemoteAddress;
     uint8_t RemoteCidLength;
     uint8_t RemoteCid[0];

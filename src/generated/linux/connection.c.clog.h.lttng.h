@@ -738,10 +738,10 @@ TRACEPOINT_EVENT(CLOG_CONNECTION_C, FirstCidUsage,
 // Decoder Ring for PathDiscarded
 // [conn][%p] Removing invalid path[%hhu]
 // QuicTraceLogConnInfo(
-                PathDiscarded,
-                Connection,
-                "Removing invalid path[%hhu]",
-                Connection->Paths[i].ID);
+                    PathDiscarded,
+                    Connection,
+                    "Removing invalid path[%hhu]",
+                    Connection->Paths[i].ID);
 // arg1 = arg1 = Connection = arg1
 // arg3 = arg3 = Connection->Paths[i].ID = arg3
 ----------------------------------------------------------*/
@@ -1418,6 +1418,44 @@ TRACEPOINT_EVENT(CLOG_CONNECTION_C, IndicatePeerNeedStreamsV2,
     TP_FIELDS(
         ctf_integer_hex(uint64_t, arg1, arg1)
         ctf_string(arg3, arg3)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for IndicatePathValidated
+// [conn][%p] Indicating QUIC_CONNECTION_EVENT_PATH_VALIDATED
+// QuicTraceLogConnVerbose(
+                        IndicatePathValidated,
+                        Connection,
+                        "Indicating QUIC_CONNECTION_EVENT_PATH_VALIDATED");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CONNECTION_C, IndicatePathValidated,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, arg1)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for IndicatePathAdded
+// [conn][%p] Indicating QUIC_CONNECTION_EVENT_PATH_ADDED
+// QuicTraceLogConnVerbose(
+                IndicatePathAdded,
+                Connection,
+                "Indicating QUIC_CONNECTION_EVENT_PATH_ADDED");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CONNECTION_C, IndicatePathAdded,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, arg1)
     )
 )
 

@@ -1456,6 +1456,19 @@ TEST_P(WithFamilyArgs, ClientBlockedSourcePort) {
     }
 }
 
+TEST_P(WithProbePathArgs, ProbePath) {
+    TestLoggerT<ParamType> Logger("QuicTestProbePath", GetParam());
+    if (TestingKernelMode) {
+        QUIC_RUN_PROBE_PATH_PARAMS Params = {
+            GetParam().Family,
+            GetParam().ShareBinding
+        };
+        ASSERT_TRUE(DriverClient.Run(IOCTL_QUIC_RUN_PROBE_PATH, Params));
+    } else {
+        QuicTestProbePath(GetParam().Family, GetParam().ShareBinding);
+    }
+}
+
 #if QUIC_TEST_DATAPATH_HOOKS_ENABLED
 TEST_P(WithFamilyArgs, RebindPort) {
 #ifdef QUIC_API_ENABLE_PREVIEW_FEATURES
@@ -2192,6 +2205,11 @@ INSTANTIATE_TEST_SUITE_P(
     Basic,
     WithFamilyArgs,
     ::testing::ValuesIn(FamilyArgs::Generate()));
+
+INSTANTIATE_TEST_SUITE_P(
+    Basic,
+    WithProbePathArgs,
+    ::testing::ValuesIn(ProbePathArgs::Generate()));
 
 #ifdef QUIC_TEST_DATAPATH_HOOKS_ENABLED
 
