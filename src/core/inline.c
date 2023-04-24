@@ -27,7 +27,7 @@ QuicCidNewDestination(
         const uint8_t* const Data
     );
 
-QUIC_CID_HASH_ENTRY*
+QUIC_CID_SLIST_ENTRY*
 QuicCidNewSource(
     _In_ QUIC_CONNECTION* Connection,
     _In_ uint8_t Length,
@@ -35,12 +35,12 @@ QuicCidNewSource(
         const uint8_t* const Data
     );
 
-QUIC_CID_HASH_ENTRY*
+QUIC_CID_SLIST_ENTRY*
 QuicCidNewNullSource(
     _In_ QUIC_CONNECTION* Connection
     );
 
-QUIC_CID_HASH_ENTRY*
+QUIC_CID_SLIST_ENTRY*
 QuicCidNewRandomSource(
     _In_opt_ QUIC_CONNECTION* Connection,
     _In_reads_opt_(MsQuicLib.CidServerIdLength)
@@ -747,7 +747,7 @@ QuicPacketBuilderHasAllowance(
     _In_ const QUIC_PACKET_BUILDER* Builder
     );
 
-QUIC_CID_HASH_ENTRY*
+QUIC_CID_SLIST_ENTRY*
 QuicConnGetSourceCidFromSeq(
     _In_ QUIC_CONNECTION* Connection,
     _In_ QUIC_VAR_INT SequenceNumber,
@@ -755,7 +755,7 @@ QuicConnGetSourceCidFromSeq(
     _Out_ BOOLEAN* IsLastCid
     );
 
-QUIC_CID_HASH_ENTRY*
+QUIC_CID_SLIST_ENTRY*
 QuicConnGetSourceCidFromBuf(
     _In_ QUIC_CONNECTION* Connection,
     _In_ uint8_t CidLength,

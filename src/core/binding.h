@@ -226,11 +226,6 @@ typedef struct QUIC_BINDING {
     CXPLAT_LIST_ENTRY Listeners;
 
     //
-    // The connections registered on this binding.
-    //
-    CXPLAT_LIST_ENTRY Connections;
-
-    //
     // Lookup tables for connection IDs.
     //
     QUIC_LOOKUP Lookup;
@@ -343,26 +338,6 @@ QuicBindingUnregisterListener(
     );
 
 //
-// Attempts to register a connection with the binding.
-//
-_IRQL_requires_max_(PASSIVE_LEVEL)
-QUIC_STATUS
-QuicBindingRegisterConnection(
-    _In_ QUIC_BINDING* Binding,
-    _In_ QUIC_CONNECTION* Connection
-    );
-
-//
-// Unregister a connection from the binding.
-//
-_IRQL_requires_max_(PASSIVE_LEVEL)
-void
-QuicBindingUnregisterConnection(
-    _In_ QUIC_BINDING* Binding,
-    _In_ QUIC_CONNECTION* Connection
-    );
-
-//
 // Passes the connection to the binding to (possibly) accept it.
 //
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -381,7 +356,14 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 QuicBindingAddSourceConnectionID(
     _In_ QUIC_BINDING* Binding,
-    _In_ QUIC_CID_HASH_ENTRY* SourceCid
+    _In_ QUIC_CID_SLIST_ENTRY* SourceCid
+    );
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+QuicBindingAddAllSourceConnectionIDs(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_CONNECTION* Connection
     );
 
 //
@@ -391,8 +373,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 void
 QuicBindingRemoveSourceConnectionID(
     _In_ QUIC_BINDING* Binding,
-    _In_ QUIC_CID_HASH_ENTRY* SourceCid,
-    _In_ CXPLAT_SLIST_ENTRY** Entry
+    _In_ QUIC_CID_HASH_ENTRY* SourceCid
     );
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -530,4 +511,17 @@ QuicRetryTokenDecrypt(
 
     CxPlatDispatchLockRelease(&MsQuicLib.StatelessRetryKeysLock);
     return QUIC_SUCCEEDED(Status);
+}
+
+//
+// Helper to get the owning QUIC_BINDING for the lookup module.
+//
+inline
+_Ret_notnull_
+QUIC_BINDING*
+QuicLookupGetBinding(
+    _In_ QUIC_LOOKUP* Lookup
+    )
+{
+    return CXPLAT_CONTAINING_RECORD(Lookup, QUIC_BINDING, Lookup);
 }

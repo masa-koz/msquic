@@ -116,7 +116,7 @@ QuicPacketBuilderInitialize(
     Builder->SourceCid =
         CXPLAT_CONTAINING_RECORD(
             Connection->SourceCids.Next,
-            QUIC_CID_HASH_ENTRY,
+            QUIC_CID_SLIST_ENTRY,
             Link);
 
     uint64_t TimeNow = CxPlatTimeUs64();

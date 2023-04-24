@@ -141,7 +141,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 QuicLookupAddLocalCid(
     _In_ QUIC_LOOKUP* Lookup,
-    _In_ QUIC_CID_HASH_ENTRY* SourceCid,
+    _In_ QUIC_CID_SLIST_ENTRY* SourceCid,
     _Out_opt_ QUIC_CONNECTION** Collision
     );
 
@@ -167,8 +167,7 @@ _IRQL_requires_max_(DISPATCH_LEVEL)
 void
 QuicLookupRemoveLocalCid(
     _In_ QUIC_LOOKUP* Lookup,
-    _In_ QUIC_CID_HASH_ENTRY* SourceCid,
-    _In_ CXPLAT_SLIST_ENTRY** Entry
+    _In_ QUIC_CID_HASH_ENTRY* SourceCid
     );
 
 //
