@@ -926,7 +926,9 @@ QuicConnGenerateNewSourceCid(
         }
 
         BOOLEAN Collision = FALSE;
-        
+
+        CxPlatDispatchLockAcquire(&MsQuicLib.DatapathLock);
+
         // Check whether a sourceCid collides or not around all the connections.
         for (CXPLAT_LIST_ENTRY* Link = MsQuicLib.Bindings.Flink;
             Link != &MsQuicLib.Bindings;
@@ -944,6 +946,9 @@ QuicConnGenerateNewSourceCid(
                 break;
             }    
         }
+
+        CxPlatDispatchLockRelease(&MsQuicLib.DatapathLock);
+
         if (Collision) {
             CXPLAT_FREE(SourceCid, QUIC_POOL_CIDSLIST);
             SourceCid = NULL;
@@ -6276,10 +6281,8 @@ QuicConnParamSet(
             // TODO - Need to free any queued recv packets from old binding.
             //
 
-            /*
-            QuicBindingMoveSourceConnectionIDs(
-                OldBinding, Connection->Paths[0].Binding, Connection);
-            */
+            QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection);
+            QuicBindingRemoveAllSourceConnectionIDs(OldBinding, Connection);
             QuicLibraryReleaseBinding(OldBinding);
 
             QuicTraceEvent(

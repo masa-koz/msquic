@@ -179,24 +179,3 @@ QuicLookupRemoveRemoteHash(
     _In_ QUIC_LOOKUP* Lookup,
     _In_ QUIC_REMOTE_HASH_ENTRY* RemoteHashEntry
     );
-
-//
-// Removes all the connection's local CIDs from the lookup.
-//
-_IRQL_requires_max_(DISPATCH_LEVEL)
-void
-QuicLookupRemoveLocalCids(
-    _In_ QUIC_LOOKUP* Lookup,
-    _In_ QUIC_CONNECTION* Connection
-    );
-
-//
-// Moves all the connection's local CIDs from the one lookup to another.
-//
-_IRQL_requires_max_(DISPATCH_LEVEL)
-void
-QuicLookupMoveLocalConnectionIDs(
-    _In_ QUIC_LOOKUP* LookupSrc,
-    _In_ QUIC_LOOKUP* LookupDest,
-    _In_ QUIC_CONNECTION* Connection
-    );

@@ -359,6 +359,10 @@ QuicBindingAddSourceConnectionID(
     _In_ QUIC_CID_SLIST_ENTRY* SourceCid
     );
 
+//
+// Attempts to insert all the connection's new source CIDs into the binding's
+// lookup table.
+//
 _IRQL_requires_max_(DISPATCH_LEVEL)
 BOOLEAN
 QuicBindingAddAllSourceConnectionIDs(
@@ -376,33 +380,21 @@ QuicBindingRemoveSourceConnectionID(
     _In_ QUIC_CID_HASH_ENTRY* SourceCid
     );
 
+//
+// Removes all the source CIDs from the binding's lookup table.
+//
+_IRQL_requires_max_(DISPATCH_LEVEL)
+void
+QuicBindingRemoveAllSourceConnectionIDs(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_CONNECTION* Connection
+    );
+
 _IRQL_requires_max_(DISPATCH_LEVEL)
 void
 QuicBindingRemoveRemoteHash(
     _In_ QUIC_BINDING* Binding,
     _In_ QUIC_REMOTE_HASH_ENTRY* RemoteHashEntry
-    );
-
-//
-// Removes all the connection's source CIDs from the binding's lookup table.
-//
-_IRQL_requires_max_(DISPATCH_LEVEL)
-void
-QuicBindingRemoveConnection(
-    _In_ QUIC_BINDING* Binding,
-    _In_ QUIC_CONNECTION* Connection
-    );
-
-//
-// Moves all the connections source CIDs from the one binding's lookup table to
-// another.
-//
-_IRQL_requires_max_(DISPATCH_LEVEL)
-void
-QuicBindingMoveSourceConnectionIDs(
-    _In_ QUIC_BINDING* BindingSrc,
-    _In_ QUIC_BINDING* BindingDest,
-    _In_ QUIC_CONNECTION* Connection
     );
 
 //

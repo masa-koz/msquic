@@ -584,14 +584,33 @@ QuicBindingAddAllSourceConnectionIDs(
                 QUIC_CID_SLIST_ENTRY,
                 Link);
         if (!QuicBindingAddSourceConnectionID(Binding, Entry)) {
-            goto Error;
+            QuicBindingRemoveAllSourceConnectionIDs(Binding, Connection);
+            return FALSE;
         }
     }
 
     return TRUE;
+}
 
-Error:
+_IRQL_requires_max_(DISPATCH_LEVEL)
+void
+QuicBindingRemoveSourceConnectionID(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_CID_HASH_ENTRY* SourceCid
+    )
+{
+    QuicLookupRemoveLocalCid(&Binding->Lookup, SourceCid);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+void
+QuicBindingRemoveAllSourceConnectionIDs(
+    _In_ QUIC_BINDING* Binding,
+    _In_ QUIC_CONNECTION* Connection
+    )
+{
     CXPLAT_SLIST_ENTRY EntriesToFree = {0};
+
     for (CXPLAT_SLIST_ENTRY* Link = Connection->SourceCids.Next;
         Link != NULL;
         Link = Link->Next) {
@@ -627,18 +646,6 @@ Error:
                 Link);
         CXPLAT_FREE(Entry, QUIC_POOL_CIDHASH);
     }
-
-    return FALSE;
-}
-
-_IRQL_requires_max_(DISPATCH_LEVEL)
-void
-QuicBindingRemoveSourceConnectionID(
-    _In_ QUIC_BINDING* Binding,
-    _In_ QUIC_CID_HASH_ENTRY* SourceCid
-    )
-{
-    QuicLookupRemoveLocalCid(&Binding->Lookup, SourceCid);
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
@@ -650,35 +657,6 @@ QuicBindingRemoveRemoteHash(
 {
     QuicLookupRemoveRemoteHash(&Binding->Lookup, RemoteHashEntry);
 }
-
-/*
-_IRQL_requires_max_(DISPATCH_LEVEL)
-void
-QuicBindingRemoveConnection(
-    _In_ QUIC_BINDING* Binding,
-    _In_ QUIC_CONNECTION* Connection
-    )
-{
-    if (Connection->RemoteHashEntry != NULL) {
-        QuicLookupRemoveRemoteHash(&Binding->Lookup, Connection->RemoteHashEntry);
-    }
-    QuicLookupRemoveLocalCids(&Binding->Lookup, Connection);
-}
-*/
-
-/*
-_IRQL_requires_max_(DISPATCH_LEVEL)
-void
-QuicBindingMoveSourceConnectionIDs(
-    _In_ QUIC_BINDING* BindingSrc,
-    _In_ QUIC_BINDING* BindingDest,
-    _In_ QUIC_CONNECTION* Connection
-    )
-{
-    QuicLookupMoveLocalConnectionIDs(
-        &BindingSrc->Lookup, &BindingDest->Lookup, Connection);
-}
-*/
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 void
