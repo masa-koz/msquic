@@ -6700,7 +6700,6 @@ QuicConnParamSet(
             if (QuicAddrCompare(
                 &Connection->Paths[i].Route.LocalAddress,
                 LocalAddress)) {
-                Status = QUIC_STATUS_SUCCESS;
                 break;
             }
         }

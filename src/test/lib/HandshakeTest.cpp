@@ -428,8 +428,11 @@ QuicTestConnect(
 
 struct ProbeContext {
     bool Connected {false};
+    BOOLEAN IsServer;
     CxPlatEvent HandshakeCompleteEvent;
     CxPlatEvent PathValidatedEvent;
+    QUIC_ADDR NewAddr;
+    ProbeContext(BOOLEAN IsServer) : IsServer(IsServer) {};
     static QUIC_STATUS ConnCallback(_In_ MsQuicConnection*, _In_opt_ void* Context, _Inout_ QUIC_CONNECTION_EVENT* Event) {
         auto This = static_cast<ProbeContext*>(Context);
         if (Event->Type == QUIC_CONNECTION_EVENT_SHUTDOWN_COMPLETE) {
@@ -438,7 +441,12 @@ struct ProbeContext {
             This->Connected = true;
             This->HandshakeCompleteEvent.Set();
         } else if (Event->Type == QUIC_CONNECTION_EVENT_PATH_VALIDATED) {
-            This->PathValidatedEvent.Set();
+            if (!This->IsServer && QuicAddrCompare(Event->PATH_VALIDATED.LocalAddress, &This->NewAddr)) {
+                This->PathValidatedEvent.Set();
+            }
+            if (This->IsServer && QuicAddrCompare(Event->PATH_VALIDATED.PeerAddress, &This->NewAddr)) {
+                This->PathValidatedEvent.Set();
+            }
         }
         return QUIC_STATUS_SUCCESS;
     }
@@ -450,7 +458,7 @@ QuicTestProbePath(
     _In_ BOOLEAN ShareBinding
     )
 {
-    ProbeContext ServerContext, ClientContext;
+    ProbeContext ServerContext(TRUE), ClientContext(FALSE);
     MsQuicRegistration Registration(true);
     TEST_TRUE(Registration.IsValid());
 
@@ -472,14 +480,8 @@ QuicTestProbePath(
     TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
 
     if (ShareBinding) {
-        uint8_t Param = 1;
-        TEST_QUIC_SUCCEEDED(
-            Connection.SetParam(
-                QUIC_PARAM_CONN_SHARE_UDP_BINDING,
-                sizeof(Param),
-                &Param));
+        Connection.SetShareUdpBinding();
     }
-
 
     TEST_QUIC_SUCCEEDED(Connection.Start(ClientConfiguration, ServerLocalAddr.GetFamily(), QUIC_TEST_LOOPBACK_FOR_AF(ServerLocalAddr.GetFamily()), ServerLocalAddr.GetPort()));
     TEST_TRUE(Connection.HandshakeCompleteEvent.WaitTimeout(TestWaitTimeout));
@@ -509,11 +511,26 @@ QuicTestProbePath(
     TEST_QUIC_SUCCEEDED(Connection.GetLocalAddr(SecondLocalAddr));
     SecondLocalAddr.IncrementPort();
 
+    ServerContext.NewAddr = SecondLocalAddr.SockAddr;
+    ClientContext.NewAddr = SecondLocalAddr.SockAddr;
+
+    PathProbeHelper ProbeHelper(SecondLocalAddr.GetPort());
+
     TEST_QUIC_SUCCEEDED(
         Connection.SetParam(
             QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS,
             sizeof(SecondLocalAddr.SockAddr),
             &SecondLocalAddr.SockAddr));
+    TEST_TRUE(ProbeHelper.ServerReceiveProbeEvent.WaitTimeout(TestWaitTimeout));
+    TEST_TRUE(ProbeHelper.ClientReceiveProbeEvent.WaitTimeout(TestWaitTimeout));
+    QUIC_STATISTICS_V2 Stats;
+    uint32_t Size = sizeof(Stats);
+    TEST_QUIC_SUCCEEDED(
+        Connection.GetParam(
+            QUIC_PARAM_CONN_STATISTICS_V2_PLAT,
+            &Size,
+            &Stats));
+    TEST_EQUAL(Stats.RecvDroppedPackets, 0);
 
     TEST_TRUE(ClientContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));
     TEST_TRUE(ServerContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));

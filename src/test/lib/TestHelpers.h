@@ -733,6 +733,33 @@ struct MtuDropHelper : public DatapathHook
     }
 };
 
+struct PathProbeHelper : public DatapathHook
+{
+    uint16_t ClientProbePort;
+    CxPlatEvent ServerReceiveProbeEvent;
+    CxPlatEvent ClientReceiveProbeEvent;
+    PathProbeHelper(uint16_t ClientPort) :
+        ClientProbePort(ClientPort) {
+        DatapathHooks::Instance->AddHook(this);
+    }
+    ~PathProbeHelper() {
+        DatapathHooks::Instance->RemoveHook(this);
+    }
+    _IRQL_requires_max_(DISPATCH_LEVEL)
+    BOOLEAN
+    Receive(
+        _Inout_ struct CXPLAT_RECV_DATA* Datagram
+        ) {
+        if (QuicAddrGetPort(&Datagram->Route->RemoteAddress) == ClientProbePort) {
+            ServerReceiveProbeEvent.Set();
+        }
+        if (QuicAddrGetPort(&Datagram->Route->LocalAddress) == ClientProbePort) {
+            ClientReceiveProbeEvent.Set();
+        }
+        return FALSE;
+    }
+};
+
 struct ReplaceAddressHelper : public DatapathHook
 {
     QUIC_ADDR Original;
