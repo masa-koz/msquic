@@ -718,6 +718,11 @@ QuicRetryTokenDecrypt(
     _Out_ QUIC_TOKEN_CONTENTS* Token
     );
 
+QUIC_BINDING*
+QuicLookupGetBinding(
+    _In_ QUIC_LOOKUP* Lookup
+    );
+
 void
 QuicConnLogStatistics(
     _In_ const QUIC_CONNECTION* const Connection
