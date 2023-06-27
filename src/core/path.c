@@ -175,6 +175,29 @@ QuicConnGetPathByID(
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+_Ret_maybenull_
+_Success_(return != NULL)
+QUIC_PATH*
+QuicConnGetPathByAddress(
+    _In_ QUIC_CONNECTION* Connection,
+    _In_ const QUIC_ADDR* LocalAddress,
+    _In_ const QUIC_ADDR* RemoteAddress
+    )
+{
+    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+        if (QuicAddrCompare(
+                LocalAddress,
+                &Connection->Paths[i].Route.LocalAddress) &&
+            QuicAddrCompare(
+                RemoteAddress,
+                &Connection->Paths[i].Route.RemoteAddress)) {
+            return &Connection->Paths[i];
+        }
+    }
+    return NULL;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
 void
 QuicCopyRouteInfo(
     _Inout_ CXPLAT_ROUTE* DstRoute,

@@ -1212,7 +1212,6 @@ QuicConnReplaceRetiredCids(
             continue;
         }
 
-        QUIC_CID_VALIDATE_NULL(Connection, Path->DestCid); // Previously cleared on retire.
         QUIC_CID_LIST_ENTRY* NewDestCid = QuicConnGetUnusedDestCid(Connection);
         if (NewDestCid == NULL) {
             if (Path->IsActive) {
@@ -1234,8 +1233,10 @@ QuicConnReplaceRetiredCids(
         }
 
         CXPLAT_DBG_ASSERT(NewDestCid != Path->DestCid);
+        QUIC_CID_LIST_ENTRY* OldDestCid = Path->DestCid;
         Path->DestCid = NewDestCid;
         QUIC_CID_SET_PATH(Connection, NewDestCid, Path);
+        QUIC_CID_VALIDATE_NULL(Connection, OldDestCid);
         Path->DestCid->CID.UsedLocally = TRUE;
         Path->InitiatedCidUpdate = TRUE;
         QuicPathValidate(Path);
@@ -5501,7 +5502,8 @@ QuicConnRecvPostProcessing(
         }
     }
 
-    if (Packet->HasNonProbingFrame &&
+    if (QuicConnIsServer(Connection) &&
+        Packet->HasNonProbingFrame &&
         Packet->NewLargestPacketNumber &&
         !(*Path)->IsActive) {
         //
@@ -6237,6 +6239,13 @@ QuicConnParamSet(
 
         if (!QuicAddrIsValid(LocalAddress)) {
             Status = QUIC_STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        QUIC_PATH* Path = QuicConnGetPathByAddress(Connection, LocalAddress, &Connection->Paths[0].Route.RemoteAddress);
+        if (Path != NULL) {
+            QuicPathSetActive(Connection, Path);
+            Status = QUIC_STATUS_SUCCESS;
             break;
         }
 

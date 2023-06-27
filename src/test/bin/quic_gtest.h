@@ -847,3 +847,27 @@ std::ostream& operator << (std::ostream& o, const ProbePathArgs& args) {
 class WithProbePathArgs : public testing::Test,
     public testing::WithParamInterface<ProbePathArgs> {
 };
+
+struct MigrationArgs {
+    int Family;
+    BOOLEAN ShareBinding;
+    BOOLEAN Smooth;
+    static ::std::vector<MigrationArgs> Generate() {
+        ::std::vector<MigrationArgs> list;
+        for (int Family : { 4, 6 })
+        for (BOOLEAN ShareBinding : { TRUE, FALSE })
+        for (BOOLEAN Smooth : { TRUE, FALSE })
+            list.push_back({ Family, ShareBinding, Smooth });
+        return list;
+    }
+};
+
+std::ostream& operator << (std::ostream& o, const MigrationArgs& args) {
+    return o << (args.Family == 4 ? "v4" : "v6") << "/"
+        << (args.ShareBinding ? "ShareBinding" : "not ShareBinding") << "/"
+        << (args.Smooth ? "Smooth" : "not Smooth");
+}
+
+class WithMigrationArgs : public testing::Test,
+    public testing::WithParamInterface<MigrationArgs> {
+};
