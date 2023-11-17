@@ -931,6 +931,7 @@ QuicPacketBuilderFinalize(
     Builder->Metadata->PacketLength =
         Builder->HeaderLength + PayloadLength;
     Builder->Metadata->Flags.EcnEctSet = Builder->EcnEctSet;
+    Builder->Metadata->PathId = Builder->Path->ID;
     QuicTraceEvent(
         ConnPacketSent,
         "[conn][%p][TX][%llu] %hhu (%hu bytes)",

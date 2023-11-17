@@ -337,7 +337,8 @@ QuicTestVNTPOtherVersionZero(
 void
 QuicTestProbePath(
     _In_ int Family,
-    _In_ BOOLEAN ShareBinding
+    _In_ BOOLEAN ShareBinding,
+    _In_ uint32_t DropPacketCount
     );
 
 void

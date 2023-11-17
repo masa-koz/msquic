@@ -455,7 +455,8 @@ struct ProbeContext {
 void
 QuicTestProbePath(
     _In_ int Family,
-    _In_ BOOLEAN ShareBinding
+    _In_ BOOLEAN ShareBinding,
+    _In_ uint32_t DropPacketCount
     )
 {
     ProbeContext ServerContext(TRUE), ClientContext(FALSE);
@@ -514,15 +515,16 @@ QuicTestProbePath(
     ServerContext.NewAddr = SecondLocalAddr.SockAddr;
     ClientContext.NewAddr = SecondLocalAddr.SockAddr;
 
-    PathProbeHelper ProbeHelper(SecondLocalAddr.GetPort());
+    PathProbeHelper ProbeHelper(SecondLocalAddr.GetPort(), DropPacketCount, DropPacketCount);
 
     TEST_QUIC_SUCCEEDED(
         Connection.SetParam(
             QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS,
             sizeof(SecondLocalAddr.SockAddr),
             &SecondLocalAddr.SockAddr));
-    TEST_TRUE(ProbeHelper.ServerReceiveProbeEvent.WaitTimeout(TestWaitTimeout));
-    TEST_TRUE(ProbeHelper.ClientReceiveProbeEvent.WaitTimeout(TestWaitTimeout));
+
+    TEST_TRUE(ProbeHelper.ServerReceiveProbeEvent.WaitTimeout(TestWaitTimeout * 10));
+    TEST_TRUE(ProbeHelper.ClientReceiveProbeEvent.WaitTimeout(TestWaitTimeout * 10));
     QUIC_STATISTICS_V2 Stats;
     uint32_t Size = sizeof(Stats);
     TEST_QUIC_SUCCEEDED(

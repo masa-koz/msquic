@@ -947,6 +947,14 @@ QuicConnGenerateNewSourceCid(
             }    
         }
 
+        if (!Collision) {
+            for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+                if (Connection->Paths[i].Binding != NULL) {
+                    QuicBindingAddSourceConnectionID(Connection->Paths[i].Binding, SourceCid);
+                }
+            }
+        }
+
         CxPlatDispatchLockRelease(&MsQuicLib.DatapathLock);
 
         if (Collision) {
@@ -992,12 +1000,6 @@ QuicConnGenerateNewSourceCid(
         }
         *Tail = &SourceCid->Link;
         SourceCid->Link.Next = NULL;
-    }
-
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-        if (Connection->Paths[i].Binding != NULL) {
-            QuicBindingAddSourceConnectionID(Connection->Paths[i].Binding, SourceCid);
-        }
     }
 
     return SourceCid;
@@ -6705,12 +6707,19 @@ QuicConnParamSet(
             break;
         }
 
+        BOOLEAN AddrInUse = FALSE;
         for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
             if (QuicAddrCompare(
                 &Connection->Paths[i].Route.LocalAddress,
                 LocalAddress)) {
+                AddrInUse = TRUE;
                 break;
             }
+        }
+
+        if (AddrInUse) {
+            Status = QUIC_STATUS_ADDRESS_IN_USE;
+            break;
         }
 
         if (Connection->PathsCount == QUIC_MAX_PATH_COUNT) {
@@ -6817,6 +6826,63 @@ QuicConnParamSet(
             CASTED_CLOG_BYTEARRAY(sizeof(Path->Route.LocalAddress), &Path->Route.LocalAddress));
 
         QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_PATH_CHALLENGE);
+
+        Status = QUIC_STATUS_SUCCESS;
+        break;
+    }
+
+    case QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS: {
+
+        if (BufferLength != sizeof(QUIC_ADDR)) {
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        if (QuicConnIsServer(Connection)) {
+            Status = QUIC_STATUS_INVALID_STATE;
+            break;
+        }
+
+        if (!Connection->State.Started) {
+            Status = QUIC_STATUS_INVALID_STATE;
+            break;
+        }
+
+        const QUIC_ADDR* LocalAddress = (const QUIC_ADDR*)Buffer;
+
+        if (!QuicAddrIsValid(LocalAddress)) {
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        uint8_t PathIndex = Connection->PathsCount;
+        for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+            if (QuicAddrCompare(
+                &Connection->Paths[i].Route.LocalAddress,
+                LocalAddress)) {
+                PathIndex = i;
+                break;
+            }
+        }
+
+        if (PathIndex == Connection->PathsCount) {
+            Status = QUIC_STATUS_NOT_FOUND;
+            break;
+        }
+
+        QUIC_PATH* Path = &Connection->Paths[PathIndex];
+
+        if (Path->IsActive) {
+            Status = QUIC_STATUS_INVALID_STATE;
+            break;
+        }
+
+        QuicConnRetireCid(Connection, Path->DestCid);
+
+        QuicBindingRemoveAllSourceConnectionIDs(Path->Binding, Connection);
+        QuicLibraryReleaseBinding(Path->Binding);
+  
+        QuicPathRemove(Connection, PathIndex);
 
         Status = QUIC_STATUS_SUCCESS;
         break;

@@ -814,6 +814,11 @@ QuicLossDetectionRetransmitFrames(
         }
 
         case QUIC_FRAME_PATH_CHALLENGE: {
+            QuicTraceLogConnInfo(
+                PathChallengeLost,
+                Connection,
+                "Path[%hhu] challenge lost",
+                Packet->PathId);
             uint8_t PathIndex;
             QUIC_PATH* Path = QuicConnGetPathByID(Connection, Packet->PathId, &PathIndex);
             if (Path != NULL && !Path->IsPeerValidated) {
