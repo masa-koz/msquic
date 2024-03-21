@@ -13,13 +13,16 @@ fn main() {
     }
 
     let target = env::var("TARGET").unwrap();
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let out_dir = Path::new(&out_dir);
 
     // Builds the native MsQuic and installs it into $OUT_DIR.
     let mut config = Config::new(".");
     config
         .define("QUIC_ENABLE_LOGGING", logging_enabled)
         .define("QUIC_TLS", "openssl")
-        .define("QUIC_OUTPUT_DIR", "../lib");
+        .define("QUIC_BUILD_SHARED", "off")
+        .define("QUIC_OUTPUT_DIR", out_dir.join("lib").to_str().unwrap());
 
     match target.as_str() {
         "x86_64-apple-darwin" => config
@@ -34,4 +37,5 @@ fn main() {
     let dst = config.build();
     let lib_path = Path::join(Path::new(&dst), Path::new(path_extra));
     println!("cargo:rustc-link-search=native={}", lib_path.display());
+    println!("cargo:rustc-link-lib=static=msquic");
 }

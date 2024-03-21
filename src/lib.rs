@@ -7,7 +7,7 @@ use c_types::AF_INET;
 use c_types::AF_INET6;
 #[allow(unused_imports)]
 use c_types::AF_UNSPEC;
-use libc::c_void;
+use libc::{c_void, sockaddr};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use std::fmt;
@@ -773,6 +773,8 @@ pub const PARAM_STREAM_PRIORITY: u32 = 0x08000003;
 
 pub type ListenerEventType = u32;
 pub const LISTENER_EVENT_NEW_CONNECTION: ListenerEventType = 0;
+pub const LISTENER_EVENT_STOP_COMPLETE: ListenerEventType = 1;
+
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -782,10 +784,27 @@ pub struct ListenerEventNewConnection {
     pub new_negotiated_alpn: *const u8,
 }
 
+bitfield! {
+    #[repr(C)]
+    #[derive(Debug, Clone, Copy)]
+    pub struct ListenerEventStopCompleteBitfields(u8);
+    // The fields default to u8
+    pub app_close_in_progress, _: 0, 0;
+    _reserved, _: 1, 7;
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ListenerEventStopComplete {
+    pub flags: ListenerEventStopCompleteBitfields,
+}
+
+
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union ListenerEventPayload {
     pub new_connection: ListenerEventNewConnection,
+    pub stop_complete: ListenerEventStopComplete,
 }
 
 #[repr(C)]
@@ -852,6 +871,20 @@ pub struct ConnectionEventPeerStreamStarted {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct ConnectionEventStreamsAvailable {
+    pub bidirectional_count: u16,
+    pub unidirectional_count: u16,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ConnectionEventDatagramStateChanged {
+    pub send_enabled: BOOLEAN,
+    pub max_send_length: u16,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct ConnectionEventDatagramReceived {
     pub buffer: *const Buffer,
     pub flags: ReceiveFlags,
@@ -881,9 +914,9 @@ pub union ConnectionEventPayload {
     //pub local_address_changed: ConnectionEventLocalAddressChanged,
     //pub peer_address_changed: ConnectionEventPeerAddressChanged,
     pub peer_stream_started: ConnectionEventPeerStreamStarted,
-    //pub streams_available: ConnectionEventStreamsAvailable,
+    pub streams_available: ConnectionEventStreamsAvailable,
     //pub ideal_processor_changed: ConnectionEventIdealProcessorChanged,
-    //pub datagram_state_changed: ConnectionEventDatagramStateChanged,
+    pub datagram_state_changed: ConnectionEventDatagramStateChanged,
     pub datagram_received: ConnectionEventDatagramReceived,
     pub datagram_send_state_changed: ConnectionEventDatagramSendStateChanged,
     //pub resumed: ConnectionEventResumed,
@@ -916,9 +949,18 @@ pub const STREAM_EVENT_PEER_ACCEPTED: StreamEventType = 9;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct StreamEventStartComplete {
-    pub status: u64,
+    pub status: u32,
     pub id: u62,
-    pub bit_flags: u8,
+    pub bit_flags: StreamEventStartCompleteBitfields,
+}
+
+bitfield! {
+    #[repr(C)]
+    #[derive(Debug, Clone, Copy)]
+    pub struct StreamEventStartCompleteBitfields(u8);
+    // The fields default to u8
+    pub peer_accepted, _: 1, 0;
+    _reserved, _: 7, 1;
 }
 
 #[repr(C)]
@@ -960,17 +1002,21 @@ pub struct StreamEventSendShutdownComplete {
 bitfield! {
     #[repr(C)]
     #[derive(Clone, Copy)]
-    struct StreamEventShutdownCompleteBitfields(u8);
+    pub struct StreamEventShutdownCompleteBitfields(u8);
     // The fields default to u8
-    app_close_in_progress, _: 1, 0;
-    _reserved, _: 7, 1;
+    pub app_close_in_progress, _: 0, 0;
+    pub conn_shutdown_by_app, _: 1, 1;
+    pub conn_closed_remotely, _: 2, 2;
+    _reserved, _: 3, 7;
 }
 
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct StreamEventShutdownComplete {
-    connection_shutdown: bool,
-    flags: StreamEventShutdownCompleteBitfields
+    pub connection_shutdown: bool,
+    pub flags: StreamEventShutdownCompleteBitfields,
+    pub connection_error_code: u64,
+    pub connection_close_status: u32,
 }
 
 #[repr(C)]
@@ -1002,7 +1048,7 @@ pub type StreamEventHandler =
     extern "C" fn(stream: Handle, context: *mut c_void, event: &StreamEvent) -> u32;
 
 #[repr(C)]
-struct ApiTable {
+pub struct ApiTable {
     set_context: extern "C" fn(handle: Handle, context: *const c_void),
     get_context: extern "C" fn(handle: Handle) -> *mut c_void,
     set_callback_handler:
@@ -1042,7 +1088,7 @@ struct ApiTable {
         listener: Handle,
         alpn_buffers: *const Buffer,
         alpn_buffer_cout: u32,
-        local_address: *const Addr,
+        local_address: *const sockaddr,
     ) -> u32,
     listener_stop: extern "C" fn(listener: Handle),
     connection_open: extern "C" fn(
@@ -1086,7 +1132,7 @@ struct ApiTable {
         flags: SendFlags,
         client_send_context: *const c_void,
     ) -> u32,
-    stream_receive_complete: extern "C" fn(stream: Handle, buffer_length: u64) -> u32,
+    stream_receive_complete: extern "C" fn(stream: Handle, buffer_length: u64),
     stream_receive_set_enabled: extern "C" fn(stream: Handle, is_enabled: BOOLEAN) -> u32,
     datagram_send: extern "C" fn(
         connection: Handle,
@@ -1122,20 +1168,26 @@ extern "C" {
 ///  or `Stream` declares `API` last so that the API is dropped last when the containing
 /// sruct goes out of scope.
 pub struct Api {
-    table: *const ApiTable,
+    pub table: *const ApiTable,
 }
+unsafe impl Sync for Api {}
+unsafe impl Send for Api {}
 
 /// The execution context for processing connections on the application's behalf.
 pub struct Registration {
     table: *const ApiTable,
     handle: Handle,
 }
+unsafe impl Sync for Registration {}
+unsafe impl Send for Registration {}
 
 /// Specifies how to configure a connection.
 pub struct Configuration {
     table: *const ApiTable,
     handle: Handle,
 }
+unsafe impl Sync for Configuration {}
+unsafe impl Send for Configuration {}
 
 /// A single QUIC connection.
 pub struct Connection {
@@ -1445,7 +1497,7 @@ impl Connection {
         }
     }
 
-    pub fn close(&self) {
+    pub fn close(&mut self) {
         unsafe {
             ((*self.table).connection_close)(self.handle);
         }
@@ -1527,7 +1579,7 @@ impl Connection {
 
     pub fn datagram_send(
         &self,
-        buffer: &Buffer,
+        buffer: *const Buffer,
         buffer_count: u32,
         flags: SendFlags,
         client_send_context: *const c_void,
@@ -1535,7 +1587,7 @@ impl Connection {
         let status = unsafe {
             ((*self.table).datagram_send)(
                 self.handle,
-                *&buffer,
+                buffer,
                 buffer_count,
                 flags,
                 client_send_context,
@@ -1586,42 +1638,54 @@ impl Drop for Connection {
 }
 
 impl Listener {
-    pub fn new(
+    pub fn new(registration: &Registration) -> Listener {
+        Listener {
+            table: registration.table,
+            handle: ptr::null(),
+        }
+    }
+
+    pub fn open(
+        &self,
         registration: &Registration,
         handler: ListenerEventHandler,
         context: *const c_void,
-    ) -> Listener {
-        let new_listener: Handle = ptr::null();
+    ) {
         let status = unsafe {
             ((*registration.table).listener_open)(
                 registration.handle,
                 handler,
                 context,
-                &new_listener,
+                &self.handle,
             )
         };
         if Status::failed(status) {
             panic!("ListenerOpen failed, {:x}!\n", status);
         }
-
-        Listener {
-            table: registration.table,
-            handle: new_listener,
-        }
     }
 
-    pub fn start(&self, alpn: &[Buffer], local_address: &Addr) {
+    pub fn start(&self, alpn: &[Buffer], local_address: Option<*const sockaddr>) {
         let status = unsafe {
             ((*self.table).listener_start)(
                 self.handle,
                 alpn.as_ptr(),
                 alpn.len() as u32,
-                *&local_address,
+                local_address.map(|x| x as *const sockaddr).unwrap_or(ptr::null() as *const sockaddr),
             )
         };
         if Status::failed(status) {
             panic!("ListenerStart failed, {:x}!\n", status);
         }
+    }
+
+    pub fn stop(&self) {
+        unsafe {
+            ((*self.table).listener_stop)(self.handle);
+        }
+    }
+
+    pub fn get_param(&self, param: u32, buffer_length: *mut u32, buffer: *const c_void) -> u32 {
+        unsafe { ((*self.table).get_param)(self.handle, param, buffer_length, buffer) }
     }
 
     pub fn close(&self) {
@@ -1681,9 +1745,18 @@ impl Stream {
         }
     }
 
+    pub fn shutdown(&self, flags: StreamShutdownFlags, error_code: u62) {
+        let status = unsafe {
+            ((*self.table).stream_shutdown)(self.handle, flags, error_code)
+        };
+        if Status::failed(status) {
+            panic!("StreamShutdown failure 0x{:x}", status);
+        }
+    }
+    
     pub fn send(
         &self,
-        buffer: &Buffer,
+        buffer: *const Buffer,
         buffer_count: u32,
         flags: SendFlags,
         client_send_context: *const c_void,
@@ -1691,7 +1764,7 @@ impl Stream {
         let status = unsafe {
             ((*self.table).stream_send)(
                 self.handle,
-                *&buffer,
+                buffer,
                 buffer_count,
                 flags,
                 client_send_context, //(self as *const Stream) as *const c_void,
@@ -1707,6 +1780,15 @@ impl Stream {
             ((*self.table).set_callback_handler)(self.handle, handler as *const c_void, context)
         };
     }
+
+    pub fn get_param(&self, param: u32, buffer_length: *mut u32, buffer: *const c_void) -> u32 {
+        unsafe { ((*self.table).get_param)(self.handle, param, buffer_length, buffer) }
+    }
+
+    pub fn receive_complete(&self, buffer_length: u64) {
+        unsafe { ((*self.table).stream_receive_complete)(self.handle, buffer_length) };
+    }
+
 }
 
 impl Drop for Stream {
