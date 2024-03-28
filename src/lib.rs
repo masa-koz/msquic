@@ -657,6 +657,7 @@ pub struct QuicTlsSecrets {
     pub server_traffic_secret0: [u8; QUIC_TLS_SECRETS_MAX_SECRET_LEN],
 }
 
+
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Settings {
@@ -689,6 +690,7 @@ pub struct Settings {
     pub mtu_operations_per_drain: u8,
     pub mtu_discovery_missing_probe_count: u8,
     pub dest_cid_update_idle_timeout_ms: u32,
+    pub other2_flags: u64,
 }
 
 pub const PARAM_GLOBAL_RETRY_MEMORY_PERCENT: u32 = 0x01000000;
@@ -1283,6 +1285,7 @@ impl Settings {
             mtu_operations_per_drain: 0,
             mtu_discovery_missing_probe_count: 0,
             dest_cid_update_idle_timeout_ms: 0,
+            other2_flags: 0,
         }
     }
     pub fn set_peer_bidi_stream_count(&mut self, value: u16) -> &mut Settings {
@@ -1305,6 +1308,12 @@ impl Settings {
         self.other_flags |= (value as u8) << 3;
         self
     }
+    pub fn set_stream_multi_receive_enabled(&mut self, value: bool) -> &mut Settings {
+        self.is_set_flags |= 1 << 42;
+        self.other2_flags |= (value as u64) << 5;
+        self
+    }
+
 }
 
 impl CredentialConfig {
