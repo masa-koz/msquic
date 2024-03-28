@@ -1129,6 +1129,8 @@ typedef enum QUIC_CONNECTION_EVENT_TYPE {
     QUIC_CONNECTION_EVENT_RESUMED                           = 13,   // Server-only; provides resumption data, if any.
     QUIC_CONNECTION_EVENT_RESUMPTION_TICKET_RECEIVED        = 14,   // Client-only; provides ticket to persist, if any.
     QUIC_CONNECTION_EVENT_PEER_CERTIFICATE_RECEIVED         = 15,   // Only with QUIC_CREDENTIAL_FLAG_INDICATE_CERTIFICATE_RECEIVED set
+    QUIC_CONNECTION_EVENT_PATH_ADDED                        = 16,
+    QUIC_CONNECTION_EVENT_PATH_VALIDATED                    = 17,
 } QUIC_CONNECTION_EVENT_TYPE;
 
 typedef struct QUIC_CONNECTION_EVENT {
@@ -1201,6 +1203,14 @@ typedef struct QUIC_CONNECTION_EVENT {
             QUIC_STATUS DeferredStatus;         // Most severe error status (only valid with QUIC_CREDENTIAL_FLAG_DEFER_CERTIFICATE_VALIDATION)
             QUIC_CERTIFICATE_CHAIN* Chain;      // Peer certificate chain (platform specific). Valid only during QUIC_CONNECTION_EVENT_PEER_CERTIFICATE_RECEIVED callback.
         } PEER_CERTIFICATE_RECEIVED;
+        struct {
+            const QUIC_ADDR* LocalAddress;
+            const QUIC_ADDR* PeerAddress;
+        } PATH_ADDED;
+        struct {
+            const QUIC_ADDR* LocalAddress;
+            const QUIC_ADDR* PeerAddress;
+        } PATH_VALIDATED;
     };
 } QUIC_CONNECTION_EVENT;
 

@@ -430,6 +430,7 @@ struct ProbeContext {
     bool Connected {false};
     BOOLEAN IsServer;
     CxPlatEvent HandshakeCompleteEvent;
+    CxPlatEvent PathValidatedEvent;
     QUIC_ADDR NewAddr;
     ProbeContext(BOOLEAN IsServer) : IsServer(IsServer) {};
     static QUIC_STATUS ConnCallback(_In_ MsQuicConnection*, _In_opt_ void* Context, _Inout_ QUIC_CONNECTION_EVENT* Event) {
@@ -439,6 +440,13 @@ struct ProbeContext {
         } else if (Event->Type == QUIC_CONNECTION_EVENT_CONNECTED) {
             This->Connected = true;
             This->HandshakeCompleteEvent.Set();
+        } else if (Event->Type == QUIC_CONNECTION_EVENT_PATH_VALIDATED) {
+            if (!This->IsServer && QuicAddrCompare(Event->PATH_VALIDATED.LocalAddress, &This->NewAddr)) {
+                This->PathValidatedEvent.Set();
+            }
+            if (This->IsServer && QuicAddrCompare(Event->PATH_VALIDATED.PeerAddress, &This->NewAddr)) {
+                This->PathValidatedEvent.Set();
+            }
         }
         return QUIC_STATUS_SUCCESS;
     }
@@ -517,7 +525,6 @@ QuicTestProbePath(
 
     TEST_TRUE(ProbeHelper.ServerReceiveProbeEvent.WaitTimeout(TestWaitTimeout * 10));
     TEST_TRUE(ProbeHelper.ClientReceiveProbeEvent.WaitTimeout(TestWaitTimeout * 10));
-    
     QUIC_STATISTICS_V2 Stats;
     uint32_t Size = sizeof(Stats);
     TEST_QUIC_SUCCEEDED(
@@ -526,6 +533,9 @@ QuicTestProbePath(
             &Size,
             &Stats));
     TEST_EQUAL(Stats.RecvDroppedPackets, 0);
+
+    TEST_TRUE(ClientContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));
+    TEST_TRUE(ServerContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));
 
     Connection.Shutdown(1);
 }
@@ -611,6 +621,9 @@ QuicTestMigration(
                 &Size,
                 &Stats));
         TEST_EQUAL(Stats.RecvDroppedPackets, 0);
+
+        TEST_TRUE(ClientContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));
+        TEST_TRUE(ServerContext.PathValidatedEvent.WaitTimeout(TestWaitTimeout));
     }
 
     TEST_QUIC_SUCCEEDED(
@@ -623,6 +636,7 @@ QuicTestMigration(
 
     Connection.Shutdown(1);
 }
+
 
 struct RebindContext {
     bool Connected {false};
