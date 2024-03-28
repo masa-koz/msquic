@@ -5145,7 +5145,18 @@ QuicConnRecvFrames(
                     !memcmp(Frame.Data, TempPath->Challenge, sizeof(Frame.Data))) {
                     QuicPerfCounterIncrement(QUIC_PERF_COUNTER_PATH_VALIDATED);
                     QuicPathSetValid(Connection, TempPath, QUIC_PATH_VALID_PATH_RESPONSE);
-                   break;
+
+                    QUIC_CONNECTION_EVENT Event;
+                    Event.Type = QUIC_CONNECTION_EVENT_PATH_VALIDATED;
+                    Event.PATH_VALIDATED.LocalAddress = &TempPath->Route.LocalAddress;
+                    Event.PATH_VALIDATED.PeerAddress = &TempPath->Route.RemoteAddress;
+                    QuicTraceLogConnVerbose(
+                        IndicatePathValidated,
+                        Connection,
+                        "Indicating QUIC_CONNECTION_EVENT_PATH_VALIDATED");
+                    (void)QuicConnIndicateEvent(Connection, &Event);
+
+                    break;
                 }
             }
 
@@ -5470,6 +5481,16 @@ QuicConnRecvPostProcessing(
             QuicSendSetSendFlag(
                 &Connection->Send,
                 QUIC_CONN_SEND_FLAG_PATH_CHALLENGE);
+
+            QUIC_CONNECTION_EVENT Event;
+            Event.Type = QUIC_CONNECTION_EVENT_PATH_ADDED;
+            Event.PATH_ADDED.LocalAddress = &(*Path)->Route.LocalAddress;
+            Event.PATH_ADDED.PeerAddress = &(*Path)->Route.RemoteAddress;
+            QuicTraceLogConnVerbose(
+                IndicatePathAdded,
+                Connection,
+                "Indicating QUIC_CONNECTION_EVENT_PATH_ADDED");
+            (void)QuicConnIndicateEvent(Connection, &Event);
         }
 
     } else if (PeerUpdatedCid) {

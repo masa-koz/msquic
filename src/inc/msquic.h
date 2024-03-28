@@ -1170,6 +1170,8 @@ typedef enum QUIC_CONNECTION_EVENT_TYPE {
     QUIC_CONNECTION_EVENT_ONE_WAY_DELAY_NEGOTIATED          = 17,   // Only indicated if QUIC_SETTINGS.OneWayDelayEnabled is TRUE.
     QUIC_CONNECTION_EVENT_NETWORK_STATISTICS                = 18,   // Only indicated if QUIC_SETTINGS.EnableNetStatsEvent is TRUE.
 #endif
+    QUIC_CONNECTION_EVENT_PATH_ADDED                        = 19,
+    QUIC_CONNECTION_EVENT_PATH_VALIDATED                    = 20,
 } QUIC_CONNECTION_EVENT_TYPE;
 
 typedef struct QUIC_CONNECTION_EVENT {
@@ -1260,6 +1262,14 @@ typedef struct QUIC_CONNECTION_EVENT {
            uint64_t Bandwidth;                  // Estimated bandwidth
         } NETWORK_STATISTICS;
 #endif
+        struct {
+            const QUIC_ADDR* LocalAddress;
+            const QUIC_ADDR* PeerAddress;
+        } PATH_ADDED;
+        struct {
+            const QUIC_ADDR* LocalAddress;
+            const QUIC_ADDR* PeerAddress;
+        } PATH_VALIDATED;
     };
 } QUIC_CONNECTION_EVENT;
 
