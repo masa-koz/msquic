@@ -1523,6 +1523,44 @@ TRACEPOINT_EVENT(CLOG_CONNECTION_C, IndicatePeerNeedStreamsV2,
 
 
 /*----------------------------------------------------------
+// Decoder Ring for IndicatePathValidated
+// [conn][%p] Indicating QUIC_CONNECTION_EVENT_PATH_VALIDATED
+// QuicTraceLogConnVerbose(
+                        IndicatePathValidated,
+                        Connection,
+                        "Indicating QUIC_CONNECTION_EVENT_PATH_VALIDATED");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CONNECTION_C, IndicatePathValidated,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, arg1)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for IndicatePathAdded
+// [conn][%p] Indicating QUIC_CONNECTION_EVENT_PATH_ADDED
+// QuicTraceLogConnVerbose(
+                IndicatePathAdded,
+                Connection,
+                "Indicating QUIC_CONNECTION_EVENT_PATH_ADDED");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CONNECTION_C, IndicatePathAdded,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, arg1)
+    )
+)
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for IndicatePeerAddrChanged
 // [conn][%p] Indicating QUIC_CONNECTION_EVENT_PEER_ADDRESS_CHANGED
 // QuicTraceLogConnVerbose(
