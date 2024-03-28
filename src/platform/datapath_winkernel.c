@@ -2531,7 +2531,6 @@ CxPlatRecvDataReturn(
         CXPLAT_DATAPATH_INTERNAL_RECV_CONTEXT* InternalContext =
             InternalBufferContext->RecvContext;
 
-        CXPLAT_DBG_ASSERT(Binding == NULL || Binding == InternalContext->Binding);
         Binding = InternalContext->Binding;
         Datagram->Allocated = FALSE;
 
