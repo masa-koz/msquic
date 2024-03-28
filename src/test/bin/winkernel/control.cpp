@@ -482,6 +482,7 @@ size_t QUIC_IOCTL_BUFFER_SIZES[] =
     sizeof(INT32),
     sizeof(INT32),
     sizeof(QUIC_RUN_CUSTOM_CERT_VALIDATION),
+    sizeof(QUIC_RUN_PROBE_PATH_PARAMS),
 };
 
 CXPLAT_STATIC_ASSERT(
@@ -511,6 +512,7 @@ typedef union {
     QUIC_RUN_KEY_UPDATE_RANDOM_LOSS_PARAMS KeyUpdateRandomLossParams;
     QUIC_RUN_MTU_DISCOVERY_PARAMS MtuDiscoveryParams;
     uint32_t Test;
+    QUIC_RUN_PROBE_PATH_PARAMS ProbePathParams;
     QUIC_RUN_REBIND_PARAMS RebindParams;
     UINT8 RejectByClosing;
     QUIC_RUN_CIBIR_EXTENSION CibirParams;
@@ -879,6 +881,14 @@ QuicTestCtlEvtIoDeviceControl(
         QuicTestCtlRun(
             QuicTestDatagramSend(
                 Params->Family));
+        break;
+
+    case IOCTL_QUIC_RUN_PROBE_PATH:
+        CXPLAT_FRE_ASSERT(Params != nullptr);
+        QuicTestCtlRun(
+            QuicTestProbePath(
+                Params->ProbePathParams.Family,
+                Params->ProbePathParams.ShareBinding));
         break;
 
     case IOCTL_QUIC_RUN_NAT_PORT_REBIND:

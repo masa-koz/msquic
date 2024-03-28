@@ -335,6 +335,20 @@ QuicTestVNTPOtherVersionZero(
 //
 
 void
+QuicTestProbePath(
+    _In_ int Family,
+    _In_ BOOLEAN ShareBinding,
+    _In_ uint32_t DropPacketCount
+    );
+
+void
+QuicTestMigration(
+    _In_ int Family,
+    _In_ BOOLEAN ShareBinding,
+    _In_ BOOLEAN PathProbe
+    );
+
+void
 QuicTestNatPortRebind(
     _In_ int Family,
     _In_ uint16_t KeepAlivePaddingSize
@@ -1176,4 +1190,13 @@ typedef struct {
     QUIC_CTL_CODE(110, METHOD_BUFFERED, FILE_WRITE_DATA)
     // QUIC_RUN_CUSTOM_CERT_VALIDATION
 
-#define QUIC_MAX_IOCTL_FUNC_CODE 110
+typedef struct {
+    int Family;
+    BOOLEAN ShareBinding;
+} QUIC_RUN_PROBE_PATH_PARAMS;
+
+#define IOCTL_QUIC_RUN_PROBE_PATH \
+    QUIC_CTL_CODE(111, METHOD_BUFFERED, FILE_WRITE_DATA)
+    // QUIC_RUN_PROBE_PATH_PARAMS
+
+#define QUIC_MAX_IOCTL_FUNC_CODE 111

@@ -1150,7 +1150,7 @@ QuicConnQueueHighestPriorityOper(
 // Generates a new source connection ID.
 //
 _IRQL_requires_max_(PASSIVE_LEVEL)
-QUIC_CID_HASH_ENTRY*
+QUIC_CID_SLIST_ENTRY*
 QuicConnGenerateNewSourceCid(
     _In_ QUIC_CONNECTION* Connection,
     _In_ BOOLEAN IsInitial
@@ -1182,7 +1182,7 @@ QuicConnRetireCurrentDestCid(
 _IRQL_requires_max_(DISPATCH_LEVEL)
 _Success_(return != NULL)
 inline
-QUIC_CID_HASH_ENTRY*
+QUIC_CID_SLIST_ENTRY*
 QuicConnGetSourceCidFromSeq(
     _In_ QUIC_CONNECTION* Connection,
     _In_ QUIC_VAR_INT SequenceNumber,
@@ -1193,23 +1193,30 @@ QuicConnGetSourceCidFromSeq(
     for (CXPLAT_SLIST_ENTRY** Entry = &Connection->SourceCids.Next;
             *Entry != NULL;
             Entry = &(*Entry)->Next) {
-        QUIC_CID_HASH_ENTRY* SourceCid =
+        QUIC_CID_SLIST_ENTRY* SourceCid =
             CXPLAT_CONTAINING_RECORD(
                 *Entry,
-                QUIC_CID_HASH_ENTRY,
+                QUIC_CID_SLIST_ENTRY,
                 Link);
         if (SourceCid->CID.SequenceNumber == SequenceNumber) {
             if (RemoveFromList) {
-                QuicBindingRemoveSourceConnectionID(
-                    Connection->Paths[0].Binding,
-                    SourceCid,
-                    Entry);
+                while (SourceCid->HashEntries.Next != NULL) {
+                    QUIC_CID_HASH_ENTRY* CID =
+                        CXPLAT_CONTAINING_RECORD(
+                            CxPlatListPopEntry(&SourceCid->HashEntries),
+                            QUIC_CID_HASH_ENTRY,
+                            Link);
+                    QuicBindingRemoveSourceConnectionID(
+                        CID->Binding,
+                        CID);
+                }
                 QuicTraceEvent(
                     ConnSourceCidRemoved,
                     "[conn][%p] (SeqNum=%llu) Removed Source CID: %!CID!",
                     Connection,
                     SourceCid->CID.SequenceNumber,
                     CASTED_CLOG_BYTEARRAY(SourceCid->CID.Length, SourceCid->CID.Data));
+                *Entry = (*Entry)->Next;
             }
             *IsLastCid = Connection->SourceCids.Next == NULL;
             return SourceCid;
@@ -1223,7 +1230,7 @@ QuicConnGetSourceCidFromSeq(
 //
 _IRQL_requires_max_(DISPATCH_LEVEL)
 inline
-QUIC_CID_HASH_ENTRY*
+QUIC_CID_SLIST_ENTRY*
 QuicConnGetSourceCidFromBuf(
     _In_ QUIC_CONNECTION* Connection,
     _In_ uint8_t CidLength,
@@ -1234,10 +1241,10 @@ QuicConnGetSourceCidFromBuf(
     for (CXPLAT_SLIST_ENTRY* Entry = Connection->SourceCids.Next;
             Entry != NULL;
             Entry = Entry->Next) {
-        QUIC_CID_HASH_ENTRY* SourceCid =
+        QUIC_CID_SLIST_ENTRY* SourceCid =
             CXPLAT_CONTAINING_RECORD(
                 Entry,
-                QUIC_CID_HASH_ENTRY,
+                QUIC_CID_SLIST_ENTRY,
                 Link);
         if (CidLength == SourceCid->CID.Length &&
             memcmp(CidBuffer, SourceCid->CID.Data, CidLength) == 0) {
