@@ -165,6 +165,11 @@ QuicSettingsSetDefault(
     if (!Settings->IsSet.NetStatsEventEnabled) {
         Settings->NetStatsEventEnabled = QUIC_DEFAULT_NET_STATS_EVENT_ENABLED;
     }
+#if QUIC_TEST_MANUAL_CONN_ID_GENERATION
+    if (!Settings->IsSet.ConnIDGenDisabled) {
+        Settings->ConnIDGenDisabled = QUIC_DEFAULT_CONN_ID_GENERATION_DISABLED;
+    }
+#endif
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -330,6 +335,11 @@ QuicSettingsCopy(
     if (!Destination->IsSet.NetStatsEventEnabled) {
         Destination->NetStatsEventEnabled = Source->NetStatsEventEnabled;
     }
+#if QUIC_TEST_MANUAL_CONN_ID_GENERATION
+    if (!Destination->IsSet.ConnIDGenDisabled) {
+        Destination->ConnIDGenDisabled = Source->ConnIDGenDisabled;
+    }
+#endif
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -700,6 +710,14 @@ QuicSettingApply(
         Destination->NetStatsEventEnabled = Source->NetStatsEventEnabled;
         Destination->IsSet.NetStatsEventEnabled = TRUE;
     }
+
+#if QUIC_TEST_MANUAL_CONN_ID_GENERATION
+    if (Source->IsSet.ConnIDGenDisabled && (!Destination->IsSet.ConnIDGenDisabled || OverWrite)) {
+        Destination->ConnIDGenDisabled = Source->ConnIDGenDisabled;
+        Destination->IsSet.ConnIDGenDisabled = TRUE;
+    }
+#endif
+
     return TRUE;
 }
 
@@ -1358,6 +1376,18 @@ VersionSettingsFail:
             &ValueLen);
         Settings->NetStatsEventEnabled = !!Value;
     }
+#if QUIC_TEST_MANUAL_CONN_ID_GENERATION
+    if (!Settings->IsSet.ConnIDGenDisabled) {
+        Value = QUIC_DEFAULT_CONN_ID_GENERATION_DISABLED;
+        ValueLen = sizeof(Value);
+        CxPlatStorageReadValue(
+            Storage,
+            QUIC_SETTING_CONN_ID_GENERATION_DISABLED,
+            (uint8_t*)&Value,
+            &ValueLen);
+        Settings->ConnIDGenDisabled = !!Value;
+    }
+#endif
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1587,6 +1617,11 @@ QuicSettingsDumpNew(
     if (Settings->IsSet.NetStatsEventEnabled) {
         QuicTraceLogVerbose(SettingNetStatsEventEnabled,            "[sett] NetStatsEventEnabled       = %hhu", Settings->NetStatsEventEnabled);
     }
+#if QUIC_TEST_MANUAL_CONN_ID_GENERATION
+    if (Settings->IsSet.ConnIDGenDisabled) {
+        QuicTraceLogVerbose(SettingConnIDGenDisabled,               "[sett] ConnIDGenDisabled          = %hhu", Settings->ConnIDGenDisabled);
+    }
+#endif
 }
 
 #define SETTINGS_SIZE_THRU_FIELD(SettingsType, Field) \

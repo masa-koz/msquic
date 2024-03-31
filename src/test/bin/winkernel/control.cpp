@@ -935,6 +935,7 @@ QuicTestCtlEvtIoDeviceControl(
             QuicTestProbePath(
                 Params->ProbePathParams.Family,
                 Params->ProbePathParams.ShareBinding,
+                Params->ProbePathParams.DeferConnIDGen,
                 Params->ProbePathParams.DropPacketCount));
         break;
 
