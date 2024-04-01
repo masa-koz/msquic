@@ -1657,7 +1657,7 @@ QuicCryptoProcessTlsCompletion(
         }
         Connection->Stats.ResumptionSucceeded = Crypto->TlsState.SessionResumed;
 
-        CXPLAT_DBG_ASSERT(Connection->PathsCount == 1);
+        CXPLAT_DBG_ASSERT(Connection->PathsCount >= 1);
         QUIC_PATH* Path = &Connection->Paths[0];
         CXPLAT_DBG_ASSERT(Path->IsActive);
 

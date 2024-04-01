@@ -6284,26 +6284,25 @@ QuicConnOpenNewPath(
 
     Path->Allowance = UINT32_MAX;
 
-    QUIC_CID_LIST_ENTRY* NewDestCid = QuicConnGetUnusedDestCid(Connection);
-    if (NewDestCid == NULL) {
-        return QUIC_STATUS_INVALID_STATE;
-    }
-    Path->DestCid = NewDestCid;
-    QUIC_CID_SET_PATH(Connection, Path->DestCid, Path);
-    Path->DestCid->CID.UsedLocally = TRUE;
-
-    CXPLAT_DBG_ASSERT(Path->DestCid != NULL);
-    QuicPathValidate(Path);
-    Path->SendChallenge = TRUE;
-    Path->PathValidationStartTime = CxPlatTimeUs64();
-
-    CxPlatRandom(sizeof(Path->Challenge), Path->Challenge);
-
     QuicTraceEvent(
         ConnLocalAddrAdded,
         "[conn][%p] New Local IP: %!ADDR!",
         Connection,
         CASTED_CLOG_BYTEARRAY(sizeof(Path->Route.LocalAddress), &Path->Route.LocalAddress));
+
+    QUIC_CID_LIST_ENTRY* NewDestCid = QuicConnGetUnusedDestCid(Connection);
+    if (NewDestCid != NULL) {
+        Path->DestCid = NewDestCid;
+        QUIC_CID_SET_PATH(Connection, Path->DestCid, Path);
+        Path->DestCid->CID.UsedLocally = TRUE;
+
+        CXPLAT_DBG_ASSERT(Path->DestCid != NULL);
+        QuicPathValidate(Path);
+        Path->SendChallenge = TRUE;
+        Path->PathValidationStartTime = CxPlatTimeUs64();
+
+        CxPlatRandom(sizeof(Path->Challenge), Path->Challenge);
+    }
 
     return QUIC_STATUS_SUCCESS;
 
@@ -6315,7 +6314,7 @@ QuicConnOpenNewPaths(
     _In_ QUIC_CONNECTION* Connection
     )
 {
-    BOOLEAN Opened = FALSE;
+    BOOLEAN Assigned = FALSE;
 
     CXPLAT_DBG_ASSERT(Connection->PathsCount > 0);
     for (uint8_t i = 1; i < Connection->PathsCount; ++i) {
@@ -6329,11 +6328,13 @@ QuicConnOpenNewPaths(
                 }
                 QuicPathRemove(Connection, i--);
             } else {
-                Opened = TRUE;
+                if (Connection->Paths[i].DestCid != NULL) {
+                    Assigned = TRUE;
+                }
             }
         }
     }
-    return Opened;
+    return Assigned;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -6417,7 +6418,9 @@ QuicConnAddLocalAddress(
         }
         QuicPathRemove(Connection, 1);
     } else {
-        QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_PATH_CHALLENGE);
+        if (Path->DestCid != NULL) {
+            QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_PATH_CHALLENGE);
+        }
     }
 
     return Status;
