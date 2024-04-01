@@ -6348,8 +6348,9 @@ QuicConnAddLocalAddress(
         return QUIC_STATUS_NOT_SUPPORTED;
     }
 
-    if (Connection->State.Started &&
-        !Connection->State.HandshakeConfirmed) {
+    if (Connection->State.ClosedLocally ||
+        (Connection->State.Started &&
+        !Connection->State.HandshakeConfirmed)) {
         return QUIC_STATUS_INVALID_STATE;
     }
 
@@ -6358,12 +6359,14 @@ QuicConnAddLocalAddress(
     }
 
     BOOLEAN AddrInUse = FALSE;
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-        if (QuicAddrCompare(
-                &Connection->Paths[i].Route.LocalAddress,
-                LocalAddress)) {
-            AddrInUse = TRUE;
-            break;
+    if (Connection->State.LocalAddressSet) {
+        for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+            if (QuicAddrCompare(
+                    &Connection->Paths[i].Route.LocalAddress,
+                    LocalAddress)) {
+                AddrInUse = TRUE;
+                break;
+            }
         }
     }
 
@@ -6379,9 +6382,12 @@ QuicConnAddLocalAddress(
         return QUIC_STATUS_OUT_OF_MEMORY;
     }
 
+    CXPLAT_DBG_ASSERT(Connection->PathsCount > 0);
+    
     QUIC_PATH* Path = NULL;
-    if (Connection->PathsCount == 0) {
+    if (!Connection->State.LocalAddressSet) {
         Path = &Connection->Paths[0];
+        Connection->State.LocalAddressSet = TRUE;
     } else {
         if (Connection->PathsCount > 1) {
             //
@@ -6393,13 +6399,11 @@ QuicConnAddLocalAddress(
                 (Connection->PathsCount - 1) * sizeof(QUIC_PATH));
         }
         Path = &Connection->Paths[1];
+        QuicPathInitialize(Connection, Path);
+        Connection->PathsCount++;
     }
 
-    QuicPathInitialize(Connection, Path);
-    Connection->PathsCount++;
-
     CxPlatCopyMemory(&Path->Route.LocalAddress, LocalAddress, sizeof(QUIC_ADDR));
-    Connection->State.LocalAddressSet = TRUE;
 
     if (!Connection->State.Started) {
         return QUIC_STATUS_SUCCESS;
