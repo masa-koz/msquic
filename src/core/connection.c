@@ -6588,7 +6588,9 @@ QuicConnParamSet(
             // TODO - Need to free any queued recv packets from old binding.
             //
 
-            QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection);
+            if (!QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection)) {
+                QuicConnGenerateNewSourceCids(Connection, TRUE);
+            }
             QuicBindingRemoveAllSourceConnectionIDs(OldBinding, Connection);
             QuicLibraryReleaseBinding(OldBinding);
 
