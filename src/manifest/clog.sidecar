@@ -10482,6 +10482,18 @@
       ],
       "macroName": "QuicTraceLogVerbose"
     },
+    "SettingConnIDGenDisabled": {
+      "ModuleProperites": {},
+      "TraceString": "[sett] ConnIDGenDisabled   = %hhu",
+      "UniqueId": "SettingConnIDGenDisabled",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "hhu",
+          "MacroVariableName": "arg2"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
+    },
     "SettingOneWayDelayEnabled": {
       "ModuleProperites": {},
       "TraceString": "[sett] OneWayDelayEnabled     = %hhu",

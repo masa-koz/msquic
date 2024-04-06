@@ -357,6 +357,7 @@ void
 QuicTestProbePath(
     _In_ int Family,
     _In_ BOOLEAN ShareBinding,
+    _In_ BOOLEAN DeferConnIDGen,
     _In_ uint32_t DropPacketCount
     );
 
@@ -365,6 +366,14 @@ QuicTestMigration(
     _In_ int Family,
     _In_ BOOLEAN ShareBinding,
     _In_ BOOLEAN PathProbe
+    );
+
+void
+QuicTestMultipleLocalAddresses(
+    _In_ int Family,
+    _In_ BOOLEAN ShareBinding,
+    _In_ BOOLEAN DeferConnIDGen,
+    _In_ uint32_t DropPacketCount
     );
 
 void
@@ -1295,6 +1304,7 @@ typedef struct {
 typedef struct {
     int Family;
     BOOLEAN ShareBinding;
+    BOOLEAN DeferConnIDGen;
     uint32_t DropPacketCount;
 } QUIC_RUN_PROBE_PATH_PARAMS;
 

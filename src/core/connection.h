@@ -208,7 +208,15 @@ typedef union QUIC_CONNECTION_STATE {
         //
         BOOLEAN DisableVneTp : 1;
 #endif
+
+#if QUIC_TEST_MANUAL_CONN_ID_GENERATION
+        //
+        // Whether to disable automatic generation of Connection ID.
+        // Only used for testing, and thus only enabled for debug builds.
+        //
+        BOOLEAN DisableConnIDGen : 1;
     };
+#endif
 } QUIC_CONNECTION_STATE;
 
 CXPLAT_STATIC_ASSERT(sizeof(QUIC_CONNECTION_STATE) == sizeof(uint64_t), "Ensure correct size/type");
@@ -1578,6 +1586,25 @@ void
 QuicConnUpdatePeerPacketTolerance(
     _In_ QUIC_CONNECTION* Connection,
     _In_ uint8_t NewPacketTolerance
+    );
+
+//
+// Open a new path for the connection.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+QuicConnOpenNewPath(
+    _In_ QUIC_CONNECTION* Connection,
+    _In_ QUIC_PATH* Path
+    );
+
+//
+// Open new paths for the connection.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+BOOLEAN
+QuicConnOpenNewPaths(
+    _In_ QUIC_CONNECTION* Connection
     );
 
 //
