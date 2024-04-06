@@ -6358,9 +6358,7 @@ QuicConnAddLocalAddress(
         return QUIC_STATUS_NOT_SUPPORTED;
     }
 
-    if (Connection->State.ClosedLocally ||
-        (Connection->State.Started &&
-        !Connection->State.HandshakeConfirmed)) {
+    if (Connection->State.ClosedLocally) {
         return QUIC_STATUS_INVALID_STATE;
     }
 
@@ -6415,7 +6413,7 @@ QuicConnAddLocalAddress(
 
     CxPlatCopyMemory(&Path->Route.LocalAddress, LocalAddress, sizeof(QUIC_ADDR));
 
-    if (!Connection->State.Started) {
+    if (!(Connection->State.Started && Connection->State.HandshakeConfirmed)) {
         return QUIC_STATUS_SUCCESS;
     }
 
