@@ -4477,10 +4477,25 @@ void QuicTest_QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS(MsQuicRegistration& Registration
         }
 
         //
-        // Connection is started, but not handshake confirmed
+        // Good before ConnectionStart
         //
         {
-            TestScopeLogger LogScope2("Connection is started, but not handshake confirmed");
+            TestScopeLogger LogScope2("Good before ConnectionStart");
+            MsQuicConnection Connection(Registration);
+            TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
+            QUIC_ADDR Dummy = {};
+            TEST_QUIC_SUCCEEDED(
+                Connection.SetParam(
+                    QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS,
+                    sizeof(Dummy),
+                    &Dummy));
+        }
+
+        //
+        // Good after ConnectionStart
+        //
+        {
+            TestScopeLogger LogScope2("Good after ConnectionStart");
             MsQuicConnection Connection(Registration);
             TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
             TEST_QUIC_SUCCEEDED(
@@ -4491,22 +4506,6 @@ void QuicTest_QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS(MsQuicRegistration& Registration
                     "localhost",
                     4433));
 
-            QUIC_ADDR Dummy = {};
-            TEST_QUIC_STATUS(
-                QUIC_STATUS_INVALID_STATE,
-                Connection.SetParam(
-                    QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS,
-                    sizeof(Dummy),
-                    &Dummy));
-        }
-
-        //
-        // Good before ConnectioStart
-        //
-        {
-            TestScopeLogger LogScope2("Good before ConnectionStart");
-            MsQuicConnection Connection(Registration);
-            TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
             QUIC_ADDR Dummy = {};
             TEST_QUIC_SUCCEEDED(
                 Connection.SetParam(
@@ -4558,6 +4557,80 @@ void QuicTest_QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS(MsQuicRegistration& Registration
     }
 }
 
+void QuicTest_QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS(MsQuicRegistration& Registration, MsQuicConfiguration& ClientConfiguration)
+{
+    TestScopeLogger LogScope0("QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS");
+    //
+    // SetParam
+    //
+    {
+        TestScopeLogger LogScope1("SetParam");
+        //
+        // No local address to remove
+        //
+        {
+            TestScopeLogger LogScope2("No local address to remove");
+            TEST_TRUE(ClientConfiguration.IsValid());
+            MsQuicConnection Connection(Registration);
+            TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
+
+            QUIC_ADDR Dummy = {};
+            TEST_QUIC_STATUS(
+                QUIC_STATUS_NOT_FOUND,
+                Connection.SetParam(
+                    QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS,
+                    sizeof(Dummy),
+                    &Dummy));
+        }
+
+        //
+        // Add and remove a local address
+        //
+        {
+            TestScopeLogger LogScope2("Add and remove a local address");
+            MsQuicConnection Connection(Registration);
+            TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
+            QUIC_ADDR Dummy = {};
+            TEST_QUIC_SUCCEEDED(
+                Connection.SetParam(
+                    QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS,
+                    sizeof(Dummy),
+                    &Dummy));
+
+            TEST_QUIC_SUCCEEDED(
+                Connection.SetParam(
+                    QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS,
+                    sizeof(Dummy),
+                    &Dummy));
+        }
+
+        //
+        // Remove a local address that belongs to another the active path
+        //
+        {
+            TestScopeLogger LogScope2("Remove a local address that belongs to another the active path");
+            MsQuicConnection Connection(Registration);
+            TEST_QUIC_SUCCEEDED(Connection.GetInitStatus());
+            TEST_QUIC_SUCCEEDED(
+                MsQuic->ConnectionStart(
+                    Connection.Handle,
+                    ClientConfiguration,
+                    QUIC_ADDRESS_FAMILY_INET,
+                    "localhost",
+                    4433));
+
+            QuicAddr ClientLocalAddr;
+            TEST_QUIC_SUCCEEDED(Connection.GetLocalAddr(ClientLocalAddr));
+            TEST_QUIC_STATUS(
+                QUIC_STATUS_INVALID_STATE,
+                Connection.SetParam(
+                    QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS,
+                    sizeof(ClientLocalAddr.SockAddr),
+                    &ClientLocalAddr.SockAddr));
+        }
+    }
+}
+
 void QuicTestConnectionParam()
 {
     MsQuicAlpn Alpn("MsQuicTest");
@@ -4592,6 +4665,7 @@ void QuicTestConnectionParam()
     QuicTest_QUIC_PARAM_CONN_STATISTICS_V2_PLAT(Registration);
     QuicTest_QUIC_PARAM_CONN_ORIG_DEST_CID(Registration, ClientConfiguration);
     QuicTest_QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS(Registration, ClientConfiguration);
+    QuicTest_QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS(Registration, ClientConfiguration);
 }
 
 //

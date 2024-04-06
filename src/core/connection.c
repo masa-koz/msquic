@@ -6445,12 +6445,12 @@ QuicConnRemoveLocalAddress(
         return QUIC_STATUS_INVALID_STATE;
     }
 
-    if (!Connection->State.Started) {
-        return QUIC_STATUS_INVALID_STATE;
-    }
-
     if (!QuicAddrIsValid(LocalAddress)) {
         return QUIC_STATUS_INVALID_PARAMETER;
+    }
+
+    if (!Connection->State.LocalAddressSet) {
+        return QUIC_STATUS_NOT_FOUND;
     }
 
     uint8_t PathIndex = Connection->PathsCount;
@@ -6469,20 +6469,26 @@ QuicConnRemoveLocalAddress(
 
     QUIC_PATH* Path = &Connection->Paths[PathIndex];
 
-    if (Path->IsActive) {
+    if (Path->IsActive && Connection->State.Started) {
         return QUIC_STATUS_INVALID_STATE;
     }
 
-    QuicConnRetireCid(Connection, Path->DestCid);
+    if (Path->DestCid != NULL) {
+        QuicConnRetireCid(Connection, Path->DestCid);
+    }
 
-    CXPLAT_DBG_ASSERT(Path->Binding != NULL);
+    if (Path->Binding != NULL) {
+        QuicBindingRemoveAllSourceConnectionIDs(Path->Binding, Connection);
+        QuicLibraryReleaseBinding(Path->Binding);
+        Path->Binding = NULL;
+    }
 
-    QuicBindingRemoveAllSourceConnectionIDs(Path->Binding, Connection);
-
-    QuicLibraryReleaseBinding(Path->Binding);
-    Path->Binding = NULL;
-
-    QuicPathRemove(Connection, PathIndex);
+    if (Connection->PathsCount == 1) {
+        CXPLAT_DBG_ASSERT(!Connection->State.Started);
+        Connection->State.LocalAddressSet = FALSE;
+    } else {
+        QuicPathRemove(Connection, PathIndex);
+    }
 
     return QUIC_STATUS_SUCCESS;
 }
