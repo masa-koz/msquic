@@ -6535,15 +6535,10 @@ QuicConnParamSet(
             break;
         }
 
-        Connection->State.LocalAddressSet = TRUE;
-        CxPlatCopyMemory(&Connection->Paths[0].Route.LocalAddress, Buffer, sizeof(QUIC_ADDR));
-        QuicTraceEvent(
-            ConnLocalAddrAdded,
-            "[conn][%p] New Local IP: %!ADDR!",
-            Connection,
-            CASTED_CLOG_BYTEARRAY(sizeof(Connection->Paths[0].Route.LocalAddress), &Connection->Paths[0].Route.LocalAddress));
-
-        if (Connection->State.Started) {
+        if (!Connection->State.Started) {
+            Connection->State.LocalAddressSet = TRUE;
+            CxPlatCopyMemory(&Connection->Paths[0].Route.LocalAddress, Buffer, sizeof(QUIC_ADDR));
+        } else {
             CXPLAT_DBG_ASSERT(Connection->State.RemoteAddressSet);
             QUIC_PATH* Path = QuicConnGetPathByAddress(Connection, LocalAddress, &Connection->Paths[0].Route.RemoteAddress);
             if (Path != NULL) {
