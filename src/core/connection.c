@@ -820,6 +820,27 @@ QuicConnGenerateNewSourceCid(
     }
 
     //
+    // Find all the bindings that are currently in use by this connection.
+    //
+    QUIC_BINDING* Bindings[QUIC_MAX_PATH_COUNT] = {NULL};
+    uint8_t BindingsCount = 0;
+
+    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+        if (Connection->Paths[i].Binding != NULL) {
+            BOOLEAN NewBinding = TRUE;
+            for (uint8_t j = 0; j < BindingsCount; ++j) {
+                if (Connection->Paths[i].Binding == Bindings[j]) {
+                    NewBinding = FALSE;
+                    break;
+                }
+            }
+            if (NewBinding) {
+                Bindings[BindingsCount++] = Connection->Paths[i].Binding;
+            }
+        }
+    }
+
+    //
     // Keep randomly generating new source CIDs until we find one that doesn't
     // collide with an existing one.
     //
@@ -844,23 +865,20 @@ QuicConnGenerateNewSourceCid(
 
         BOOLEAN Collision = FALSE;
         int8_t Revert = -1;
-
-        for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-            if (Connection->Paths[i].Binding != NULL) {
-                if (!QuicBindingAddSourceConnectionID(Connection->Paths[i].Binding, SourceCid)) {
-                    Collision = TRUE;
-                    if (i > 0) {
-                        Revert = i - 1;
-                    }
-                    break;
+        for (uint8_t i = 0; i < BindingsCount; ++i) {
+            if (!QuicBindingAddSourceConnectionID(Bindings[i], SourceCid)) {
+                Collision = TRUE;
+                if (i > 0) {
+                    Revert = i - 1;
                 }
+                break;
             }
         }
 
         if (Collision) {
             if (Revert >= 0) {
                 for (int8_t i = Revert; i >= 0; --i) {
-                    if (Connection->Paths[i].Binding != NULL) {
+                    if (Bindings[i] != NULL) {
                         while (SourceCid->HashEntries.Next != NULL) {
                             QUIC_CID_HASH_ENTRY* CID =
                                 CXPLAT_CONTAINING_RECORD(
