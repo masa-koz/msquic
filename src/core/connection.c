@@ -6606,8 +6606,17 @@ QuicConnParamSet(
             // TODO - Need to free any queued recv packets from old binding.
             //
 
-            if (!QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection)) {
-                QuicConnGenerateNewSourceCids(Connection, TRUE);
+            if (!Connection->State.ShareBinding) {
+                if (!QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection)) {
+                    QuicLibraryReleaseBinding(Connection->Paths[0].Binding);
+                    Connection->Paths[0].Binding = OldBinding;
+                    Status = QUIC_STATUS_OUT_OF_MEMORY;
+                    break;
+                }
+            } else {
+                if (!QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection)) {
+                    QuicConnGenerateNewSourceCids(Connection, TRUE);
+                }
             }
             QuicBindingRemoveAllSourceConnectionIDs(OldBinding, Connection);
             QuicLibraryReleaseBinding(OldBinding);
