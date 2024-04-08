@@ -660,6 +660,7 @@ typedef struct QUIC_CONNECTION {
         QUIC_FLOW_BLOCKED_TIMING_TRACKER FlowControl;
     } BlockedTimings;
 
+    QUIC_PATHID_SET PathIDs;
 } QUIC_CONNECTION;
 
 typedef struct QUIC_SERIALIZED_RESUMPTION_STATE {
@@ -807,6 +808,19 @@ QuicDatagramGetConnection(
     )
 {
     return CXPLAT_CONTAINING_RECORD(Datagram, QUIC_CONNECTION, Datagram);
+}
+
+//
+// Helper to get the owning QUIC_CONNECTION for the stream set module.
+//
+inline
+_Ret_notnull_
+QUIC_CONNECTION*
+QuicPathIDSetGetConnection(
+    _In_ QUIC_PATHID_SET* PathIDSet
+    )
+{
+    return CXPLAT_CONTAINING_RECORD(PathIDSet, QUIC_CONNECTION, PathIDs);
 }
 
 inline

@@ -589,6 +589,8 @@ CXPLAT_STATIC_ASSERT(
 #define QUIC_TP_FLAG_TIMESTAMP_RECV_ENABLED                 0x01000000
 #define QUIC_TP_FLAG_TIMESTAMP_SEND_ENABLED                 0x02000000
 #define QUIC_TP_FLAG_TIMESTAMP_SHIFT                        24
+#define QUIC_TP_FLAG_INITIAL_MAX_CLIENT_PATHS               0x04000000
+#define QUIC_TP_FLAG_INITIAL_MAX_SERVER_PATHS               0x08000000
 
 #define QUIC_TP_MAX_PACKET_SIZE_DEFAULT                     65527
 #define QUIC_TP_MAX_UDP_PAYLOAD_SIZE_MIN                    1200
@@ -610,6 +612,12 @@ CXPLAT_STATIC_ASSERT(
 // as a variable-length integer.
 //
 #define QUIC_TP_MAX_STREAMS_MAX                             ((1ULL << 60) - 1)
+
+//
+// Max allowed value of a MAX_{CLIENT, SERVER}_PATHS frame or transport parameter.
+// Any larger value would allow a max path ID that cannot be used in the nonce.
+//
+#define QUIC_TP_MAX_PATHS_MAX                               ((1ULL << 32) - 1)
 
 /*************************************************************
                   PERSISTENT SETTINGS

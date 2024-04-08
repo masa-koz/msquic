@@ -1,0 +1,141 @@
+/*++
+
+    Copyright (c) Microsoft Corporation.
+    Licensed under the MIT License.
+
+--*/
+
+//
+// Info for a particular type of pathid (client/server)
+//
+typedef struct QUIC_PATHID_TYPE_INFO {
+
+    //
+    // The largest MAX_{CLIENT, SERVER}_PATHS value indicated to the peer. This MUST not ever
+    // decrease once the connection has started.
+    //
+    uint64_t MaxTotalPathIDCount;
+
+    //
+    // The total number of path ids that have been opened. Includes any path ids
+    // that have been closed as well.
+    //
+    uint64_t TotalPathIDCount;
+
+    //
+    // The maximum number of simultaneous open path ids allowed.
+    //
+    uint16_t MaxCurrentPathIDCount;
+
+    //
+    // The current count of currently open path ids.
+    //
+    uint16_t CurrentPathIDCount;
+
+} QUIC_PATHID_TYPE_INFO;
+
+typedef struct QUIC_PATHID_SET {
+
+    //
+    // The per-type Path ID information.
+    //
+    QUIC_PATHID_TYPE_INFO Types[NUMBER_OF_PATHID_TYPES];
+
+    //
+    // The hash table of all active path ids.
+    //
+    CXPLAT_HASHTABLE* PathIDTable;
+
+} QUIC_PATHID_SET;
+
+//
+// Initializes the path id set.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicPathIDSetInitialize(
+    _Inout_ QUIC_PATHID_SET* PathIDSet
+    );
+
+//
+// Uninitializes the path id set.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicPathIDSetUninitialize(
+    _Inout_ QUIC_PATHID_SET* PathIDSet
+    );
+
+//
+// Tracing rundown for the path id set.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicPathIDSetTraceRundown(
+    _In_ QUIC_PATHID_SET* PathIDSet
+    );
+
+//
+// Invoked when the the transport parameters have been received from the peer.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicPathIDSetInitializeTransportParameters(
+    _Inout_ QUIC_PATHID_SET* PathIDSet,
+    _In_ uint32_t ClientPathCount,
+    _In_ uint32_t ServerPathCount
+    );
+
+//
+// Invoked when the peer sends a MAX_{CLIENT, SERVER}_PATHS frame.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicPathIDSetUpdateMaxPaths(
+    _Inout_ QUIC_PATHID_SET* PathIDSet,
+    _In_ BOOLEAN IsServer,
+    _In_ uint32_t MaxPaths
+    );
+
+//
+// Updates the maximum count of streams allowed for a path id set.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicPathIDmSetUpdateMaxCount(
+    _Inout_ QUIC_PATHID_SET* PathIDSet,
+    _In_ uint8_t Type,
+    _In_ uint16_t Count
+    );
+
+//
+// Returns the number of available path ids still allowed.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+uint16_t
+QuicPathIDSetGetCountAvailable(
+    _In_ const QUIC_PATHID_SET* PathIDSet,
+    _In_ uint8_t Type
+    );
+
+//
+// Creates a new local path id.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+QuicPathIDSetNewLocalPathID(
+    _Inout_ QUIC_PATHID_SET* PathIDSet,
+    _In_ uint8_t Type,
+    _In_ QUIC_PATHID* PathID
+    );
+
+//
+// Queries the current max Path IDs.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicPathIDSetGetMaxPathIDs(
+    _In_ const QUIC_PATHID_SET* PathIDSet,
+    _Out_writes_all_(NUMBER_OF_PATHID_TYPES)
+        uint64_t* MaxPathIds
+    );
