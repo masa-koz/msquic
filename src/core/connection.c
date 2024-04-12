@@ -2442,6 +2442,13 @@ QuicConnGenerateLocalTransportParameters(
                           QUIC_TP_FLAG_TIMESTAMP_SEND_ENABLED;
     }
 
+    if (Connection->Settings.MultipathEnabled) {
+        LocalTP->Flags |= QUIC_TP_FLAG_INITIAL_MAX_CLIENT_PATHS |
+                          QUIC_TP_FLAG_INITIAL_MAX_SERVER_PATHS;
+        LocalTP->InitialMaxClientPaths = QUIC_ACTIVE_PATH_ID_LIMIT;
+        LocalTP->InitialMaxServerPaths = QUIC_ACTIVE_PATH_ID_LIMIT;
+    }
+
     if (QuicConnIsServer(Connection)) {
 
         if (Connection->Streams.Types[STREAM_ID_FLAG_IS_CLIENT | STREAM_ID_FLAG_IS_BI_DIR].MaxTotalStreamCount) {
@@ -6306,9 +6313,9 @@ QuicConnOpenNewPath(
             return QUIC_STATUS_OUT_OF_MEMORY;
         }
     } else {
-        if (!QuicBindingAddAllSourceConnectionIDs(NewBinding, Connection)) {
+        //if (!QuicBindingAddAllSourceConnectionIDs(NewBinding, Connection)) {
             QuicConnGenerateNewSourceCids(Connection, TRUE);
-        }
+        //}
     }
 
     Path->Allowance = UINT32_MAX;
@@ -6614,9 +6621,9 @@ QuicConnParamSet(
                     break;
                 }
             } else {
-                if (!QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection)) {
+                //if (!QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection)) {
                     QuicConnGenerateNewSourceCids(Connection, TRUE);
-                }
+                //}
             }
             QuicBindingRemoveAllSourceConnectionIDs(OldBinding, Connection);
             QuicLibraryReleaseBinding(OldBinding);

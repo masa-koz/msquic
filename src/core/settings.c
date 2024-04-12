@@ -170,6 +170,9 @@ QuicSettingsSetDefault(
         Settings->ConnIDGenDisabled = QUIC_DEFAULT_CONN_ID_GENERATION_DISABLED;
     }
 #endif
+    if (!Settings->IsSet.MultipathEnabled) {
+        Settings->MultipathEnabled = QUIC_DEFAULT_MULTIPATH_ENABLED;
+    }
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -340,6 +343,9 @@ QuicSettingsCopy(
         Destination->ConnIDGenDisabled = Source->ConnIDGenDisabled;
     }
 #endif
+    if (!Destination->IsSet.MultipathEnabled) {
+        Destination->MultipathEnabled = Source->MultipathEnabled;
+    }
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -717,6 +723,11 @@ QuicSettingApply(
         Destination->IsSet.ConnIDGenDisabled = TRUE;
     }
 #endif
+
+    if (Source->IsSet.MultipathEnabled && (!Destination->IsSet.MultipathEnabled || OverWrite)) {
+        Destination->MultipathEnabled = Source->MultipathEnabled;
+        Destination->IsSet.MultipathEnabled = TRUE;
+    }
 
     return TRUE;
 }
@@ -1388,6 +1399,16 @@ VersionSettingsFail:
         Settings->ConnIDGenDisabled = !!Value;
     }
 #endif
+    if (!Settings->IsSet.MultipathEnabled) {
+        Value = QUIC_DEFAULT_MULTIPATH_ENABLED;
+        ValueLen = sizeof(Value);
+        CxPlatStorageReadValue(
+            Storage,
+            QUIC_SETTING_MULTIPATH_ENABLED,
+            (uint8_t*)&Value,
+            &ValueLen);
+        Settings->MultipathEnabled = !!Value;
+    }
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1456,6 +1477,7 @@ QuicSettingsDump(
     QuicTraceLogVerbose(SettingReliableResetEnabled,        "[sett] ReliableResetEnabled   = %hhu", Settings->ReliableResetEnabled);
     QuicTraceLogVerbose(SettingOneWayDelayEnabled,          "[sett] OneWayDelayEnabled     = %hhu", Settings->OneWayDelayEnabled);
     QuicTraceLogVerbose(SettingNetStatsEventEnabled,        "[sett] NetStatsEventEnabled   = %hhu", Settings->NetStatsEventEnabled);
+    QuicTraceLogVerbose(SettingMultipathEnabled,            "[sett] MultipathEnabled       = %hhu", Settings->MultipathEnabled);
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1622,6 +1644,9 @@ QuicSettingsDumpNew(
         QuicTraceLogVerbose(SettingConnIDGenDisabled,               "[sett] ConnIDGenDisabled          = %hhu", Settings->ConnIDGenDisabled);
     }
 #endif
+    if (Settings->IsSet.MultipathEnabled) {
+        QuicTraceLogVerbose(SettingMultipathEnabled,                "[sett] MultipathEnabled           = %hhu", Settings->MultipathEnabled);
+    }
 }
 
 #define SETTINGS_SIZE_THRU_FIELD(SettingsType, Field) \
@@ -1873,6 +1898,14 @@ QuicSettingsSettingsToInternal(
     SETTING_COPY_FLAG_TO_INTERNAL_SIZED(
         Flags,
         NetStatsEventEnabled,
+        QUIC_SETTINGS,
+        Settings,
+        SettingsSize,
+        InternalSettings);
+
+    SETTING_COPY_FLAG_TO_INTERNAL_SIZED(
+        Flags,
+        MultipathEnabled,
         QUIC_SETTINGS,
         Settings,
         SettingsSize,

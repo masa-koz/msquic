@@ -27,8 +27,8 @@ QuicPathIDSetUninitialize(
     _Inout_ QUIC_PATHID_SET* PathIDSet
     )
 {
-    if (PathIDSet->PathIDTable != NULL) {
-        CxPlatHashtableUninitialize(PathIDSet->PathIDTable);
+    if (PathIDSet->PathIDCount > 1) {
+        CxPlatHashtableUninitialize(PathIDSet->HASH.Table);
     }
 }
 

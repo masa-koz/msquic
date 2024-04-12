@@ -42,10 +42,30 @@ typedef struct QUIC_PATHID_SET {
     QUIC_PATHID_TYPE_INFO Types[NUMBER_OF_PATHID_TYPES];
 
     //
-    // The hash table of all active path ids.
+    // The number of PathIDs. Value of less than 2
+    // indicates only a single PathID (may be NULL) is bound.
     //
-    CXPLAT_HASHTABLE* PathIDTable;
+    uint32_t PathIDCount;
 
+    //
+    // PathID lookup.
+    //
+    union {
+        void* LookupTable;
+        struct {
+            //
+            // Single PathID is bound.
+            //
+            QUIC_PATHID* PathID;
+        } SINGLE;
+        struct {
+            //
+            // Hash table.
+            //
+            CXPLAT_HASHTABLE* Table;
+        } HASH;
+    };
+    
 } QUIC_PATHID_SET;
 
 //

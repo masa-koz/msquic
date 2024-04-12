@@ -375,6 +375,11 @@ CXPLAT_STATIC_ASSERT(
     "Should always have enough CIDs for all paths");
 
 //
+// Maximum number of PATH IDs accepted from the peer.
+//
+#define QUIC_ACTIVE_PATH_ID_LIMIT               4
+
+//
 // The default value for pacing being enabled or not.
 //
 #define QUIC_DEFAULT_SEND_PACING                TRUE
@@ -533,6 +538,11 @@ CXPLAT_STATIC_ASSERT(
 #define QUIC_DEFAULT_CONN_ID_GENERATION_DISABLED     FALSE
 
 //
+// The default settings for allowing multipath.
+//
+#define QUIC_DEFAULT_MULTIPATH_ENABLED               FALSE
+
+//
 // The number of rounds in Cubic Slow Start to sample RTT.
 //
 #define QUIC_HYSTART_DEFAULT_N_SAMPLING             8
@@ -646,6 +656,7 @@ CXPLAT_STATIC_ASSERT(
 #define QUIC_SETTING_RELIABLE_RESET_ENABLED         "ReliableResetEnabled"
 #define QUIC_SETTING_ONE_WAY_DELAY_ENABLED          "OneWayDelayEnabled"
 #define QUIC_SETTING_NET_STATS_EVENT_ENABLED        "NetStatsEventEnabled"
+#define QUIC_SETTING_MULTIPATH_ENABLED              "MultipathEnabled"
 
 #define QUIC_SETTING_INITIAL_WINDOW_PACKETS         "InitialWindowPackets"
 #define QUIC_SETTING_SEND_IDLE_TIMEOUT_MS           "SendIdleTimeoutMs"

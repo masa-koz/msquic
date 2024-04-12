@@ -19,6 +19,12 @@
 // This structure represents all the per path id specific data.
 //
 typedef struct QUIC_PATHID {
+
+    //
+    // Unique identifier;
+    //
+    uint32_t ID;
+
 } QUIC_PATHID;
 
 //
@@ -30,7 +36,7 @@ QuicPathIDInitialize(
     _In_ QUIC_CONNECTION* Connection,
     _In_ BOOLEAN OpenedRemotely,
     _Outptr_ _At_(*PathID, __drv_allocatesMem(Mem))
-        QUIC_STREAM** PathID
+        QUIC_PATHID** PathID
     );
 
 //
