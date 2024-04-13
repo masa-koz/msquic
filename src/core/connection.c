@@ -130,6 +130,7 @@ QuicConnAlloc(
     QuicSendInitialize(&Connection->Send, &Connection->Settings);
     QuicCongestionControlInitialize(&Connection->CongestionControl, &Connection->Settings);
     QuicLossDetectionInitialize(&Connection->LossDetection);
+    QuicPathIDSetInitialize(&Connection->PathIDs);
     QuicDatagramInitialize(&Connection->Datagram);
     QuicRangeInitialize(
         QUIC_MAX_RANGE_DECODE_ACKS,

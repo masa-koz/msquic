@@ -16,6 +16,17 @@
 #define PATHID_ID_IS_SERVER(ID)         ((ID & 1) == 1)
 
 //
+// Different flags of a stream.
+// Note - Keep quictypes.h's copy up to date.
+//
+typedef union QUIC_PATHID_FLAGS {
+    uint64_t AllFlags;
+    struct {
+        BOOLEAN InPathIDTable           : 1;    // The path id is currently in the connection's table.
+    };
+} QUIC_PATHID_FLAGS;
+
+//
 // This structure represents all the per path id specific data.
 //
 typedef struct QUIC_PATHID {
@@ -24,6 +35,16 @@ typedef struct QUIC_PATHID {
     // Unique identifier;
     //
     uint32_t ID;
+
+    //
+    // The current flags for this path id.
+    //
+    QUIC_PATHID_FLAGS Flags;
+
+    //
+    // The entry in the connection's hashtable of path ids.
+    //
+    CXPLAT_HASHTABLE_ENTRY TableEntry;
 
 } QUIC_PATHID;
 
