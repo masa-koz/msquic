@@ -80,18 +80,22 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 void
 QuicPathIDSetInitializeTransportParameters(
     _Inout_ QUIC_PATHID_SET* PathIDSet,
-    _In_ uint32_t ClientPathCount,
-    _In_ uint32_t ServerPathCount
+    _In_ uint32_t MaxClientPathID,
+    _In_ uint32_t MaxServerPathID
     )
 {
     //QUIC_CONNECTION* Connection = QuicPathIDSetGetConnection(PathIDSet);
- 
-    if (ClientPathCount != 0) {
-        PathIDSet->Types[PATHID_ID_FLAG_IS_CLIENT].MaxTotalPathIDCount = ClientPathCount;
-    }
 
-    if (ServerPathCount != 0) {
-        PathIDSet->Types[PATHID_ID_FLAG_IS_SERVER].MaxTotalPathIDCount = ServerPathCount;
+    PathIDSet->Flags.MultipathEnabled = TRUE;
+    PathIDSet->Types[PATHID_ID_FLAG_IS_CLIENT].MaxPathID = QUIC_ACTIVE_PATH_ID_LIMIT - 1;
+    PathIDSet->Types[PATHID_ID_FLAG_IS_CLIENT].PeerMaxPathID = MaxClientPathID;
+    PathIDSet->Types[PATHID_ID_FLAG_IS_CLIENT].MaxCurrentPathIDCount = QUIC_ACTIVE_PATH_ID_LIMIT;
+
+    if (MaxServerPathID != UINT32_MAX) {
+        PathIDSet->Flags.ServerInitiatedEnabled = TRUE;
+        PathIDSet->Types[PATHID_ID_FLAG_IS_SERVER].MaxPathID = QUIC_ACTIVE_PATH_ID_LIMIT - 1;
+        PathIDSet->Types[PATHID_ID_FLAG_IS_SERVER].PeerMaxPathID = MaxServerPathID;
+        PathIDSet->Types[PATHID_ID_FLAG_IS_SERVER].MaxCurrentPathIDCount = QUIC_ACTIVE_PATH_ID_LIMIT;
     }
 }
 
@@ -104,6 +108,7 @@ QuicPathIDSetNewLocalPathID(
     )
 {
     QUIC_STATUS Status = QUIC_STATUS_SUCCESS;
+
     QUIC_PATHID_TYPE_INFO* Info = &PathIDSet->Types[Type];
     uint32_t NewPathId = Type + (Info->TotalPathIDCount << 2);
 
@@ -118,6 +123,12 @@ QuicPathIDSetNewLocalPathID(
     Info->CurrentPathIDCount++;
     Info->TotalPathIDCount++;
 
+    if (Info->MaxCurrentPathIDCount < Info->CurrentPathIDCount) {
+        Info->MaxCurrentPathIDCount = Info->CurrentPathIDCount;
+    }
+    if (PathID->ID > Type + (Info->MaxPathID << 2)) {
+        PathID->Flags.BlockedByPeer = TRUE;
+    }
 Exit:
     return Status;
 }

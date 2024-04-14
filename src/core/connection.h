@@ -233,6 +233,7 @@ typedef enum QUIC_CONNECTION_REF {
     QUIC_CONN_REF_TIMER_WHEEL,          // The timer wheel is tracking the connection.
     QUIC_CONN_REF_ROUTE,                // Route resolution is undergoing.
     QUIC_CONN_REF_STREAM,               // A stream depends on the connection.
+    QUIC_CONN_REF_PATHID,               // A path id depends on the connection.
 
     QUIC_CONN_REF_COUNT
 

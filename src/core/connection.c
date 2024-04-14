@@ -2446,8 +2446,8 @@ QuicConnGenerateLocalTransportParameters(
     if (Connection->Settings.MultipathEnabled) {
         LocalTP->Flags |= QUIC_TP_FLAG_INITIAL_MAX_CLIENT_PATHS |
                           QUIC_TP_FLAG_INITIAL_MAX_SERVER_PATHS;
-        LocalTP->InitialMaxClientPaths = QUIC_ACTIVE_PATH_ID_LIMIT;
-        LocalTP->InitialMaxServerPaths = QUIC_ACTIVE_PATH_ID_LIMIT;
+        LocalTP->InitialMaxClientPaths = QUIC_ACTIVE_PATH_ID_LIMIT - 1;
+        LocalTP->InitialMaxServerPaths = QUIC_ACTIVE_PATH_ID_LIMIT - 1;
     }
 
     if (QuicConnIsServer(Connection)) {
@@ -2673,6 +2673,11 @@ QuicConnValidateTransportParameterCIDs(
             "[conn][%p] ERROR, %s.",
             Connection,
             "Peer didn't provide the initial source CID in TP");
+        return FALSE;
+    }
+
+    if (!(Connection->PeerTransportParams.Flags & QUIC_TP_FLAG_INITIAL_MAX_CLIENT_PATHS) &&
+         (Connection->PeerTransportParams.Flags & QUIC_TP_FLAG_INITIAL_MAX_SERVER_PATHS)) {
         return FALSE;
     }
 
@@ -3015,6 +3020,19 @@ QuicConnProcessPeerTransportParameters(
         Connection->SourceCidLimit = QUIC_TP_ACTIVE_CONNECTION_ID_LIMIT_DEFAULT;
     }
 
+    if (Connection->Settings.MultipathEnabled &&
+        Connection->PeerTransportParams.Flags & QUIC_TP_FLAG_INITIAL_MAX_CLIENT_PATHS) {
+        if (Connection->PeerTransportParams.Flags & QUIC_TP_FLAG_INITIAL_MAX_SERVER_PATHS) {
+            QuicPathIDSetInitializeTransportParameters(&Connection->PathIDs,
+                Connection->PeerTransportParams.InitialMaxClientPaths,
+                Connection->PeerTransportParams.InitialMaxServerPaths);
+        } else {
+            QuicPathIDSetInitializeTransportParameters(&Connection->PathIDs,
+                Connection->PeerTransportParams.InitialMaxClientPaths,
+                UINT32_MAX);
+        }
+    }
+    
     if (!FromResumptionTicket) {
         if (Connection->Settings.VersionNegotiationExtEnabled &&
             Connection->PeerTransportParams.Flags & QUIC_TP_FLAG_VERSION_NEGOTIATION) {

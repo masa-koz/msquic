@@ -14,7 +14,13 @@ typedef struct QUIC_PATHID_TYPE_INFO {
     // The largest MAX_{CLIENT, SERVER}_PATHS value indicated to the peer. This MUST not ever
     // decrease once the connection has started.
     //
-    uint64_t MaxTotalPathIDCount;
+    uint64_t MaxPathID;
+
+    //
+    // The largest MAX_{CLIENT, SERVER}_PATHS value indicated by the peer. This MUST not ever
+    // decrease once the connection has started.
+    //
+    uint64_t PeerMaxPathID;
 
     //
     // The total number of path ids that have been opened. Includes any path ids
@@ -34,12 +40,29 @@ typedef struct QUIC_PATHID_TYPE_INFO {
 
 } QUIC_PATHID_TYPE_INFO;
 
+//
+// Different flags of a stream.
+// Note - Keep quictypes.h's copy up to date.
+//
+typedef union QUIC_PATHID_SET_FLAGS {
+    uint64_t AllFlags;
+    struct {
+        BOOLEAN MultipathEnabled        : 1;
+        BOOLEAN ServerInitiatedEnabled  : 1;
+    };
+} QUIC_PATHID_SET_FLAGS;
+
 typedef struct QUIC_PATHID_SET {
 
     //
     // The per-type Path ID information.
     //
     QUIC_PATHID_TYPE_INFO Types[NUMBER_OF_PATHID_TYPES];
+
+    //
+    // The current flags for path id set.
+    //
+    QUIC_PATHID_SET_FLAGS Flags;
 
     //
     // The number of PathIDs. Value of less than 2
@@ -102,8 +125,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 void
 QuicPathIDSetInitializeTransportParameters(
     _Inout_ QUIC_PATHID_SET* PathIDSet,
-    _In_ uint32_t ClientPathCount,
-    _In_ uint32_t ServerPathCount
+    _In_ uint32_t MaxClientPath,
+    _In_ uint32_t MaxServerPath
     );
 
 //
