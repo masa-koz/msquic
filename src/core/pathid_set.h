@@ -26,7 +26,7 @@ typedef struct QUIC_PATHID_TYPE_INFO {
     // The total number of path ids that have been opened. Includes any path ids
     // that have been closed as well.
     //
-    uint64_t TotalPathIDCount;
+    uint32_t TotalPathIDCount;
 
     //
     // The maximum number of simultaneous open path ids allowed.
@@ -88,7 +88,7 @@ typedef struct QUIC_PATHID_SET {
             CXPLAT_HASHTABLE* Table;
         } HASH;
     };
-    
+
 } QUIC_PATHID_SET;
 
 //
