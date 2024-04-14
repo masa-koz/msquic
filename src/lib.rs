@@ -13,6 +13,7 @@ use std::convert::TryInto;
 use std::fmt;
 use std::option::Option;
 use std::ptr;
+use std::result::Result;
 #[macro_use]
 extern crate bitfield;
 
@@ -1460,13 +1461,13 @@ impl CredentialConfig {
 }
 
 impl Api {
-    pub fn new() -> Api {
+    pub fn new() -> Result<Api, u32> {
         let new_table: *const ApiTable = ptr::null();
         let status = unsafe { MsQuicOpenVersion(2, &new_table) };
         if Status::failed(status) {
-            panic!("MsQuicOpenVersion failure 0x{:x}", status);
+            return Err(status);
         }
-        Api { table: new_table }
+        Ok(Api { table: new_table })
     }
 
     pub fn close_listener(&self, listener: Handle) {
@@ -1518,16 +1519,16 @@ impl Drop for Api {
 }
 
 impl Registration {
-    pub fn new(api: &Api, config: *const RegistrationConfig) -> Registration {
+    pub fn new(api: &Api, config: *const RegistrationConfig) -> Result<Registration, u32> {
         let new_registration: Handle = ptr::null();
         let status = unsafe { ((*api.table).registration_open)(config, &new_registration) };
         if Status::failed(status) {
-            panic!("RegistrationOpen failure 0x{:x}", status);
+            return Err(status);
         }
-        Registration {
+        Ok(Registration {
             table: api.table,
             handle: new_registration,
-        }
+        })
     }
 
     pub fn shutdown(&self) {
@@ -1546,7 +1547,7 @@ impl Configuration {
         registration: &Registration,
         alpn: &[Buffer],
         settings: *const Settings,
-    ) -> Configuration {
+    ) -> Result<Configuration, u32> {
         let context: *const c_void = ptr::null();
         let new_configuration: Handle = ptr::null();
         let mut settings_size: u32 = 0;
@@ -1565,20 +1566,21 @@ impl Configuration {
             )
         };
         if Status::failed(status) {
-            panic!("ConfigurationOpen failure 0x{:x}", status);
+            return Err(status);
         }
-        Configuration {
+        Ok(Configuration {
             table: registration.table,
             handle: new_configuration,
-        }
+        })
     }
 
-    pub fn load_credential(&self, cred_config: &CredentialConfig) {
+    pub fn load_credential(&self, cred_config: &CredentialConfig) -> Result<(), u32> {
         let status =
             unsafe { ((*self.table).configuration_load_credential)(self.handle, *&cred_config) };
         if Status::failed(status) {
-            panic!("ConfigurationLoadCredential failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 }
 
@@ -1608,16 +1610,17 @@ impl Connection {
         registration: &Registration,
         handler: ConnectionEventHandler,
         context: *const c_void,
-    ) {
+    ) -> Result<(), u32> {
         let status = unsafe {
             ((*self.table).connection_open)(registration.handle, handler, context, &self.handle)
         };
         if Status::failed(status) {
-            panic!("ConnectionOpen failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 
-    pub fn start(&self, configuration: &Configuration, server_name: &str, server_port: u16) {
+    pub fn start(&self, configuration: &Configuration, server_name: &str, server_port: u16) -> Result<(), u32> {
         let server_name_safe = std::ffi::CString::new(server_name).unwrap();
         let status = unsafe {
             ((*self.table).connection_start)(
@@ -1629,8 +1632,9 @@ impl Connection {
             )
         };
         if Status::failed(status) {
-            panic!("ConnectionStart failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 
     pub fn close(&mut self) {
@@ -1687,13 +1691,14 @@ impl Connection {
         unsafe { *(stat_buffer.as_ptr() as *const c_void as *const QuicStatisticsV2) }
     }
 
-    pub fn set_configuration(&self, configuration: &Configuration) {
+    pub fn set_configuration(&self, configuration: &Configuration) -> Result<(), u32> {
         let status = unsafe {
             ((*self.table).connection_set_configuration)(self.handle, configuration.handle)
         };
         if Status::failed(status) {
-            panic!("ConnectionSetConfiguration failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 
     pub fn set_callback_handler(&self, handler: ConnectionEventHandler, context: *const c_void) {
@@ -1719,7 +1724,7 @@ impl Connection {
         buffer_count: u32,
         flags: SendFlags,
         client_send_context: *const c_void,
-    ) {
+    ) -> Result<(), u32> {
         let status = unsafe {
             ((*self.table).datagram_send)(
                 self.handle,
@@ -1730,14 +1735,15 @@ impl Connection {
             )
         };
         if Status::failed(status) {
-            panic!("DatagramSend failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 
     pub fn resumption_ticket_validation_complete(
         &self,
         result: BOOLEAN,
-    ) {
+    ) -> Result<(), u32> {
         let status = unsafe {
             ((*self.table).resumption_ticket_validation_complete)(
                 self.handle,
@@ -1745,15 +1751,16 @@ impl Connection {
             )
         };
         if Status::failed(status) {
-            panic!("ticket validation completion failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 
     pub fn certificate_validation_complete(
         &self,
         result: BOOLEAN,
         tls_alert: TlsAlertCode,
-    ) {
+    ) -> Result<(), u32> {
         let status = unsafe {
             ((*self.table).certificate_validation_complete)(
                 self.handle,
@@ -1762,8 +1769,9 @@ impl Connection {
             )
         };
         if Status::failed(status) {
-            panic!("ticket validation completion failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 }
 
@@ -1786,7 +1794,7 @@ impl Listener {
         registration: &Registration,
         handler: ListenerEventHandler,
         context: *const c_void,
-    ) {
+    ) -> Result<(), u32> {
         let status = unsafe {
             ((*registration.table).listener_open)(
                 registration.handle,
@@ -1796,11 +1804,12 @@ impl Listener {
             )
         };
         if Status::failed(status) {
-            panic!("ListenerOpen failed, {:x}!\n", status);
+            return Err(status);
         }
+        Ok(())
     }
 
-    pub fn start(&self, alpn: &[Buffer], local_address: Option<*const sockaddr>) {
+    pub fn start(&self, alpn: &[Buffer], local_address: Option<*const sockaddr>) -> Result<(), u32> {
         let status = unsafe {
             ((*self.table).listener_start)(
                 self.handle,
@@ -1810,8 +1819,9 @@ impl Listener {
             )
         };
         if Status::failed(status) {
-            panic!("ListenerStart failed, {:x}!\n", status);
+            return Err(status);
         }
+        Ok(())
     }
 
     pub fn stop(&self) {
@@ -1859,20 +1869,22 @@ impl Stream {
         flags: StreamOpenFlags,
         handler: StreamEventHandler,
         context: *const c_void,
-    ) {
+    ) -> Result<(), u32> {
         let status = unsafe {
             ((*self.table).stream_open)(connection.handle, flags, handler, context, &self.handle)
         };
         if Status::failed(status) {
-            panic!("StreamOpen failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 
-    pub fn start(&self, flags: StreamStartFlags) {
+    pub fn start(&self, flags: StreamStartFlags) -> Result<(), u32> {
         let status = unsafe { ((*self.table).stream_start)(self.handle, flags) };
         if Status::failed(status) {
-            panic!("StreamStart failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 
     pub fn close(&self) {
@@ -1881,13 +1893,14 @@ impl Stream {
         }
     }
 
-    pub fn shutdown(&self, flags: StreamShutdownFlags, error_code: u62) {
+    pub fn shutdown(&self, flags: StreamShutdownFlags, error_code: u62) -> Result<(), u32> {
         let status = unsafe {
             ((*self.table).stream_shutdown)(self.handle, flags, error_code)
         };
         if Status::failed(status) {
-            panic!("StreamShutdown failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
     
     pub fn send(
@@ -1896,7 +1909,7 @@ impl Stream {
         buffer_count: u32,
         flags: SendFlags,
         client_send_context: *const c_void,
-    ) {
+    ) -> Result<(), u32> {
         let status = unsafe {
             ((*self.table).stream_send)(
                 self.handle,
@@ -1907,8 +1920,9 @@ impl Stream {
             )
         };
         if Status::failed(status) {
-            panic!("StreamSend failure 0x{:x}", status);
+            return Err(status);
         }
+        Ok(())
     }
 
     pub fn set_callback_handler(&self, handler: StreamEventHandler, context: *const c_void) {
@@ -2000,8 +2014,8 @@ extern "C" fn test_stream_callback(
 
 #[test]
 fn test_module() {
-    let api = Api::new();
-    let registration = Registration::new(&api, ptr::null());
+    let api = Api::new().unwrap();
+    let registration = Registration::new(&api, ptr::null()).unwrap();
 
     let alpn = [Buffer::from("h3")];
     let configuration = Configuration::new(
@@ -2010,7 +2024,7 @@ fn test_module() {
         Settings::new()
             .set_peer_bidi_stream_count(100)
             .set_peer_unidi_stream_count(3),
-    );
+    ).unwrap();
     let cred_config = CredentialConfig::new_client();
     configuration.load_credential(&cred_config);
 
