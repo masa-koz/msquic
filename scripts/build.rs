@@ -21,8 +21,10 @@ fn main() {
     config
         .define("QUIC_ENABLE_LOGGING", logging_enabled)
         .define("QUIC_TLS", "openssl")
-        .define("QUIC_BUILD_SHARED", "off")
         .define("QUIC_OUTPUT_DIR", out_dir.join("lib").to_str().unwrap());
+    if cfg!(feature = "static") {
+        config.define("QUIC_BUILD_SHARED", "off");
+    }
 
     match target.as_str() {
         "x86_64-apple-darwin" => config
@@ -37,5 +39,7 @@ fn main() {
     let dst = config.build();
     let lib_path = Path::join(Path::new(&dst), Path::new(path_extra));
     println!("cargo:rustc-link-search=native={}", lib_path.display());
-    println!("cargo:rustc-link-lib=static=msquic");
+    if cfg!(feature = "static") {
+        println!("cargo:rustc-link-lib=static=msquic");
+    }
 }
