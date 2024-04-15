@@ -1081,7 +1081,7 @@ pub const STREAM_EVENT_PEER_ACCEPTED: StreamEventType = 9;
 pub struct StreamEventStartComplete {
     pub status: u32,
     pub id: u62,
-    pub bit_flags: StreamEventStartCompleteBitfields,
+    pub flags: StreamEventStartCompleteBitfields,
 }
 
 bitfield! {
@@ -1089,7 +1089,7 @@ bitfield! {
     #[derive(Debug, Clone, Copy)]
     pub struct StreamEventStartCompleteBitfields(u8);
     // The fields default to u8
-    pub peer_accepted, _: 1, 0;
+    pub peer_accepted, _: 0, 0;
     _reserved, _: 7, 1;
 }
 
@@ -1137,7 +1137,7 @@ bitfield! {
     pub app_close_in_progress, _: 0, 0;
     pub conn_shutdown_by_app, _: 1, 1;
     pub conn_closed_remotely, _: 2, 2;
-    _reserved, _: 3, 7;
+    _reserved, _: 7, 3;
 }
 
 #[repr(C)]
