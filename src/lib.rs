@@ -1298,7 +1298,7 @@ extern "C" {
 ///  or `Stream` declares `API` last so that the API is dropped last when the containing
 /// sruct goes out of scope.
 pub struct Api {
-    pub table: *const ApiTable,
+    table: *const ApiTable,
 }
 unsafe impl Sync for Api {}
 unsafe impl Send for Api {}
@@ -1324,18 +1324,24 @@ pub struct Connection {
     table: *const ApiTable,
     handle: Handle,
 }
+unsafe impl Sync for Connection {}
+unsafe impl Send for Connection {}
 
 /// A single server listener
 pub struct Listener {
     table: *const ApiTable,
     handle: Handle,
 }
+unsafe impl Sync for Listener {}
+unsafe impl Send for Listener {}
 
 /// A single QUIC stream on a parent connection.
 pub struct Stream {
     table: *const ApiTable,
     handle: Handle,
 }
+unsafe impl Sync for Stream {}
+unsafe impl Send for Stream {}
 
 impl From<&str> for Buffer {
     fn from(data: &str) -> Buffer {
