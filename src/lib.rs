@@ -11,9 +11,11 @@ use libc::{c_void, sockaddr};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use std::fmt;
+use std::ops::Deref;
 use std::option::Option;
 use std::ptr;
 use std::result::Result;
+use std::sync::Arc;
 #[macro_use]
 extern crate bitfield;
 
@@ -22,7 +24,11 @@ extern crate bitfield;
 //
 
 /// Opaque handle to a MsQuic object.
-pub type Handle = *const libc::c_void;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct Handle(*const libc::c_void);
+unsafe impl Sync for Handle {}
+unsafe impl Send for Handle {}
 
 /// Unsigned 62-bit integer.
 #[allow(non_camel_case_types)]
@@ -1177,105 +1183,109 @@ pub struct StreamEvent {
 pub type StreamEventHandler =
     extern "C" fn(stream: Handle, context: *mut c_void, event: &StreamEvent) -> u32;
 
+struct ApiTable(*const ApiTableInner);
+unsafe impl Sync for ApiTable {}
+unsafe impl Send for ApiTable {}
+
 #[repr(C)]
-pub struct ApiTable {
-    set_context: extern "C" fn(handle: Handle, context: *const c_void),
-    get_context: extern "C" fn(handle: Handle) -> *mut c_void,
+struct ApiTableInner {
+    set_context: unsafe extern "C" fn(handle: Handle, context: *const c_void),
+    get_context: unsafe extern "C" fn(handle: Handle) -> *mut c_void,
     set_callback_handler:
-        extern "C" fn(handle: Handle, handler: *const c_void, context: *const c_void),
+        unsafe extern "C" fn(handle: Handle, handler: *const c_void, context: *const c_void),
     set_param:
-        extern "C" fn(handle: Handle, param: u32, buffer_length: u32, buffer: *const c_void) -> u32,
-    get_param: extern "C" fn(
+        unsafe extern "C" fn(handle: Handle, param: u32, buffer_length: u32, buffer: *const c_void) -> u32,
+    get_param: unsafe extern "C" fn(
         handle: Handle,
         param: u32,
         buffer_length: *mut u32,
         buffer: *const c_void,
     ) -> u32,
     registration_open:
-        extern "C" fn(config: *const RegistrationConfig, registration: &Handle) -> u32,
-    registration_close: extern "C" fn(registration: Handle),
-    registration_shutdown: extern "C" fn(registration: Handle),
-    configuration_open: extern "C" fn(
+        unsafe extern "C" fn(config: *const RegistrationConfig, registration: &Handle) -> u32,
+    registration_close: unsafe extern "C" fn(registration: Handle),
+    registration_shutdown: unsafe extern "C" fn(registration: Handle),
+    configuration_open: unsafe extern "C" fn(
         registration: Handle,
         alpn_buffers: *const Buffer,
         alpn_buffer_cout: u32,
         settings: *const Settings,
         settings_size: u32,
         context: *const c_void,
-        configuration: &*const c_void,
+        configuration: &Handle,
     ) -> u32,
-    configuration_close: extern "C" fn(configuration: Handle),
+    configuration_close: unsafe extern "C" fn(configuration: Handle),
     configuration_load_credential:
-        extern "C" fn(configuration: Handle, cred_config: *const CredentialConfig) -> u32,
-    listener_open: extern "C" fn(
+        unsafe extern "C" fn(configuration: Handle, cred_config: *const CredentialConfig) -> u32,
+    listener_open: unsafe extern "C" fn(
         registration: Handle,
         handler: ListenerEventHandler,
         context: *const c_void,
         listener: &Handle,
     ) -> u32,
-    listener_close: extern "C" fn(listener: Handle),
-    listener_start: extern "C" fn(
+    listener_close: unsafe extern "C" fn(listener: Handle),
+    listener_start: unsafe extern "C" fn(
         listener: Handle,
         alpn_buffers: *const Buffer,
         alpn_buffer_cout: u32,
         local_address: *const sockaddr,
     ) -> u32,
-    listener_stop: extern "C" fn(listener: Handle),
-    connection_open: extern "C" fn(
+    listener_stop: unsafe extern "C" fn(listener: Handle),
+    connection_open: unsafe extern "C" fn(
         registration: Handle,
         handler: ConnectionEventHandler,
         context: *const c_void,
         connection: &Handle,
     ) -> u32,
-    connection_close: extern "C" fn(connection: Handle),
+    connection_close: unsafe extern "C" fn(connection: Handle),
     connection_shutdown:
-        extern "C" fn(connection: Handle, flags: ConnectionShutdownFlags, error_code: u62),
-    connection_start: extern "C" fn(
+        unsafe extern "C" fn(connection: Handle, flags: ConnectionShutdownFlags, error_code: u62),
+    connection_start: unsafe extern "C" fn(
         connection: Handle,
         configuration: Handle,
         family: AddressFamily,
         server_name: *const i8,
         server_port: u16,
     ) -> u32,
-    connection_set_configuration: extern "C" fn(connection: Handle, configuration: Handle) -> u32,
-    connection_send_resumption_ticket: extern "C" fn(
+    connection_set_configuration: unsafe extern "C" fn(connection: Handle, configuration: Handle) -> u32,
+    connection_send_resumption_ticket: unsafe extern "C" fn(
         connection: Handle,
         flags: SendResumptionFlags,
         data_length: u16,
         resumption_data: *const u8,
     ) -> u32,
-    stream_open: extern "C" fn(
+    stream_open: unsafe extern "C" fn(
         connection: Handle,
         flags: StreamOpenFlags,
         handler: StreamEventHandler,
         context: *const c_void,
         stream: &Handle,
     ) -> u32,
-    stream_close: extern "C" fn(stream: Handle),
-    stream_start: extern "C" fn(stream: Handle, flags: StreamStartFlags) -> u32,
+    stream_close: unsafe extern "C" fn(stream: Handle),
+    stream_start: unsafe extern "C" fn(stream: Handle, flags: StreamStartFlags) -> u32,
     stream_shutdown:
-        extern "C" fn(stream: Handle, flags: StreamShutdownFlags, error_code: u62) -> u32,
-    stream_send: extern "C" fn(
+        unsafe extern "C" fn(stream: Handle, flags: StreamShutdownFlags, error_code: u62) -> u32,
+    stream_send: unsafe extern "C" fn(
         stream: Handle,
         buffers: *const Buffer,
         buffer_count: u32,
         flags: SendFlags,
         client_send_context: *const c_void,
     ) -> u32,
-    stream_receive_complete: extern "C" fn(stream: Handle, buffer_length: u64),
-    stream_receive_set_enabled: extern "C" fn(stream: Handle, is_enabled: BOOLEAN) -> u32,
-    datagram_send: extern "C" fn(
+    stream_receive_complete: unsafe extern "C" fn(stream: Handle, buffer_length: u64),
+    stream_receive_set_enabled: unsafe extern "C" fn(stream: Handle, is_enabled: BOOLEAN) -> u32,
+    datagram_send: unsafe extern "C" fn(
         connection: Handle,
         buffers: *const Buffer,
         buffer_count: u32,
         flags: SendFlags,
         client_send_context: *const c_void,
     ) -> u32,
-    resumption_ticket_validation_complete: extern "C" fn(
+    resumption_ticket_validation_complete: unsafe extern "C" fn(
         connection: Handle,
         result: BOOLEAN,
     ) -> u32,
-    certificate_validation_complete: extern "C" fn(
+    certificate_validation_complete: unsafe extern "C" fn(
         connection: Handle,
         result: BOOLEAN,
         tls_alert: TlsAlertCode
@@ -1284,8 +1294,8 @@ pub struct ApiTable {
 
 #[link(name = "msquic")]
 extern "C" {
-    fn MsQuicOpenVersion(version: u32, api: &*const ApiTable) -> u32;
-    fn MsQuicClose(api: *const ApiTable);
+    fn MsQuicOpenVersion(version: u32, api: &*const ApiTableInner) -> u32;
+    fn MsQuicClose(api: *const ApiTableInner);
 }
 
 //
@@ -1298,50 +1308,38 @@ extern "C" {
 ///  or `Stream` declares `API` last so that the API is dropped last when the containing
 /// sruct goes out of scope.
 pub struct Api {
-    table: *const ApiTable,
+    table: Arc<ApiTable>,
 }
-unsafe impl Sync for Api {}
-unsafe impl Send for Api {}
 
 /// The execution context for processing connections on the application's behalf.
 pub struct Registration {
-    table: *const ApiTable,
+    table: Arc<ApiTable>,
     handle: Handle,
 }
-unsafe impl Sync for Registration {}
-unsafe impl Send for Registration {}
 
 /// Specifies how to configure a connection.
 pub struct Configuration {
-    table: *const ApiTable,
+    table: Arc<ApiTable>,
     handle: Handle,
 }
-unsafe impl Sync for Configuration {}
-unsafe impl Send for Configuration {}
 
 /// A single QUIC connection.
 pub struct Connection {
-    table: *const ApiTable,
+    table: Arc<ApiTable>,
     handle: Handle,
 }
-unsafe impl Sync for Connection {}
-unsafe impl Send for Connection {}
 
 /// A single server listener
 pub struct Listener {
-    table: *const ApiTable,
+    table: Arc<ApiTable>,
     handle: Handle,
 }
-unsafe impl Sync for Listener {}
-unsafe impl Send for Listener {}
 
 /// A single QUIC stream on a parent connection.
 pub struct Stream {
-    table: *const ApiTable,
+    table: Arc<ApiTable>,
     handle: Handle,
 }
-unsafe impl Sync for Stream {}
-unsafe impl Send for Stream {}
 
 impl From<&str> for Buffer {
     fn from(data: &str) -> Buffer {
@@ -1466,14 +1464,29 @@ impl CredentialConfig {
     }
 }
 
+impl Deref for ApiTable {
+    type Target = ApiTableInner;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*self.0 }
+    }
+}
+
+impl Drop for ApiTable {
+    fn drop(&mut self) {
+        println!("Dropping API Table");
+        unsafe { MsQuicClose(self.0) };
+    }
+}
+
 impl Api {
     pub fn new() -> Result<Api, u32> {
-        let new_table: *const ApiTable = ptr::null();
-        let status = unsafe { MsQuicOpenVersion(2, &new_table) };
+        let new_table = ApiTable(ptr::null());
+        let status = unsafe { MsQuicOpenVersion(2, &new_table.0) };
         if Status::failed(status) {
             return Err(status);
         }
-        Ok(Api { table: new_table })
+        Ok(Api { table: Arc::new(new_table) })
     }
 
     pub fn close_listener(&self, listener: Handle) {
@@ -1499,7 +1512,7 @@ impl Api {
         let perf_length = std::mem::size_of::<[i64; PERF_COUNTER_MAX as usize]>() as u32;
         unsafe {
             ((*self.table).get_param)(
-                std::ptr::null(),
+                Handle(std::ptr::null()),
                 PARAM_GLOBAL_PERF_COUNTERS,
                 (&perf_length) as *const u32 as *mut u32,
                 perf.counters.as_mut_ptr() as *const c_void,
@@ -1518,21 +1531,15 @@ impl Api {
     }
 }
 
-impl Drop for Api {
-    fn drop(&mut self) {
-        unsafe { MsQuicClose(self.table) };
-    }
-}
-
 impl Registration {
     pub fn new(api: &Api, config: *const RegistrationConfig) -> Result<Registration, u32> {
-        let new_registration: Handle = ptr::null();
+        let new_registration = Handle(ptr::null());
         let status = unsafe { ((*api.table).registration_open)(config, &new_registration) };
         if Status::failed(status) {
             return Err(status);
         }
         Ok(Registration {
-            table: api.table,
+            table: api.table.clone(),
             handle: new_registration,
         })
     }
@@ -1555,7 +1562,7 @@ impl Configuration {
         settings: *const Settings,
     ) -> Result<Configuration, u32> {
         let context: *const c_void = ptr::null();
-        let new_configuration: Handle = ptr::null();
+        let new_configuration = Handle(ptr::null());
         let mut settings_size: u32 = 0;
         if settings != ptr::null() {
             settings_size = ::std::mem::size_of::<Settings>() as u32;
@@ -1568,14 +1575,14 @@ impl Configuration {
                 settings,
                 settings_size,
                 context,
-                &new_configuration,
+                &new_configuration as _,
             )
         };
         if Status::failed(status) {
             return Err(status);
         }
         Ok(Configuration {
-            table: registration.table,
+            table: registration.table.clone(),
             handle: new_configuration,
         })
     }
@@ -1599,14 +1606,14 @@ impl Drop for Configuration {
 impl Connection {
     pub fn new(registration: &Registration) -> Connection {
         Connection {
-            table: registration.table,
-            handle: ptr::null(),
+            table: registration.table.clone(),
+            handle: Handle(ptr::null()),
         }
     }
 
     pub fn from_parts(handle: Handle, api: &Api) -> Connection {
         Connection {
-            table: api.table,
+            table: api.table.clone(),
             handle,
         }
     }
@@ -1790,8 +1797,8 @@ impl Drop for Connection {
 impl Listener {
     pub fn new(registration: &Registration) -> Listener {
         Listener {
-            table: registration.table,
-            handle: ptr::null(),
+            table: registration.table.clone(),
+            handle: Handle(ptr::null()),
         }
     }
 
@@ -1857,14 +1864,14 @@ impl Stream {
     pub fn new(context: *const c_void) -> Stream {
         let api = unsafe { &*(context as *const Api) };
         Stream {
-            table: api.table,
-            handle: ptr::null(),
+            table: api.table.clone(),
+            handle: Handle(ptr::null()),
         }
     }
 
     pub fn from_parts(handle: Handle, api: &Api) -> Stream {
         Stream {
-            table: api.table,
+            table: api.table.clone(),
             handle,
         }
     }
@@ -2022,6 +2029,7 @@ extern "C" fn test_stream_callback(
 fn test_module() {
     let api = Api::new().unwrap();
     let registration = Registration::new(&api, ptr::null()).unwrap();
+    std::mem::drop(api);
 
     let alpn = [Buffer::from("h3")];
     let configuration = Configuration::new(
@@ -2032,15 +2040,15 @@ fn test_module() {
             .set_peer_unidi_stream_count(3),
     ).unwrap();
     let cred_config = CredentialConfig::new_client();
-    configuration.load_credential(&cred_config);
+    configuration.load_credential(&cred_config).unwrap();
 
     let connection = Connection::new(&registration);
     connection.open(
         &registration,
         test_conn_callback,
         &connection as *const Connection as *const c_void,
-    );
-    connection.start(&configuration, "www.cloudflare.com", 443);
+    ).unwrap();
+    connection.start(&configuration, "www.cloudflare.com", 443).unwrap();
 
     let duration = std::time::Duration::from_millis(1000);
     std::thread::sleep(duration);
