@@ -1303,10 +1303,7 @@ extern "C" {
 //
 
 /// Top level entry point for the MsQuic API.
-///
-/// Developper must ensure a struct containing MsQuic members such as `Connection`
-///  or `Stream` declares `API` last so that the API is dropped last when the containing
-/// sruct goes out of scope.
+#[derive(Clone)]
 pub struct Api {
     table: Arc<ApiTable>,
 }
