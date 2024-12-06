@@ -901,6 +901,7 @@ pub const PARAM_STREAM_PRIORITY: u32 = 0x08000003;
 
 pub type ListenerEventType = u32;
 pub const LISTENER_EVENT_NEW_CONNECTION: ListenerEventType = 0;
+pub const LISTENER_EVENT_STOP_COMPLETE: ListenerEventType = 1;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -910,10 +911,26 @@ pub struct ListenerEventNewConnection {
     pub new_negotiated_alpn: *const u8,
 }
 
+bitfield! {
+    #[repr(C)]
+    #[derive(Debug, Clone, Copy)]
+    pub struct ListenerEventStopCompleteBitfields(u8);
+    // The fields default to u8
+    pub app_close_in_progress, _: 0, 0;
+    _reserved, _: 7, 1;
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ListenerEventStopComplete {
+    pub flags: ListenerEventStopCompleteBitfields,
+}
+
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union ListenerEventPayload {
     pub new_connection: ListenerEventNewConnection,
+    pub stop_complete: ListenerEventStopComplete,
 }
 
 #[repr(C)]
@@ -980,6 +997,20 @@ pub struct ConnectionEventPeerStreamStarted {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct ConnectionEventStreamsAvailable {
+    pub bidirectional_count: u16,
+    pub unidirectional_count: u16,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ConnectionEventDatagramStateChanged {
+    pub send_enabled: BOOLEAN,
+    pub max_send_length: u16,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct ConnectionEventDatagramReceived {
     pub buffer: *const Buffer,
     pub flags: ReceiveFlags,
@@ -1009,9 +1040,9 @@ pub union ConnectionEventPayload {
     //pub local_address_changed: ConnectionEventLocalAddressChanged,
     //pub peer_address_changed: ConnectionEventPeerAddressChanged,
     pub peer_stream_started: ConnectionEventPeerStreamStarted,
-    //pub streams_available: ConnectionEventStreamsAvailable,
+    pub streams_available: ConnectionEventStreamsAvailable,
     //pub ideal_processor_changed: ConnectionEventIdealProcessorChanged,
-    //pub datagram_state_changed: ConnectionEventDatagramStateChanged,
+    pub datagram_state_changed: ConnectionEventDatagramStateChanged,
     pub datagram_received: ConnectionEventDatagramReceived,
     pub datagram_send_state_changed: ConnectionEventDatagramSendStateChanged,
     //pub resumed: ConnectionEventResumed,
@@ -1041,12 +1072,21 @@ pub const STREAM_EVENT_SHUTDOWN_COMPLETE: StreamEventType = 7;
 pub const STREAM_EVENT_IDEAL_SEND_BUFFER_SIZE: StreamEventType = 8;
 pub const STREAM_EVENT_PEER_ACCEPTED: StreamEventType = 9;
 
+bitfield! {
+    #[repr(C)]
+    #[derive(Debug, Clone, Copy)]
+    pub struct StreamEventStartCompleteBitfields(u8);
+    // The fields default to u8
+    pub peer_accepted, _: 0, 0;
+    _reserved, _: 7, 1;
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct StreamEventStartComplete {
-    pub status: u64,
+    pub status: u32,
     pub id: u62,
-    pub bit_flags: u8,
+    pub bit_flags: StreamEventStartCompleteBitfields,
 }
 
 #[repr(C)]
@@ -1088,17 +1128,21 @@ pub struct StreamEventSendShutdownComplete {
 bitfield! {
     #[repr(C)]
     #[derive(Clone, Copy)]
-    struct StreamEventShutdownCompleteBitfields(u8);
+    pub struct StreamEventShutdownCompleteBitfields(u8);
     // The fields default to u8
-    app_close_in_progress, _: 1, 0;
-    _reserved, _: 7, 1;
+    pub app_close_in_progress, _: 0, 0;
+    pub conn_shutdown_by_app, _: 1, 1;
+    pub conn_closed_remotely, _: 2, 2;
+    _reserved, _: 7, 3;
 }
 
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct StreamEventShutdownComplete {
-    connection_shutdown: bool,
-    flags: StreamEventShutdownCompleteBitfields
+    pub connection_shutdown: bool,
+    pub flags: StreamEventShutdownCompleteBitfields,
+    pub connection_error_code: u64,
+    pub connection_close_status: u32,
 }
 
 #[repr(C)]
