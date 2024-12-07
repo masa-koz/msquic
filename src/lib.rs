@@ -1972,100 +1972,106 @@ impl Drop for Stream {
     }
 }
 
-//
-// The following defines some simple test code.
-//
+mod tests {
+    //
+    // The following defines some simple test code.
+    //
 
-#[allow(dead_code)] // Used in test code
-extern "C" fn test_conn_callback(
-    _connection: Handle,
-    context: *mut c_void,
-    event: &ConnectionEvent,
-) -> u32 {
-    let connection = unsafe { &*(context as *const Connection) };
-    match event.event_type {
-        CONNECTION_EVENT_CONNECTED => {
-            let local_addr = connection.get_local_addr().unwrap().as_socket().unwrap();
-            let remote_addr = connection.get_remote_addr().unwrap().as_socket().unwrap();
-            println!("Connected({}, {})", local_addr, remote_addr);
+    use super::*;
+    use libc::c_void;
+
+    #[allow(dead_code)] // Used in test code
+    extern "C" fn test_conn_callback(
+        _connection: Handle,
+        context: *mut c_void,
+        event: &ConnectionEvent,
+    ) -> u32 {
+        let connection = unsafe { &*(context as *const Connection) };
+        match event.event_type {
+            CONNECTION_EVENT_CONNECTED => {
+                let local_addr = connection.get_local_addr().unwrap().as_socket().unwrap();
+                let remote_addr = connection.get_remote_addr().unwrap().as_socket().unwrap();
+                println!("Connected({}, {})", local_addr, remote_addr);
+            }
+            CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_TRANSPORT => {
+                println!("Transport shutdown 0x{:x}", unsafe {
+                    event.payload.shutdown_initiated_by_transport.status
+                })
+            }
+            CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_PEER => println!("App shutdown {}", unsafe {
+                event.payload.shutdown_initiated_by_peer.error_code
+            }),
+            CONNECTION_EVENT_SHUTDOWN_COMPLETE => println!("Shutdown complete"),
+            CONNECTION_EVENT_PEER_STREAM_STARTED => {
+                println!("Peer stream started");
+                connection.set_stream_callback_handler(
+                    unsafe { event.payload.peer_stream_started.stream },
+                    test_stream_callback,
+                    context,
+                );
+            }
+            _ => println!("Other callback {}", event.event_type),
         }
-        CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_TRANSPORT => {
-            println!("Transport shutdown 0x{:x}", unsafe {
-                event.payload.shutdown_initiated_by_transport.status
-            })
-        }
-        CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_PEER => println!("App shutdown {}", unsafe {
-            event.payload.shutdown_initiated_by_peer.error_code
-        }),
-        CONNECTION_EVENT_SHUTDOWN_COMPLETE => println!("Shutdown complete"),
-        CONNECTION_EVENT_PEER_STREAM_STARTED => {
-            println!("Peer stream started");
-            connection.set_stream_callback_handler(
-                unsafe { event.payload.peer_stream_started.stream },
-                test_stream_callback,
-                context,
-            );
-        }
-        _ => println!("Other callback {}", event.event_type),
+        0
     }
-    0
-}
 
-#[allow(dead_code)] // Used in test code
-extern "C" fn test_stream_callback(
-    stream: Handle,
-    context: *mut c_void,
-    event: &StreamEvent,
-) -> u32 {
-    let connection = unsafe { &*(context as *const Connection) };
-    match event.event_type {
-        STREAM_EVENT_START_COMPLETE => println!("Stream start complete 0x{:x}", unsafe {
-            event.payload.start_complete.status
-        }),
-        STREAM_EVENT_RECEIVE => println!("Receive {} bytes", unsafe {
-            event.payload.receive.total_buffer_length
-        }),
-        STREAM_EVENT_SEND_COMPLETE => println!("Send complete"),
-        STREAM_EVENT_PEER_SEND_SHUTDOWN => println!("Peer send shutdown"),
-        STREAM_EVENT_PEER_SEND_ABORTED => println!("Peer send aborted"),
-        STREAM_EVENT_PEER_RECEIVE_ABORTED => println!("Peer receive aborted"),
-        STREAM_EVENT_SEND_SHUTDOWN_COMPLETE => println!("Peer receive aborted"),
-        STREAM_EVENT_SHUTDOWN_COMPLETE => {
-            println!("Stream shutdown complete");
-            connection.stream_close(stream);
+    #[allow(dead_code)] // Used in test code
+    extern "C" fn test_stream_callback(
+        stream: Handle,
+        context: *mut c_void,
+        event: &StreamEvent,
+    ) -> u32 {
+        let connection = unsafe { &*(context as *const Connection) };
+        match event.event_type {
+            STREAM_EVENT_START_COMPLETE => println!("Stream start complete 0x{:x}", unsafe {
+                event.payload.start_complete.status
+            }),
+            STREAM_EVENT_RECEIVE => println!("Receive {} bytes", unsafe {
+                event.payload.receive.total_buffer_length
+            }),
+            STREAM_EVENT_SEND_COMPLETE => println!("Send complete"),
+            STREAM_EVENT_PEER_SEND_SHUTDOWN => println!("Peer send shutdown"),
+            STREAM_EVENT_PEER_SEND_ABORTED => println!("Peer send aborted"),
+            STREAM_EVENT_PEER_RECEIVE_ABORTED => println!("Peer receive aborted"),
+            STREAM_EVENT_SEND_SHUTDOWN_COMPLETE => println!("Peer receive aborted"),
+            STREAM_EVENT_SHUTDOWN_COMPLETE => {
+                println!("Stream shutdown complete");
+                connection.stream_close(stream);
+            }
+            STREAM_EVENT_IDEAL_SEND_BUFFER_SIZE => println!("Ideal send buffer size"),
+            STREAM_EVENT_PEER_ACCEPTED => println!("Peer accepted"),
+            _ => println!("Other callback {}", event.event_type),
         }
-        STREAM_EVENT_IDEAL_SEND_BUFFER_SIZE => println!("Ideal send buffer size"),
-        STREAM_EVENT_PEER_ACCEPTED => println!("Peer accepted"),
-        _ => println!("Other callback {}", event.event_type),
+        0
     }
-    0
-}
 
-#[test]
-fn test_module() {
-    let api = Api::new().unwrap();
-    let registration = Registration::new(&api, ptr::null()).unwrap();
-    std::mem::drop(api);
+    #[test]
+    fn test_module() {
+        let api = Api::new().unwrap();
+        let registration = Registration::new(&api, ptr::null()).unwrap();
+        std::mem::drop(api);
 
-    let alpn = [Buffer::from("h3")];
-    let configuration = Configuration::new(
-        &registration,
-        &alpn,
-        Settings::new()
-            .set_peer_bidi_stream_count(100)
-            .set_peer_unidi_stream_count(3),
-    ).unwrap();
-    let cred_config = CredentialConfig::new_client();
-    configuration.load_credential(&cred_config);
+        let alpn = [Buffer::from("h3")];
+        let configuration = Configuration::new(
+            &registration,
+            &alpn,
+            Settings::new()
+                .set_peer_bidi_stream_count(100)
+                .set_peer_unidi_stream_count(3),
+        )
+        .unwrap();
+        let cred_config = CredentialConfig::new_client();
+        configuration.load_credential(&cred_config);
 
-    let connection = Connection::new(&registration);
-    connection.open(
-        &registration,
-        test_conn_callback,
-        &connection as *const Connection as *const c_void,
-    );
-    connection.start(&configuration, "www.cloudflare.com", 443);
+        let connection = Connection::new(&registration);
+        connection.open(
+            &registration,
+            test_conn_callback,
+            &connection as *const Connection as *const c_void,
+        );
+        connection.start(&configuration, "www.cloudflare.com", 443);
 
-    let duration = std::time::Duration::from_millis(1000);
-    std::thread::sleep(duration);
+        let duration = std::time::Duration::from_millis(1000);
+        std::thread::sleep(duration);
+    }
 }
