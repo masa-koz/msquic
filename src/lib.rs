@@ -1748,7 +1748,7 @@ impl Connection {
 
     pub fn datagram_send(
         &self,
-        buffer: &Buffer,
+        buffer: *const Buffer,
         buffer_count: u32,
         flags: SendFlags,
         client_send_context: *const c_void,
@@ -1756,7 +1756,7 @@ impl Connection {
         let status = unsafe {
             ((*self.table).datagram_send)(
                 self.handle,
-                *&buffer,
+                buffer,
                 buffer_count,
                 flags,
                 client_send_context,
@@ -1947,7 +1947,7 @@ impl Stream {
 
     pub fn send(
         &self,
-        buffer: &Buffer,
+        buffer: *const Buffer,
         buffer_count: u32,
         flags: SendFlags,
         client_send_context: *const c_void,
