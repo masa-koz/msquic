@@ -1892,8 +1892,7 @@ impl Drop for Listener {
 }
 
 impl Stream {
-    pub fn new(context: *const c_void) -> Stream {
-        let api = unsafe { &*(context as *const Api) };
+    pub fn new(api: &Api) -> Stream {
         Stream {
             table: api.table.clone(),
             handle: Handle(std::ptr::null()),
@@ -2051,7 +2050,7 @@ mod tests {
                     .as_socket()
                     .unwrap();
                 println!("Connected({}, {})", local_addr, remote_addr);
-                let stream = Arc::new(Stream::new(&context.api as *const _ as *const c_void));
+                let stream = Arc::new(Stream::new(&context.api));
                 let stream_context = Box::new(StreamContext {
                     stream: stream.clone(),
                 });
