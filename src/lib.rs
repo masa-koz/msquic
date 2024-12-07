@@ -1981,17 +1981,92 @@ mod tests {
     use libc::c_void;
 
     #[allow(dead_code)] // Used in test code
+    struct ListenerContext {
+        api: Api,
+        configuration: Configuration,
+    }
+
+    #[allow(dead_code)] // Used in test code
+    extern "C" fn test_listener_callback(
+        _listener: Handle,
+        context: *mut c_void,
+        event: &ListenerEvent,
+    ) -> u32 {
+        let context = unsafe { &mut *(context as *mut ListenerContext) };
+        match event.event_type {
+            LISTENER_EVENT_NEW_CONNECTION => {
+                println!("New connection");
+                let connection = Arc::new(Connection::from_parts(
+                    unsafe { event.payload.new_connection.connection },
+                    &context.api,
+                ));
+                let connection_context = Box::new(ConnectionContext {
+                    api: context.api.clone(),
+                    connection: connection.clone(),
+                    buffer: Buffer::from("Hello, world!"),
+                });
+                connection.set_callback_handler(
+                    test_conn_callback,
+                    Box::into_raw(connection_context) as *const c_void,
+                );
+                connection
+                    .set_configuration(&context.configuration)
+                    .unwrap();
+            }
+            LISTENER_EVENT_STOP_COMPLETE => {
+                println!("Listener stop complete");
+                let _ = unsafe { Box::from_raw(context as *mut _) };
+            }
+            _ => println!("Other callback {}", event.event_type),
+        }
+        QUIC_STATUS_SUCCESS
+    }
+
+    #[allow(dead_code)] // Used in test code
+    struct ConnectionContext {
+        api: Api,
+        connection: Arc<Connection>,
+        buffer: Buffer,
+    }
+
+    #[allow(dead_code)] // Used in test code
     extern "C" fn test_conn_callback(
         _connection: Handle,
         context: *mut c_void,
         event: &ConnectionEvent,
     ) -> u32 {
-        let connection = unsafe { &*(context as *const Connection) };
+        let context = unsafe { &mut *(context as *mut ConnectionContext) };
         match event.event_type {
             CONNECTION_EVENT_CONNECTED => {
-                let local_addr = connection.get_local_addr().unwrap().as_socket().unwrap();
-                let remote_addr = connection.get_remote_addr().unwrap().as_socket().unwrap();
+                let local_addr = context
+                    .connection
+                    .get_local_addr()
+                    .unwrap()
+                    .as_socket()
+                    .unwrap();
+                let remote_addr = context
+                    .connection
+                    .get_remote_addr()
+                    .unwrap()
+                    .as_socket()
+                    .unwrap();
                 println!("Connected({}, {})", local_addr, remote_addr);
+                let stream = Arc::new(Stream::new(&context.api as *const _ as *const c_void));
+                let stream_context = Box::new(StreamContext {
+                    stream: stream.clone(),
+                });
+                stream
+                    .open(
+                        &context.connection,
+                        STREAM_OPEN_FLAG_NONE,
+                        test_stream_callback,
+                        Box::into_raw(stream_context) as *const c_void,
+                    )
+                    .unwrap();
+                stream.start(STREAM_START_FLAG_NONE).unwrap();
+                stream
+                    .send(&context.buffer, 1, SEND_FLAG_NONE, ptr::null())
+                    .unwrap();
             }
             CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_TRANSPORT => {
                 println!("Transport shutdown 0x{:x}", unsafe {
@@ -2001,27 +2076,40 @@ mod tests {
             CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_PEER => println!("App shutdown {}", unsafe {
                 event.payload.shutdown_initiated_by_peer.error_code
             }),
-            CONNECTION_EVENT_SHUTDOWN_COMPLETE => println!("Shutdown complete"),
+            CONNECTION_EVENT_SHUTDOWN_COMPLETE => {
+                println!("Shutdown complete");
+                let _ = unsafe { Box::from_raw(context as *mut _) };
+            }
             CONNECTION_EVENT_PEER_STREAM_STARTED => {
                 println!("Peer stream started");
-                connection.set_stream_callback_handler(
+                let stream = Arc::new(Stream::from_parts(
+                    unsafe { event.payload.peer_stream_started.stream },
+                    &context.api,
+                ));
+                let stream_context = Box::new(StreamContext { stream });
+                context.connection.set_stream_callback_handler(
                     unsafe { event.payload.peer_stream_started.stream },
                     test_stream_callback,
-                    context,
+                    Box::into_raw(stream_context) as *const c_void,
                 );
             }
             _ => println!("Other callback {}", event.event_type),
         }
-        0
+        QUIC_STATUS_SUCCESS
+    }
+
+    #[allow(dead_code)] // Used in test code
+    struct StreamContext {
+        stream: Arc<Stream>,
     }
 
     #[allow(dead_code)] // Used in test code
     extern "C" fn test_stream_callback(
-        stream: Handle,
+        _stream: Handle,
         context: *mut c_void,
         event: &StreamEvent,
     ) -> u32 {
-        let connection = unsafe { &*(context as *const Connection) };
+        let context = unsafe { &mut *(context as *mut StreamContext) };
         match event.event_type {
             STREAM_EVENT_START_COMPLETE => println!("Stream start complete 0x{:x}", unsafe {
                 event.payload.start_complete.status
@@ -2036,42 +2124,164 @@ mod tests {
             STREAM_EVENT_SEND_SHUTDOWN_COMPLETE => println!("Peer receive aborted"),
             STREAM_EVENT_SHUTDOWN_COMPLETE => {
                 println!("Stream shutdown complete");
-                connection.stream_close(stream);
+                let _ = unsafe { Box::from_raw(context) };
             }
             STREAM_EVENT_IDEAL_SEND_BUFFER_SIZE => println!("Ideal send buffer size"),
             STREAM_EVENT_PEER_ACCEPTED => println!("Peer accepted"),
             _ => println!("Other callback {}", event.event_type),
         }
-        0
+        QUIC_STATUS_SUCCESS
     }
 
     #[test]
     fn test_module() {
+        use std::ffi::CString;
+        use std::io::Write;
+
         let api = Api::new().unwrap();
         let registration = Registration::new(&api, ptr::null()).unwrap();
-        std::mem::drop(api);
 
-        let alpn = [Buffer::from("h3")];
-        let configuration = Configuration::new(
+        let alpn = [Buffer::from("test")];
+        let res = Configuration::new(
+            &registration,
+            &alpn,
+            Settings::new()
+                .set_idle_timeout_ms(1000)
+                .set_peer_bidi_stream_count(100)
+                .set_peer_unidi_stream_count(3),
+        );
+        assert!(
+            res.is_ok(),
+            "Failed to create configuration: 0x{:x}",
+            res.err().unwrap()
+        );
+        let configuration = res.unwrap();
+
+        let cert = rcgen::generate_simple_self_signed(vec!["127.0.0.1".into()]).unwrap();
+        let mut cert_file = tempfile::NamedTempFile::new().unwrap();
+        cert_file
+            .write_all(cert.serialize_pem().unwrap().as_bytes())
+            .unwrap();
+        let cert_path = cert_file.into_temp_path();
+        let cert_path = CString::new(cert_path.to_str().unwrap().as_bytes()).unwrap();
+
+        let mut key_file = tempfile::NamedTempFile::new().unwrap();
+        key_file
+            .write_all(cert.serialize_private_key_pem().as_bytes())
+            .unwrap();
+        let key_path = key_file.into_temp_path();
+        let key_path = CString::new(key_path.to_str().unwrap().as_bytes()).unwrap();
+
+        let certificate_file = CertificateFile {
+            private_key_file: key_path.as_ptr(),
+            certificate_file: cert_path.as_ptr(),
+        };
+
+        let cred_config = CredentialConfig {
+            cred_type: CREDENTIAL_TYPE_CERTIFICATE_FILE,
+            cred_flags: CREDENTIAL_FLAG_NONE,
+            certificate: CertificateUnion {
+                file: &certificate_file,
+            },
+            principle: ptr::null(),
+            reserved: ptr::null(),
+            async_handler: None,
+            allowed_cipher_suites: 0,
+        };
+
+        let res = configuration.load_credential(&cred_config);
+        assert!(
+            res.is_ok(),
+            "Failed to load credential: 0x{:x}",
+            res.unwrap_err()
+        );
+
+        let listener = Listener::new(&api);
+        let listener_ctx = Box::new(ListenerContext {
+            api: api.clone(),
+            configuration: configuration,
+        });
+
+        let res = listener.open(
+            &registration,
+            test_listener_callback,
+            Box::into_raw(listener_ctx) as *const c_void,
+        );
+        assert!(
+            res.is_ok(),
+            "Failed to open listener: 0x{:x}",
+            res.unwrap_err()
+        );
+
+        let local_addr: SocketAddr = "127.0.0.1:0".parse().unwrap();
+        let local_addr: Addr = local_addr.into();
+        let alpn = [Buffer::from("test")];
+        let res = listener.start(&alpn, Some(&local_addr));
+        assert!(
+            res.is_ok(),
+            "Failed to start listener: 0x{:x}",
+            res.unwrap_err()
+        );
+
+        let res = listener.get_local_addr();
+        assert!(
+            res.is_ok(),
+            "Failed to get local address: 0x{:x}",
+            res.err().unwrap()
+        );
+        let local_addr = res.unwrap().as_socket().unwrap();
+        println!("Listening on {}", local_addr);
+
+        let res = Configuration::new(
             &registration,
             &alpn,
             Settings::new()
                 .set_peer_bidi_stream_count(100)
                 .set_peer_unidi_stream_count(3),
-        )
-        .unwrap();
-        let cred_config = CredentialConfig::new_client();
-        configuration.load_credential(&cred_config);
+        );
+        assert!(
+            res.is_ok(),
+            "Failed to create configuration: 0x{:x}",
+            res.err().unwrap()
+        );
+        let configuration = res.unwrap();
 
-        let connection = Connection::new(&registration);
-        connection.open(
+        let mut cred_config = CredentialConfig::new_client();
+        cred_config.cred_flags |= CREDENTIAL_FLAG_NO_CERTIFICATE_VALIDATION;
+        let res = configuration.load_credential(&cred_config);
+        assert!(
+            res.is_ok(),
+            "Failed to load credential: 0x{:x}",
+            res.err().unwrap()
+        );
+
+        let connection = Arc::new(Connection::new(&registration));
+        let connection_context = Box::new(ConnectionContext {
+            api: api.clone(),
+            connection: connection.clone(),
+            buffer: Buffer::from("Hello, world!"),
+        });
+        let res = connection.open(
             &registration,
             test_conn_callback,
-            &connection as *const Connection as *const c_void,
+            Box::into_raw(connection_context) as *const c_void,
         );
-        connection.start(&configuration, "www.cloudflare.com", 443);
+        assert!(
+            res.is_ok(),
+            "Failed to open connection: 0x{:x}",
+            res.err().unwrap()
+        );
+
+        let res = connection.start(&configuration, "127.0.0.1", local_addr.port());
+        assert!(
+            res.is_ok(),
+            "Failed to start connection: 0x{:x}",
+            res.err().unwrap()
+        );
 
         let duration = std::time::Duration::from_millis(1000);
         std::thread::sleep(duration);
+
+        connection.shutdown(CONNECTION_SHUTDOWN_FLAG_NONE, 0);
     }
 }

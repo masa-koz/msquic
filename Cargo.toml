@@ -57,3 +57,7 @@ libc = "0.2.0"
 c-types = "4.0.0"
 serde = { version = "1.0.117", features = ["derive"] }
 socket2 = "0.5.8"
+
+[dev-dependencies]
+rcgen = "0.12.1"
+tempfile = "3.10.1"
