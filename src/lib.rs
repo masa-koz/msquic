@@ -7,10 +7,15 @@ use c_types::AF_INET;
 use c_types::AF_INET6;
 #[allow(unused_imports)]
 use c_types::AF_UNSPEC;
+use c_types::{sockaddr_in, sockaddr_in6};
 use libc::c_void;
 use serde::{Deserialize, Serialize};
+use socket2::SockAddr;
 use std::convert::TryInto;
 use std::fmt;
+use std::io;
+use std::mem;
+use std::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::ops::Deref;
 use std::option::Option;
 use std::ptr;
@@ -43,27 +48,6 @@ pub const ADDRESS_FAMILY_UNSPEC: AddressFamily = c_types::AF_UNSPEC as u16;
 pub const ADDRESS_FAMILY_INET: AddressFamily = c_types::AF_INET as u16;
 pub const ADDRESS_FAMILY_INET6: AddressFamily = c_types::AF_INET6 as u16;
 
-/// IPv4 address payload.
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct sockaddr_in {
-    pub family: AddressFamily,
-    pub port: u16,
-    pub addr: u32,
-    pub zero: [u8; 8usize],
-}
-
-/// IPv6 address payload.
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct sockaddr_in6 {
-    pub family: AddressFamily,
-    pub port: u16,
-    pub flow_info: u32,
-    pub addr: [u8; 16usize],
-    pub scope_id: u32,
-}
-
 /// Generic representation of IPv4 or IPv6 addresses.
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -73,37 +57,55 @@ pub union Addr {
 }
 
 impl Addr {
-    /// Create a representation of IPv4 address and perform Network byte order conversion
-    /// on the port number.
-    pub fn ipv4(family: u16, port: u16, addr: u32) -> Addr {
-        Addr {
-            ipv4: sockaddr_in {
-                family,
-                port: port,
-                addr,
-                zero: [0, 0, 0, 0, 0, 0, 0, 0],
-            },
+    pub fn as_socket(&self) -> Option<SocketAddr> {
+        unsafe {
+            SockAddr::try_init(|addr, len| {
+                if self.ipv4.sin_family == AF_INET {
+                    let addr = addr.cast::<sockaddr_in>();
+                    *addr = self.ipv4;
+                    *len = mem::size_of::<sockaddr_in>() as i32;
+                    Ok(())
+                } else if self.ipv4.sin_family == AF_INET6 {
+                    let addr = addr.cast::<sockaddr_in6>();
+                    *addr = self.ipv6;
+                    *len = mem::size_of::<sockaddr_in6>() as i32;
+                    Ok(())
+                } else {
+                    Err(io::Error::from(io::ErrorKind::Other))
+                }
+            })
+        }.map(|((), addr)| addr.as_socket().unwrap() ).ok()
+    }
+}
+
+impl From<SocketAddr> for Addr {
+    fn from(addr: SocketAddr) -> Addr {
+        match addr {
+            SocketAddr::V4(addr) => addr.into(),
+            SocketAddr::V6(addr) => addr.into(),
         }
     }
+}
 
-    /// Create a representation of IPv6 address and perform Network byte order conversion
-    /// on the port number.
-    pub fn ipv6(
-        family: u16,
-        port: u16,
-        flow_info: u32,
-        addr: [u8; 16usize],
-        scope_id: u32,
-    ) -> Addr {
-        Addr {
-            ipv6: sockaddr_in6 {
-                family,
-                port: port,
-                flow_info,
-                addr,
-                scope_id,
-            },
-        }
+impl From<SocketAddrV4> for Addr {
+    fn from(addr: SocketAddrV4) -> Addr {
+        // SAFETY: a `Addr` of all zeros is valid.
+        let mut storage = unsafe { mem::zeroed::<Addr>() };
+        let addr: SockAddr = addr.into();
+        let addr = addr.as_ptr().cast::<sockaddr_in>();
+        storage.ipv4 = unsafe { *addr };
+        storage
+    }
+}
+
+impl From<SocketAddrV6> for Addr {
+    fn from(addr: SocketAddrV6) -> Addr {
+        // SAFETY: a `Addr` of all zeros is valid.
+        let mut storage = unsafe { mem::zeroed::<Addr>() };
+        let addr: SockAddr = addr.into();
+        let addr = addr.as_ptr().cast::<sockaddr_in6>();
+        storage.ipv6 = unsafe { *addr };
+        storage
     }
 }
 
@@ -1649,6 +1651,42 @@ impl Connection {
         }
     }
 
+    pub fn get_local_addr(&self) -> Result<Addr, u32> {
+        let mut addr_buffer: [u8; mem::size_of::<Addr>()] =
+            [0; mem::size_of::<Addr>()];
+        let addr_size_mut = mem::size_of::<Addr>();
+        let status = unsafe {
+            ((*self.table).get_param)(
+                self.handle,
+                PARAM_CONN_LOCAL_ADDRESS,
+                (&addr_size_mut) as *const usize as *const u32 as *mut u32,
+                addr_buffer.as_mut_ptr() as *const c_void,
+            )
+        };
+        if Status::failed(status) {
+            return Err(status);
+        }
+        Ok(unsafe { *(addr_buffer.as_ptr() as *const c_void as *const Addr) })
+    }
+
+    pub fn get_remote_addr(&self) -> Result<Addr, u32> {
+        let mut addr_buffer: [u8; mem::size_of::<Addr>()] =
+            [0; mem::size_of::<Addr>()];
+        let addr_size_mut = mem::size_of::<Addr>();
+        let status = unsafe {
+            ((*self.table).get_param)(
+                self.handle,
+                PARAM_CONN_REMOTE_ADDRESS,
+                (&addr_size_mut) as *const usize as *const u32 as *mut u32,
+                addr_buffer.as_mut_ptr() as *const c_void,
+            )
+        };
+        if Status::failed(status) {
+            return Err(status);
+        }
+        Ok(unsafe { *(addr_buffer.as_ptr() as *const c_void as *const Addr) })
+    }
+
     pub fn get_stats(&self) -> QuicStatistics {
         let mut stat_buffer: [u8; std::mem::size_of::<QuicStatistics>()] =
             [0; std::mem::size_of::<QuicStatistics>()];
@@ -1917,7 +1955,11 @@ extern "C" fn test_conn_callback(
 ) -> u32 {
     let connection = unsafe { &*(context as *const Connection) };
     match event.event_type {
-        CONNECTION_EVENT_CONNECTED => println!("Connected"),
+        CONNECTION_EVENT_CONNECTED => {
+            let local_addr = connection.get_local_addr().unwrap().as_socket().unwrap();
+            let remote_addr = connection.get_remote_addr().unwrap().as_socket().unwrap();
+            println!("Connected({}, {})", local_addr, remote_addr);
+        }
         CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_TRANSPORT => {
             println!("Transport shutdown 0x{:x}", unsafe {
                 event.payload.shutdown_initiated_by_transport.status
