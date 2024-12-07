@@ -1930,6 +1930,15 @@ impl Stream {
         Ok(())
     }
 
+    pub fn shutdown(&self, flags: StreamShutdownFlags, error_code: u62) {
+        let status = unsafe {
+            ((*self.table).stream_shutdown)(self.handle, flags, error_code)
+        };
+        if Status::failed(status) {
+            panic!("StreamShutdown failure 0x{:x}", status);
+        }
+    }
+
     pub fn close(&self) {
         unsafe {
             ((*self.table).stream_close)(self.handle);
@@ -1962,6 +1971,14 @@ impl Stream {
         unsafe {
             ((*self.table).set_callback_handler)(self.handle, handler as *const c_void, context)
         };
+    }
+
+    pub fn get_param(&self, param: u32, buffer_length: *mut u32, buffer: *const c_void) -> u32 {
+        unsafe { ((*self.table).get_param)(self.handle, param, buffer_length, buffer) }
+    }
+
+    pub fn receive_complete(&self, buffer_length: u64) {
+        unsafe { ((*self.table).stream_receive_complete)(self.handle, buffer_length) };
     }
 }
 
