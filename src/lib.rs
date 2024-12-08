@@ -8,7 +8,7 @@ use c_types::AF_INET6;
 #[allow(unused_imports)]
 use c_types::AF_UNSPEC;
 use c_types::{sockaddr_in, sockaddr_in6};
-use libc::c_void;
+use libc::{c_void, sa_family_t, socklen_t};
 use serde::{Deserialize, Serialize};
 use socket2::SockAddr;
 use std::convert::TryInto;
@@ -60,15 +60,15 @@ impl Addr {
     pub fn as_socket(&self) -> Option<SocketAddr> {
         unsafe {
             SockAddr::try_init(|addr, len| {
-                if self.ipv4.sin_family == AF_INET {
+                if self.ipv4.sin_family == AF_INET as sa_family_t {
                     let addr = addr.cast::<sockaddr_in>();
                     *addr = self.ipv4;
-                    *len = mem::size_of::<sockaddr_in>() as i32;
+                    *len = mem::size_of::<sockaddr_in>() as socklen_t;
                     Ok(())
-                } else if self.ipv4.sin_family == AF_INET6 {
+                } else if self.ipv4.sin_family == AF_INET6 as sa_family_t {
                     let addr = addr.cast::<sockaddr_in6>();
                     *addr = self.ipv6;
-                    *len = mem::size_of::<sockaddr_in6>() as i32;
+                    *len = mem::size_of::<sockaddr_in6>() as socklen_t;
                     Ok(())
                 } else {
                     Err(io::Error::from(io::ErrorKind::Other))
