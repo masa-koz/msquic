@@ -7,8 +7,8 @@ use c_types::AF_INET;
 use c_types::AF_INET6;
 #[allow(unused_imports)]
 use c_types::AF_UNSPEC;
-use c_types::{sockaddr_in, sockaddr_in6};
-use libc::{c_void, sa_family_t, socklen_t};
+use c_types::{sockaddr_in, sockaddr_in6, sa_family_t, socklen_t};
+use libc::c_void;
 use serde::{Deserialize, Serialize};
 use socket2::SockAddr;
 use std::convert::TryInto;
