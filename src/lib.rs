@@ -1431,8 +1431,8 @@ impl Settings {
         self
     }
     pub fn set_stream_multi_receive_enabled(&mut self, value: bool) -> &mut Settings {
-        self.is_set_flags |= 1 << 43;
-        self.other2_flags |= (value as u64) << 6;
+        self.is_set_flags |= 1 << 42;
+        self.other2_flags |= (value as u64) << 5;
         self
     }
 }
