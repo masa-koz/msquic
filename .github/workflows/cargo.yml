@@ -1,6 +1,7 @@
 name: Cargo
 
 on:
+  workflow_dispatch:
   push:
     branches:
     - main
@@ -17,7 +18,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest, macos-latest-xlarge]
-        features: ["", "--features static"]
+        features: ["", "--features static", "--features schannel", "--features schannel,static"]
     runs-on: ${{ matrix.os }}
     name: Cargo
     steps:
@@ -46,8 +47,10 @@ jobs:
     - name: Cargo clippy
       run: cargo clippy --all-targets -- -D warnings
     - name: Cargo build
+      if: runner.os == 'Windows' || (runner.os != 'Windows' && (matrix.features == '' || matrix.features == '--features static'))
       run: cargo build --all ${{ matrix.features }}
     - name: Cargo test
+      if: runner.os == 'Windows' || (runner.os != 'Windows' && (matrix.features == '' || matrix.features == '--features static'))
       run: cargo test --all ${{ matrix.features }}
     - name: Cargo Publish (dry run)
       run: cargo publish --dry-run --allow-dirty
