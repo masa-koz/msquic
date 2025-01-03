@@ -20,23 +20,15 @@ jobs:
         # os: [ubuntu-latest, windows-latest, macos-latest, macos-latest-xlarge]
         os: [ubuntu-latest, windows-latest, macos-latest]
         features: ["", "--features static", "--features schannel", "--features schannel,static"]
-        includes:
+        exclude:
           - os: ubuntu-latest
-            features: ""
-          - os: ubuntu-latest
-            features: "--features static"
-          - os: windows-latest
-            features: ""
-          - os: windows-latest
-            features: "--features static"
-          - os: windows-latest
             features: "--features schannel"
-          - os: windows-latest
+          - os: ubuntu-latest
             features: "--features schannel,static"
           - os: macos-latest
-            features: ""
+            features: "--features schannel"
           - os: macos-latest
-            features: "--features static"
+            features: "--features schannel,static"
           # - os: macos-latest-xlarge
           #   features: ""
           # - os: macos-latest-xlarge
