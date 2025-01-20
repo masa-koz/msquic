@@ -208,19 +208,19 @@ pub const QUIC_PARAM_STREAM_PRIORITY: u32 = 134217731;
 pub const QUIC_PARAM_STREAM_STATISTICS: u32 = 134217732;
 pub const QUIC_API_VERSION_1: u32 = 1;
 pub const QUIC_API_VERSION_2: u32 = 2;
-pub type BOOLEAN = ::std::os::raw::c_uchar;
+pub type BOOLEAN = ::core::ffi::c_uchar;
 pub type QUIC_ADDRESS_FAMILY = sa_family_t;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_ADDR_STR {
-    pub Address: [::std::os::raw::c_char; 64usize],
+    pub Address: [::core::ffi::c_char; 64usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_ADDR_STR"][::std::mem::size_of::<QUIC_ADDR_STR>() - 64usize];
-    ["Alignment of QUIC_ADDR_STR"][::std::mem::align_of::<QUIC_ADDR_STR>() - 1usize];
+    ["Size of QUIC_ADDR_STR"][::core::mem::size_of::<QUIC_ADDR_STR>() - 64usize];
+    ["Alignment of QUIC_ADDR_STR"][::core::mem::align_of::<QUIC_ADDR_STR>() - 1usize];
     ["Offset of field: QUIC_ADDR_STR::Address"]
-        [::std::mem::offset_of!(QUIC_ADDR_STR, Address) - 0usize];
+        [::core::mem::offset_of!(QUIC_ADDR_STR, Address) - 0usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -231,19 +231,19 @@ pub type HQUIC = *mut QUIC_HANDLE;
 pub type QUIC_UINT62 = u64;
 pub const QUIC_TLS_PROVIDER_QUIC_TLS_PROVIDER_SCHANNEL: QUIC_TLS_PROVIDER = 0;
 pub const QUIC_TLS_PROVIDER_QUIC_TLS_PROVIDER_OPENSSL: QUIC_TLS_PROVIDER = 1;
-pub type QUIC_TLS_PROVIDER = ::std::os::raw::c_uint;
+pub type QUIC_TLS_PROVIDER = ::core::ffi::c_uint;
 pub const QUIC_EXECUTION_PROFILE_QUIC_EXECUTION_PROFILE_LOW_LATENCY: QUIC_EXECUTION_PROFILE = 0;
 pub const QUIC_EXECUTION_PROFILE_QUIC_EXECUTION_PROFILE_TYPE_MAX_THROUGHPUT:
     QUIC_EXECUTION_PROFILE = 1;
 pub const QUIC_EXECUTION_PROFILE_QUIC_EXECUTION_PROFILE_TYPE_SCAVENGER: QUIC_EXECUTION_PROFILE = 2;
 pub const QUIC_EXECUTION_PROFILE_QUIC_EXECUTION_PROFILE_TYPE_REAL_TIME: QUIC_EXECUTION_PROFILE = 3;
-pub type QUIC_EXECUTION_PROFILE = ::std::os::raw::c_uint;
+pub type QUIC_EXECUTION_PROFILE = ::core::ffi::c_uint;
 pub const QUIC_LOAD_BALANCING_MODE_QUIC_LOAD_BALANCING_DISABLED: QUIC_LOAD_BALANCING_MODE = 0;
 pub const QUIC_LOAD_BALANCING_MODE_QUIC_LOAD_BALANCING_SERVER_ID_IP: QUIC_LOAD_BALANCING_MODE = 1;
 pub const QUIC_LOAD_BALANCING_MODE_QUIC_LOAD_BALANCING_SERVER_ID_FIXED: QUIC_LOAD_BALANCING_MODE =
     2;
 pub const QUIC_LOAD_BALANCING_MODE_QUIC_LOAD_BALANCING_COUNT: QUIC_LOAD_BALANCING_MODE = 3;
-pub type QUIC_LOAD_BALANCING_MODE = ::std::os::raw::c_uint;
+pub type QUIC_LOAD_BALANCING_MODE = ::core::ffi::c_uint;
 pub const QUIC_TLS_ALERT_CODES_QUIC_TLS_ALERT_CODE_SUCCESS: QUIC_TLS_ALERT_CODES = 65535;
 pub const QUIC_TLS_ALERT_CODES_QUIC_TLS_ALERT_CODE_UNEXPECTED_MESSAGE: QUIC_TLS_ALERT_CODES = 10;
 pub const QUIC_TLS_ALERT_CODES_QUIC_TLS_ALERT_CODE_BAD_CERTIFICATE: QUIC_TLS_ALERT_CODES = 42;
@@ -260,7 +260,7 @@ pub const QUIC_TLS_ALERT_CODES_QUIC_TLS_ALERT_CODE_INTERNAL_ERROR: QUIC_TLS_ALER
 pub const QUIC_TLS_ALERT_CODES_QUIC_TLS_ALERT_CODE_USER_CANCELED: QUIC_TLS_ALERT_CODES = 90;
 pub const QUIC_TLS_ALERT_CODES_QUIC_TLS_ALERT_CODE_CERTIFICATE_REQUIRED: QUIC_TLS_ALERT_CODES = 116;
 pub const QUIC_TLS_ALERT_CODES_QUIC_TLS_ALERT_CODE_MAX: QUIC_TLS_ALERT_CODES = 255;
-pub type QUIC_TLS_ALERT_CODES = ::std::os::raw::c_uint;
+pub type QUIC_TLS_ALERT_CODES = ::core::ffi::c_uint;
 pub const QUIC_CREDENTIAL_TYPE_QUIC_CREDENTIAL_TYPE_NONE: QUIC_CREDENTIAL_TYPE = 0;
 pub const QUIC_CREDENTIAL_TYPE_QUIC_CREDENTIAL_TYPE_CERTIFICATE_HASH: QUIC_CREDENTIAL_TYPE = 1;
 pub const QUIC_CREDENTIAL_TYPE_QUIC_CREDENTIAL_TYPE_CERTIFICATE_HASH_STORE: QUIC_CREDENTIAL_TYPE =
@@ -270,7 +270,7 @@ pub const QUIC_CREDENTIAL_TYPE_QUIC_CREDENTIAL_TYPE_CERTIFICATE_FILE: QUIC_CREDE
 pub const QUIC_CREDENTIAL_TYPE_QUIC_CREDENTIAL_TYPE_CERTIFICATE_FILE_PROTECTED:
     QUIC_CREDENTIAL_TYPE = 5;
 pub const QUIC_CREDENTIAL_TYPE_QUIC_CREDENTIAL_TYPE_CERTIFICATE_PKCS12: QUIC_CREDENTIAL_TYPE = 6;
-pub type QUIC_CREDENTIAL_TYPE = ::std::os::raw::c_uint;
+pub type QUIC_CREDENTIAL_TYPE = ::core::ffi::c_uint;
 pub const QUIC_CREDENTIAL_FLAGS_QUIC_CREDENTIAL_FLAG_NONE: QUIC_CREDENTIAL_FLAGS = 0;
 pub const QUIC_CREDENTIAL_FLAGS_QUIC_CREDENTIAL_FLAG_CLIENT: QUIC_CREDENTIAL_FLAGS = 1;
 pub const QUIC_CREDENTIAL_FLAGS_QUIC_CREDENTIAL_FLAG_LOAD_ASYNCHRONOUS: QUIC_CREDENTIAL_FLAGS = 2;
@@ -312,7 +312,7 @@ pub const QUIC_CREDENTIAL_FLAGS_QUIC_CREDENTIAL_FLAG_INPROC_PEER_CERTIFICATE:
 pub const QUIC_CREDENTIAL_FLAGS_QUIC_CREDENTIAL_FLAG_SET_CA_CERTIFICATE_FILE:
     QUIC_CREDENTIAL_FLAGS = 1048576;
 pub const QUIC_CREDENTIAL_FLAGS_QUIC_CREDENTIAL_FLAG_DISABLE_AIA: QUIC_CREDENTIAL_FLAGS = 2097152;
-pub type QUIC_CREDENTIAL_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_CREDENTIAL_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_ALLOWED_CIPHER_SUITE_FLAGS_QUIC_ALLOWED_CIPHER_SUITE_NONE:
     QUIC_ALLOWED_CIPHER_SUITE_FLAGS = 0;
 pub const QUIC_ALLOWED_CIPHER_SUITE_FLAGS_QUIC_ALLOWED_CIPHER_SUITE_AES_128_GCM_SHA256:
@@ -321,39 +321,39 @@ pub const QUIC_ALLOWED_CIPHER_SUITE_FLAGS_QUIC_ALLOWED_CIPHER_SUITE_AES_256_GCM_
     QUIC_ALLOWED_CIPHER_SUITE_FLAGS = 2;
 pub const QUIC_ALLOWED_CIPHER_SUITE_FLAGS_QUIC_ALLOWED_CIPHER_SUITE_CHACHA20_POLY1305_SHA256:
     QUIC_ALLOWED_CIPHER_SUITE_FLAGS = 4;
-pub type QUIC_ALLOWED_CIPHER_SUITE_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_ALLOWED_CIPHER_SUITE_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_CERTIFICATE_HASH_STORE_FLAGS_QUIC_CERTIFICATE_HASH_STORE_FLAG_NONE:
     QUIC_CERTIFICATE_HASH_STORE_FLAGS = 0;
 pub const QUIC_CERTIFICATE_HASH_STORE_FLAGS_QUIC_CERTIFICATE_HASH_STORE_FLAG_MACHINE_STORE:
     QUIC_CERTIFICATE_HASH_STORE_FLAGS = 1;
-pub type QUIC_CERTIFICATE_HASH_STORE_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_CERTIFICATE_HASH_STORE_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_CONNECTION_SHUTDOWN_FLAGS_QUIC_CONNECTION_SHUTDOWN_FLAG_NONE:
     QUIC_CONNECTION_SHUTDOWN_FLAGS = 0;
 pub const QUIC_CONNECTION_SHUTDOWN_FLAGS_QUIC_CONNECTION_SHUTDOWN_FLAG_SILENT:
     QUIC_CONNECTION_SHUTDOWN_FLAGS = 1;
-pub type QUIC_CONNECTION_SHUTDOWN_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_CONNECTION_SHUTDOWN_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_SERVER_RESUMPTION_LEVEL_QUIC_SERVER_NO_RESUME: QUIC_SERVER_RESUMPTION_LEVEL = 0;
 pub const QUIC_SERVER_RESUMPTION_LEVEL_QUIC_SERVER_RESUME_ONLY: QUIC_SERVER_RESUMPTION_LEVEL = 1;
 pub const QUIC_SERVER_RESUMPTION_LEVEL_QUIC_SERVER_RESUME_AND_ZERORTT:
     QUIC_SERVER_RESUMPTION_LEVEL = 2;
-pub type QUIC_SERVER_RESUMPTION_LEVEL = ::std::os::raw::c_uint;
+pub type QUIC_SERVER_RESUMPTION_LEVEL = ::core::ffi::c_uint;
 pub const QUIC_SEND_RESUMPTION_FLAGS_QUIC_SEND_RESUMPTION_FLAG_NONE: QUIC_SEND_RESUMPTION_FLAGS = 0;
 pub const QUIC_SEND_RESUMPTION_FLAGS_QUIC_SEND_RESUMPTION_FLAG_FINAL: QUIC_SEND_RESUMPTION_FLAGS =
     1;
-pub type QUIC_SEND_RESUMPTION_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_SEND_RESUMPTION_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_STREAM_SCHEDULING_SCHEME_QUIC_STREAM_SCHEDULING_SCHEME_FIFO:
     QUIC_STREAM_SCHEDULING_SCHEME = 0;
 pub const QUIC_STREAM_SCHEDULING_SCHEME_QUIC_STREAM_SCHEDULING_SCHEME_ROUND_ROBIN:
     QUIC_STREAM_SCHEDULING_SCHEME = 1;
 pub const QUIC_STREAM_SCHEDULING_SCHEME_QUIC_STREAM_SCHEDULING_SCHEME_COUNT:
     QUIC_STREAM_SCHEDULING_SCHEME = 2;
-pub type QUIC_STREAM_SCHEDULING_SCHEME = ::std::os::raw::c_uint;
+pub type QUIC_STREAM_SCHEDULING_SCHEME = ::core::ffi::c_uint;
 pub const QUIC_STREAM_OPEN_FLAGS_QUIC_STREAM_OPEN_FLAG_NONE: QUIC_STREAM_OPEN_FLAGS = 0;
 pub const QUIC_STREAM_OPEN_FLAGS_QUIC_STREAM_OPEN_FLAG_UNIDIRECTIONAL: QUIC_STREAM_OPEN_FLAGS = 1;
 pub const QUIC_STREAM_OPEN_FLAGS_QUIC_STREAM_OPEN_FLAG_0_RTT: QUIC_STREAM_OPEN_FLAGS = 2;
 pub const QUIC_STREAM_OPEN_FLAGS_QUIC_STREAM_OPEN_FLAG_DELAY_ID_FC_UPDATES: QUIC_STREAM_OPEN_FLAGS =
     4;
-pub type QUIC_STREAM_OPEN_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_STREAM_OPEN_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_STREAM_START_FLAGS_QUIC_STREAM_START_FLAG_NONE: QUIC_STREAM_START_FLAGS = 0;
 pub const QUIC_STREAM_START_FLAGS_QUIC_STREAM_START_FLAG_IMMEDIATE: QUIC_STREAM_START_FLAGS = 1;
 pub const QUIC_STREAM_START_FLAGS_QUIC_STREAM_START_FLAG_FAIL_BLOCKED: QUIC_STREAM_START_FLAGS = 2;
@@ -363,7 +363,7 @@ pub const QUIC_STREAM_START_FLAGS_QUIC_STREAM_START_FLAG_INDICATE_PEER_ACCEPT:
     QUIC_STREAM_START_FLAGS = 8;
 pub const QUIC_STREAM_START_FLAGS_QUIC_STREAM_START_FLAG_PRIORITY_WORK: QUIC_STREAM_START_FLAGS =
     16;
-pub type QUIC_STREAM_START_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_STREAM_START_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_STREAM_SHUTDOWN_FLAGS_QUIC_STREAM_SHUTDOWN_FLAG_NONE: QUIC_STREAM_SHUTDOWN_FLAGS = 0;
 pub const QUIC_STREAM_SHUTDOWN_FLAGS_QUIC_STREAM_SHUTDOWN_FLAG_GRACEFUL:
     QUIC_STREAM_SHUTDOWN_FLAGS = 1;
@@ -377,11 +377,11 @@ pub const QUIC_STREAM_SHUTDOWN_FLAGS_QUIC_STREAM_SHUTDOWN_FLAG_IMMEDIATE:
     QUIC_STREAM_SHUTDOWN_FLAGS = 8;
 pub const QUIC_STREAM_SHUTDOWN_FLAGS_QUIC_STREAM_SHUTDOWN_FLAG_INLINE: QUIC_STREAM_SHUTDOWN_FLAGS =
     16;
-pub type QUIC_STREAM_SHUTDOWN_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_STREAM_SHUTDOWN_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_RECEIVE_FLAGS_QUIC_RECEIVE_FLAG_NONE: QUIC_RECEIVE_FLAGS = 0;
 pub const QUIC_RECEIVE_FLAGS_QUIC_RECEIVE_FLAG_0_RTT: QUIC_RECEIVE_FLAGS = 1;
 pub const QUIC_RECEIVE_FLAGS_QUIC_RECEIVE_FLAG_FIN: QUIC_RECEIVE_FLAGS = 2;
-pub type QUIC_RECEIVE_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_RECEIVE_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_SEND_FLAGS_QUIC_SEND_FLAG_NONE: QUIC_SEND_FLAGS = 0;
 pub const QUIC_SEND_FLAGS_QUIC_SEND_FLAG_ALLOW_0_RTT: QUIC_SEND_FLAGS = 1;
 pub const QUIC_SEND_FLAGS_QUIC_SEND_FLAG_START: QUIC_SEND_FLAGS = 2;
@@ -391,7 +391,7 @@ pub const QUIC_SEND_FLAGS_QUIC_SEND_FLAG_DELAY_SEND: QUIC_SEND_FLAGS = 16;
 pub const QUIC_SEND_FLAGS_QUIC_SEND_FLAG_CANCEL_ON_LOSS: QUIC_SEND_FLAGS = 32;
 pub const QUIC_SEND_FLAGS_QUIC_SEND_FLAG_PRIORITY_WORK: QUIC_SEND_FLAGS = 64;
 pub const QUIC_SEND_FLAGS_QUIC_SEND_FLAG_CANCEL_ON_BLOCKED: QUIC_SEND_FLAGS = 128;
-pub type QUIC_SEND_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_SEND_FLAGS = ::core::ffi::c_uint;
 pub const QUIC_DATAGRAM_SEND_STATE_QUIC_DATAGRAM_SEND_UNKNOWN: QUIC_DATAGRAM_SEND_STATE = 0;
 pub const QUIC_DATAGRAM_SEND_STATE_QUIC_DATAGRAM_SEND_SENT: QUIC_DATAGRAM_SEND_STATE = 1;
 pub const QUIC_DATAGRAM_SEND_STATE_QUIC_DATAGRAM_SEND_LOST_SUSPECT: QUIC_DATAGRAM_SEND_STATE = 2;
@@ -400,10 +400,10 @@ pub const QUIC_DATAGRAM_SEND_STATE_QUIC_DATAGRAM_SEND_ACKNOWLEDGED: QUIC_DATAGRA
 pub const QUIC_DATAGRAM_SEND_STATE_QUIC_DATAGRAM_SEND_ACKNOWLEDGED_SPURIOUS:
     QUIC_DATAGRAM_SEND_STATE = 5;
 pub const QUIC_DATAGRAM_SEND_STATE_QUIC_DATAGRAM_SEND_CANCELED: QUIC_DATAGRAM_SEND_STATE = 6;
-pub type QUIC_DATAGRAM_SEND_STATE = ::std::os::raw::c_uint;
+pub type QUIC_DATAGRAM_SEND_STATE = ::core::ffi::c_uint;
 pub const QUIC_EXECUTION_CONFIG_FLAGS_QUIC_EXECUTION_CONFIG_FLAG_NONE: QUIC_EXECUTION_CONFIG_FLAGS =
     0;
-pub type QUIC_EXECUTION_CONFIG_FLAGS = ::std::os::raw::c_uint;
+pub type QUIC_EXECUTION_CONFIG_FLAGS = ::core::ffi::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_EXECUTION_CONFIG {
@@ -414,40 +414,40 @@ pub struct QUIC_EXECUTION_CONFIG {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_EXECUTION_CONFIG"][::std::mem::size_of::<QUIC_EXECUTION_CONFIG>() - 16usize];
+    ["Size of QUIC_EXECUTION_CONFIG"][::core::mem::size_of::<QUIC_EXECUTION_CONFIG>() - 16usize];
     ["Alignment of QUIC_EXECUTION_CONFIG"]
-        [::std::mem::align_of::<QUIC_EXECUTION_CONFIG>() - 4usize];
+        [::core::mem::align_of::<QUIC_EXECUTION_CONFIG>() - 4usize];
     ["Offset of field: QUIC_EXECUTION_CONFIG::Flags"]
-        [::std::mem::offset_of!(QUIC_EXECUTION_CONFIG, Flags) - 0usize];
+        [::core::mem::offset_of!(QUIC_EXECUTION_CONFIG, Flags) - 0usize];
     ["Offset of field: QUIC_EXECUTION_CONFIG::PollingIdleTimeoutUs"]
-        [::std::mem::offset_of!(QUIC_EXECUTION_CONFIG, PollingIdleTimeoutUs) - 4usize];
+        [::core::mem::offset_of!(QUIC_EXECUTION_CONFIG, PollingIdleTimeoutUs) - 4usize];
     ["Offset of field: QUIC_EXECUTION_CONFIG::ProcessorCount"]
-        [::std::mem::offset_of!(QUIC_EXECUTION_CONFIG, ProcessorCount) - 8usize];
+        [::core::mem::offset_of!(QUIC_EXECUTION_CONFIG, ProcessorCount) - 8usize];
     ["Offset of field: QUIC_EXECUTION_CONFIG::ProcessorList"]
-        [::std::mem::offset_of!(QUIC_EXECUTION_CONFIG, ProcessorList) - 12usize];
+        [::core::mem::offset_of!(QUIC_EXECUTION_CONFIG, ProcessorList) - 12usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_REGISTRATION_CONFIG {
-    pub AppName: *const ::std::os::raw::c_char,
+    pub AppName: *const ::core::ffi::c_char,
     pub ExecutionProfile: QUIC_EXECUTION_PROFILE,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_REGISTRATION_CONFIG"]
-        [::std::mem::size_of::<QUIC_REGISTRATION_CONFIG>() - 16usize];
+        [::core::mem::size_of::<QUIC_REGISTRATION_CONFIG>() - 16usize];
     ["Alignment of QUIC_REGISTRATION_CONFIG"]
-        [::std::mem::align_of::<QUIC_REGISTRATION_CONFIG>() - 8usize];
+        [::core::mem::align_of::<QUIC_REGISTRATION_CONFIG>() - 8usize];
     ["Offset of field: QUIC_REGISTRATION_CONFIG::AppName"]
-        [::std::mem::offset_of!(QUIC_REGISTRATION_CONFIG, AppName) - 0usize];
+        [::core::mem::offset_of!(QUIC_REGISTRATION_CONFIG, AppName) - 0usize];
     ["Offset of field: QUIC_REGISTRATION_CONFIG::ExecutionProfile"]
-        [::std::mem::offset_of!(QUIC_REGISTRATION_CONFIG, ExecutionProfile) - 8usize];
+        [::core::mem::offset_of!(QUIC_REGISTRATION_CONFIG, ExecutionProfile) - 8usize];
 };
-pub type QUIC_CREDENTIAL_LOAD_COMPLETE = ::std::option::Option<
+pub type QUIC_CREDENTIAL_LOAD_COMPLETE = ::core::option::Option<
     unsafe extern "C" fn(
         Configuration: HQUIC,
-        Context: *mut ::std::os::raw::c_void,
-        Status: ::std::os::raw::c_uint,
+        Context: *mut ::core::ffi::c_void,
+        Status: ::core::ffi::c_uint,
     ),
 >;
 pub type QUIC_CREDENTIAL_LOAD_COMPLETE_HANDLER = QUIC_CREDENTIAL_LOAD_COMPLETE;
@@ -458,100 +458,101 @@ pub struct QUIC_CERTIFICATE_HASH {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_CERTIFICATE_HASH"][::std::mem::size_of::<QUIC_CERTIFICATE_HASH>() - 20usize];
+    ["Size of QUIC_CERTIFICATE_HASH"][::core::mem::size_of::<QUIC_CERTIFICATE_HASH>() - 20usize];
     ["Alignment of QUIC_CERTIFICATE_HASH"]
-        [::std::mem::align_of::<QUIC_CERTIFICATE_HASH>() - 1usize];
+        [::core::mem::align_of::<QUIC_CERTIFICATE_HASH>() - 1usize];
     ["Offset of field: QUIC_CERTIFICATE_HASH::ShaHash"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_HASH, ShaHash) - 0usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_HASH, ShaHash) - 0usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_CERTIFICATE_HASH_STORE {
     pub Flags: QUIC_CERTIFICATE_HASH_STORE_FLAGS,
     pub ShaHash: [u8; 20usize],
-    pub StoreName: [::std::os::raw::c_char; 128usize],
+    pub StoreName: [::core::ffi::c_char; 128usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CERTIFICATE_HASH_STORE"]
-        [::std::mem::size_of::<QUIC_CERTIFICATE_HASH_STORE>() - 152usize];
+        [::core::mem::size_of::<QUIC_CERTIFICATE_HASH_STORE>() - 152usize];
     ["Alignment of QUIC_CERTIFICATE_HASH_STORE"]
-        [::std::mem::align_of::<QUIC_CERTIFICATE_HASH_STORE>() - 4usize];
+        [::core::mem::align_of::<QUIC_CERTIFICATE_HASH_STORE>() - 4usize];
     ["Offset of field: QUIC_CERTIFICATE_HASH_STORE::Flags"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_HASH_STORE, Flags) - 0usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_HASH_STORE, Flags) - 0usize];
     ["Offset of field: QUIC_CERTIFICATE_HASH_STORE::ShaHash"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_HASH_STORE, ShaHash) - 4usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_HASH_STORE, ShaHash) - 4usize];
     ["Offset of field: QUIC_CERTIFICATE_HASH_STORE::StoreName"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_HASH_STORE, StoreName) - 24usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_HASH_STORE, StoreName) - 24usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_CERTIFICATE_FILE {
-    pub PrivateKeyFile: *const ::std::os::raw::c_char,
-    pub CertificateFile: *const ::std::os::raw::c_char,
+    pub PrivateKeyFile: *const ::core::ffi::c_char,
+    pub CertificateFile: *const ::core::ffi::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_CERTIFICATE_FILE"][::std::mem::size_of::<QUIC_CERTIFICATE_FILE>() - 16usize];
+    ["Size of QUIC_CERTIFICATE_FILE"][::core::mem::size_of::<QUIC_CERTIFICATE_FILE>() - 16usize];
     ["Alignment of QUIC_CERTIFICATE_FILE"]
-        [::std::mem::align_of::<QUIC_CERTIFICATE_FILE>() - 8usize];
+        [::core::mem::align_of::<QUIC_CERTIFICATE_FILE>() - 8usize];
     ["Offset of field: QUIC_CERTIFICATE_FILE::PrivateKeyFile"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_FILE, PrivateKeyFile) - 0usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_FILE, PrivateKeyFile) - 0usize];
     ["Offset of field: QUIC_CERTIFICATE_FILE::CertificateFile"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_FILE, CertificateFile) - 8usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_FILE, CertificateFile) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_CERTIFICATE_FILE_PROTECTED {
-    pub PrivateKeyFile: *const ::std::os::raw::c_char,
-    pub CertificateFile: *const ::std::os::raw::c_char,
-    pub PrivateKeyPassword: *const ::std::os::raw::c_char,
+    pub PrivateKeyFile: *const ::core::ffi::c_char,
+    pub CertificateFile: *const ::core::ffi::c_char,
+    pub PrivateKeyPassword: *const ::core::ffi::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CERTIFICATE_FILE_PROTECTED"]
-        [::std::mem::size_of::<QUIC_CERTIFICATE_FILE_PROTECTED>() - 24usize];
+        [::core::mem::size_of::<QUIC_CERTIFICATE_FILE_PROTECTED>() - 24usize];
     ["Alignment of QUIC_CERTIFICATE_FILE_PROTECTED"]
-        [::std::mem::align_of::<QUIC_CERTIFICATE_FILE_PROTECTED>() - 8usize];
+        [::core::mem::align_of::<QUIC_CERTIFICATE_FILE_PROTECTED>() - 8usize];
     ["Offset of field: QUIC_CERTIFICATE_FILE_PROTECTED::PrivateKeyFile"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_FILE_PROTECTED, PrivateKeyFile) - 0usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_FILE_PROTECTED, PrivateKeyFile) - 0usize];
     ["Offset of field: QUIC_CERTIFICATE_FILE_PROTECTED::CertificateFile"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_FILE_PROTECTED, CertificateFile) - 8usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_FILE_PROTECTED, CertificateFile) - 8usize];
     ["Offset of field: QUIC_CERTIFICATE_FILE_PROTECTED::PrivateKeyPassword"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_FILE_PROTECTED, PrivateKeyPassword) - 16usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_FILE_PROTECTED, PrivateKeyPassword) - 16usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_CERTIFICATE_PKCS12 {
     pub Asn1Blob: *const u8,
     pub Asn1BlobLength: u32,
-    pub PrivateKeyPassword: *const ::std::os::raw::c_char,
+    pub PrivateKeyPassword: *const ::core::ffi::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_CERTIFICATE_PKCS12"][::std::mem::size_of::<QUIC_CERTIFICATE_PKCS12>() - 24usize];
+    ["Size of QUIC_CERTIFICATE_PKCS12"]
+        [::core::mem::size_of::<QUIC_CERTIFICATE_PKCS12>() - 24usize];
     ["Alignment of QUIC_CERTIFICATE_PKCS12"]
-        [::std::mem::align_of::<QUIC_CERTIFICATE_PKCS12>() - 8usize];
+        [::core::mem::align_of::<QUIC_CERTIFICATE_PKCS12>() - 8usize];
     ["Offset of field: QUIC_CERTIFICATE_PKCS12::Asn1Blob"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_PKCS12, Asn1Blob) - 0usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_PKCS12, Asn1Blob) - 0usize];
     ["Offset of field: QUIC_CERTIFICATE_PKCS12::Asn1BlobLength"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_PKCS12, Asn1BlobLength) - 8usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_PKCS12, Asn1BlobLength) - 8usize];
     ["Offset of field: QUIC_CERTIFICATE_PKCS12::PrivateKeyPassword"]
-        [::std::mem::offset_of!(QUIC_CERTIFICATE_PKCS12, PrivateKeyPassword) - 16usize];
+        [::core::mem::offset_of!(QUIC_CERTIFICATE_PKCS12, PrivateKeyPassword) - 16usize];
 };
-pub type QUIC_CERTIFICATE = ::std::os::raw::c_void;
-pub type QUIC_CERTIFICATE_CHAIN = ::std::os::raw::c_void;
+pub type QUIC_CERTIFICATE = ::core::ffi::c_void;
+pub type QUIC_CERTIFICATE_CHAIN = ::core::ffi::c_void;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct QUIC_CREDENTIAL_CONFIG {
     pub Type: QUIC_CREDENTIAL_TYPE,
     pub Flags: QUIC_CREDENTIAL_FLAGS,
     pub __bindgen_anon_1: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1,
-    pub Principal: *const ::std::os::raw::c_char,
-    pub Reserved: *mut ::std::os::raw::c_void,
+    pub Principal: *const ::core::ffi::c_char,
+    pub Reserved: *mut ::core::ffi::c_void,
     pub AsyncHandler: QUIC_CREDENTIAL_LOAD_COMPLETE_HANDLER,
     pub AllowedCipherSuites: QUIC_ALLOWED_CIPHER_SUITE_FLAGS,
-    pub CaCertificateFile: *const ::std::os::raw::c_char,
+    pub CaCertificateFile: *const ::core::ffi::c_char,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -566,45 +567,47 @@ pub union QUIC_CREDENTIAL_CONFIG__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CREDENTIAL_CONFIG__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_CREDENTIAL_CONFIG__bindgen_ty_1>() - 8usize];
+        [::core::mem::size_of::<QUIC_CREDENTIAL_CONFIG__bindgen_ty_1>() - 8usize];
     ["Alignment of QUIC_CREDENTIAL_CONFIG__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_CREDENTIAL_CONFIG__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_CREDENTIAL_CONFIG__bindgen_ty_1>() - 8usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1::CertificateHash"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG__bindgen_ty_1, CertificateHash) - 0usize];
-    ["Offset of field: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1::CertificateHashStore"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG__bindgen_ty_1, CertificateHash) - 0usize];
+    ["Offset of field: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1::CertificateHashStore"][::core::mem::offset_of!(
         QUIC_CREDENTIAL_CONFIG__bindgen_ty_1,
         CertificateHashStore
     ) - 0usize];
-    ["Offset of field: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1::CertificateContext"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG__bindgen_ty_1, CertificateContext) - 0usize];
+    ["Offset of field: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1::CertificateContext"][::core::mem::offset_of!(
+        QUIC_CREDENTIAL_CONFIG__bindgen_ty_1,
+        CertificateContext
+    ) - 0usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1::CertificateFile"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG__bindgen_ty_1, CertificateFile) - 0usize];
-    ["Offset of field: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1::CertificateFileProtected"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG__bindgen_ty_1, CertificateFile) - 0usize];
+    ["Offset of field: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1::CertificateFileProtected"][::core::mem::offset_of!(
         QUIC_CREDENTIAL_CONFIG__bindgen_ty_1,
         CertificateFileProtected
     ) - 0usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG__bindgen_ty_1::CertificatePkcs12"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG__bindgen_ty_1, CertificatePkcs12) - 0usize];
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG__bindgen_ty_1, CertificatePkcs12) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_CREDENTIAL_CONFIG"][::std::mem::size_of::<QUIC_CREDENTIAL_CONFIG>() - 56usize];
+    ["Size of QUIC_CREDENTIAL_CONFIG"][::core::mem::size_of::<QUIC_CREDENTIAL_CONFIG>() - 56usize];
     ["Alignment of QUIC_CREDENTIAL_CONFIG"]
-        [::std::mem::align_of::<QUIC_CREDENTIAL_CONFIG>() - 8usize];
+        [::core::mem::align_of::<QUIC_CREDENTIAL_CONFIG>() - 8usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG::Type"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, Type) - 0usize];
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, Type) - 0usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG::Flags"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, Flags) - 4usize];
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, Flags) - 4usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG::Principal"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, Principal) - 16usize];
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, Principal) - 16usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG::Reserved"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, Reserved) - 24usize];
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, Reserved) - 24usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG::AsyncHandler"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, AsyncHandler) - 32usize];
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, AsyncHandler) - 32usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG::AllowedCipherSuites"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, AllowedCipherSuites) - 40usize];
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, AllowedCipherSuites) - 40usize];
     ["Offset of field: QUIC_CREDENTIAL_CONFIG::CaCertificateFile"]
-        [::std::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, CaCertificateFile) - 48usize];
+        [::core::mem::offset_of!(QUIC_CREDENTIAL_CONFIG, CaCertificateFile) - 48usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -615,15 +618,15 @@ pub struct QUIC_TICKET_KEY_CONFIG {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_TICKET_KEY_CONFIG"][::std::mem::size_of::<QUIC_TICKET_KEY_CONFIG>() - 81usize];
+    ["Size of QUIC_TICKET_KEY_CONFIG"][::core::mem::size_of::<QUIC_TICKET_KEY_CONFIG>() - 81usize];
     ["Alignment of QUIC_TICKET_KEY_CONFIG"]
-        [::std::mem::align_of::<QUIC_TICKET_KEY_CONFIG>() - 1usize];
+        [::core::mem::align_of::<QUIC_TICKET_KEY_CONFIG>() - 1usize];
     ["Offset of field: QUIC_TICKET_KEY_CONFIG::Id"]
-        [::std::mem::offset_of!(QUIC_TICKET_KEY_CONFIG, Id) - 0usize];
+        [::core::mem::offset_of!(QUIC_TICKET_KEY_CONFIG, Id) - 0usize];
     ["Offset of field: QUIC_TICKET_KEY_CONFIG::Material"]
-        [::std::mem::offset_of!(QUIC_TICKET_KEY_CONFIG, Material) - 16usize];
+        [::core::mem::offset_of!(QUIC_TICKET_KEY_CONFIG, Material) - 16usize];
     ["Offset of field: QUIC_TICKET_KEY_CONFIG::MaterialLength"]
-        [::std::mem::offset_of!(QUIC_TICKET_KEY_CONFIG, MaterialLength) - 80usize];
+        [::core::mem::offset_of!(QUIC_TICKET_KEY_CONFIG, MaterialLength) - 80usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -633,10 +636,10 @@ pub struct QUIC_BUFFER {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_BUFFER"][::std::mem::size_of::<QUIC_BUFFER>() - 16usize];
-    ["Alignment of QUIC_BUFFER"][::std::mem::align_of::<QUIC_BUFFER>() - 8usize];
-    ["Offset of field: QUIC_BUFFER::Length"][::std::mem::offset_of!(QUIC_BUFFER, Length) - 0usize];
-    ["Offset of field: QUIC_BUFFER::Buffer"][::std::mem::offset_of!(QUIC_BUFFER, Buffer) - 8usize];
+    ["Size of QUIC_BUFFER"][::core::mem::size_of::<QUIC_BUFFER>() - 16usize];
+    ["Alignment of QUIC_BUFFER"][::core::mem::align_of::<QUIC_BUFFER>() - 8usize];
+    ["Offset of field: QUIC_BUFFER::Length"][::core::mem::offset_of!(QUIC_BUFFER, Length) - 0usize];
+    ["Offset of field: QUIC_BUFFER::Buffer"][::core::mem::offset_of!(QUIC_BUFFER, Buffer) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -651,62 +654,62 @@ pub struct QUIC_NEW_CONNECTION_INFO {
     pub CryptoBuffer: *const u8,
     pub ClientAlpnList: *const u8,
     pub NegotiatedAlpn: *const u8,
-    pub ServerName: *const ::std::os::raw::c_char,
+    pub ServerName: *const ::core::ffi::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_NEW_CONNECTION_INFO"]
-        [::std::mem::size_of::<QUIC_NEW_CONNECTION_INFO>() - 72usize];
+        [::core::mem::size_of::<QUIC_NEW_CONNECTION_INFO>() - 72usize];
     ["Alignment of QUIC_NEW_CONNECTION_INFO"]
-        [::std::mem::align_of::<QUIC_NEW_CONNECTION_INFO>() - 8usize];
+        [::core::mem::align_of::<QUIC_NEW_CONNECTION_INFO>() - 8usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::QuicVersion"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, QuicVersion) - 0usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, QuicVersion) - 0usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::LocalAddress"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, LocalAddress) - 8usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, LocalAddress) - 8usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::RemoteAddress"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, RemoteAddress) - 16usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, RemoteAddress) - 16usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::CryptoBufferLength"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, CryptoBufferLength) - 24usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, CryptoBufferLength) - 24usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::ClientAlpnListLength"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, ClientAlpnListLength) - 28usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, ClientAlpnListLength) - 28usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::ServerNameLength"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, ServerNameLength) - 30usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, ServerNameLength) - 30usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::NegotiatedAlpnLength"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, NegotiatedAlpnLength) - 32usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, NegotiatedAlpnLength) - 32usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::CryptoBuffer"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, CryptoBuffer) - 40usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, CryptoBuffer) - 40usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::ClientAlpnList"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, ClientAlpnList) - 48usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, ClientAlpnList) - 48usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::NegotiatedAlpn"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, NegotiatedAlpn) - 56usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, NegotiatedAlpn) - 56usize];
     ["Offset of field: QUIC_NEW_CONNECTION_INFO::ServerName"]
-        [::std::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, ServerName) - 64usize];
+        [::core::mem::offset_of!(QUIC_NEW_CONNECTION_INFO, ServerName) - 64usize];
 };
 pub const QUIC_TLS_PROTOCOL_VERSION_QUIC_TLS_PROTOCOL_UNKNOWN: QUIC_TLS_PROTOCOL_VERSION = 0;
 pub const QUIC_TLS_PROTOCOL_VERSION_QUIC_TLS_PROTOCOL_1_3: QUIC_TLS_PROTOCOL_VERSION = 12288;
-pub type QUIC_TLS_PROTOCOL_VERSION = ::std::os::raw::c_uint;
+pub type QUIC_TLS_PROTOCOL_VERSION = ::core::ffi::c_uint;
 pub const QUIC_CIPHER_ALGORITHM_QUIC_CIPHER_ALGORITHM_NONE: QUIC_CIPHER_ALGORITHM = 0;
 pub const QUIC_CIPHER_ALGORITHM_QUIC_CIPHER_ALGORITHM_AES_128: QUIC_CIPHER_ALGORITHM = 26126;
 pub const QUIC_CIPHER_ALGORITHM_QUIC_CIPHER_ALGORITHM_AES_256: QUIC_CIPHER_ALGORITHM = 26128;
 pub const QUIC_CIPHER_ALGORITHM_QUIC_CIPHER_ALGORITHM_CHACHA20: QUIC_CIPHER_ALGORITHM = 26130;
-pub type QUIC_CIPHER_ALGORITHM = ::std::os::raw::c_uint;
+pub type QUIC_CIPHER_ALGORITHM = ::core::ffi::c_uint;
 pub const QUIC_HASH_ALGORITHM_QUIC_HASH_ALGORITHM_NONE: QUIC_HASH_ALGORITHM = 0;
 pub const QUIC_HASH_ALGORITHM_QUIC_HASH_ALGORITHM_SHA_256: QUIC_HASH_ALGORITHM = 32780;
 pub const QUIC_HASH_ALGORITHM_QUIC_HASH_ALGORITHM_SHA_384: QUIC_HASH_ALGORITHM = 32781;
-pub type QUIC_HASH_ALGORITHM = ::std::os::raw::c_uint;
+pub type QUIC_HASH_ALGORITHM = ::core::ffi::c_uint;
 pub const QUIC_KEY_EXCHANGE_ALGORITHM_QUIC_KEY_EXCHANGE_ALGORITHM_NONE:
     QUIC_KEY_EXCHANGE_ALGORITHM = 0;
-pub type QUIC_KEY_EXCHANGE_ALGORITHM = ::std::os::raw::c_uint;
+pub type QUIC_KEY_EXCHANGE_ALGORITHM = ::core::ffi::c_uint;
 pub const QUIC_CIPHER_SUITE_QUIC_CIPHER_SUITE_TLS_AES_128_GCM_SHA256: QUIC_CIPHER_SUITE = 4865;
 pub const QUIC_CIPHER_SUITE_QUIC_CIPHER_SUITE_TLS_AES_256_GCM_SHA384: QUIC_CIPHER_SUITE = 4866;
 pub const QUIC_CIPHER_SUITE_QUIC_CIPHER_SUITE_TLS_CHACHA20_POLY1305_SHA256: QUIC_CIPHER_SUITE =
     4867;
-pub type QUIC_CIPHER_SUITE = ::std::os::raw::c_uint;
+pub type QUIC_CIPHER_SUITE = ::core::ffi::c_uint;
 pub const QUIC_CONGESTION_CONTROL_ALGORITHM_QUIC_CONGESTION_CONTROL_ALGORITHM_CUBIC:
     QUIC_CONGESTION_CONTROL_ALGORITHM = 0;
 pub const QUIC_CONGESTION_CONTROL_ALGORITHM_QUIC_CONGESTION_CONTROL_ALGORITHM_MAX:
     QUIC_CONGESTION_CONTROL_ALGORITHM = 1;
-pub type QUIC_CONGESTION_CONTROL_ALGORITHM = ::std::os::raw::c_uint;
+pub type QUIC_CONGESTION_CONTROL_ALGORITHM = ::core::ffi::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_HANDSHAKE_INFO {
@@ -721,24 +724,24 @@ pub struct QUIC_HANDSHAKE_INFO {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_HANDSHAKE_INFO"][::std::mem::size_of::<QUIC_HANDSHAKE_INFO>() - 32usize];
-    ["Alignment of QUIC_HANDSHAKE_INFO"][::std::mem::align_of::<QUIC_HANDSHAKE_INFO>() - 4usize];
+    ["Size of QUIC_HANDSHAKE_INFO"][::core::mem::size_of::<QUIC_HANDSHAKE_INFO>() - 32usize];
+    ["Alignment of QUIC_HANDSHAKE_INFO"][::core::mem::align_of::<QUIC_HANDSHAKE_INFO>() - 4usize];
     ["Offset of field: QUIC_HANDSHAKE_INFO::TlsProtocolVersion"]
-        [::std::mem::offset_of!(QUIC_HANDSHAKE_INFO, TlsProtocolVersion) - 0usize];
+        [::core::mem::offset_of!(QUIC_HANDSHAKE_INFO, TlsProtocolVersion) - 0usize];
     ["Offset of field: QUIC_HANDSHAKE_INFO::CipherAlgorithm"]
-        [::std::mem::offset_of!(QUIC_HANDSHAKE_INFO, CipherAlgorithm) - 4usize];
+        [::core::mem::offset_of!(QUIC_HANDSHAKE_INFO, CipherAlgorithm) - 4usize];
     ["Offset of field: QUIC_HANDSHAKE_INFO::CipherStrength"]
-        [::std::mem::offset_of!(QUIC_HANDSHAKE_INFO, CipherStrength) - 8usize];
+        [::core::mem::offset_of!(QUIC_HANDSHAKE_INFO, CipherStrength) - 8usize];
     ["Offset of field: QUIC_HANDSHAKE_INFO::Hash"]
-        [::std::mem::offset_of!(QUIC_HANDSHAKE_INFO, Hash) - 12usize];
+        [::core::mem::offset_of!(QUIC_HANDSHAKE_INFO, Hash) - 12usize];
     ["Offset of field: QUIC_HANDSHAKE_INFO::HashStrength"]
-        [::std::mem::offset_of!(QUIC_HANDSHAKE_INFO, HashStrength) - 16usize];
+        [::core::mem::offset_of!(QUIC_HANDSHAKE_INFO, HashStrength) - 16usize];
     ["Offset of field: QUIC_HANDSHAKE_INFO::KeyExchangeAlgorithm"]
-        [::std::mem::offset_of!(QUIC_HANDSHAKE_INFO, KeyExchangeAlgorithm) - 20usize];
+        [::core::mem::offset_of!(QUIC_HANDSHAKE_INFO, KeyExchangeAlgorithm) - 20usize];
     ["Offset of field: QUIC_HANDSHAKE_INFO::KeyExchangeStrength"]
-        [::std::mem::offset_of!(QUIC_HANDSHAKE_INFO, KeyExchangeStrength) - 24usize];
+        [::core::mem::offset_of!(QUIC_HANDSHAKE_INFO, KeyExchangeStrength) - 24usize];
     ["Offset of field: QUIC_HANDSHAKE_INFO::CipherSuite"]
-        [::std::mem::offset_of!(QUIC_HANDSHAKE_INFO, CipherSuite) - 28usize];
+        [::core::mem::offset_of!(QUIC_HANDSHAKE_INFO, CipherSuite) - 28usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -765,15 +768,15 @@ pub struct QUIC_STATISTICS__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STATISTICS__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_STATISTICS__bindgen_ty_1>() - 24usize];
+        [::core::mem::size_of::<QUIC_STATISTICS__bindgen_ty_1>() - 24usize];
     ["Alignment of QUIC_STATISTICS__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_STATISTICS__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_STATISTICS__bindgen_ty_1>() - 8usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_1::Start"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_1, Start) - 0usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_1, Start) - 0usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_1::InitialFlightEnd"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_1, InitialFlightEnd) - 8usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_1, InitialFlightEnd) - 8usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_1::HandshakeFlightEnd"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_1, HandshakeFlightEnd) - 16usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_1, HandshakeFlightEnd) - 16usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -785,15 +788,15 @@ pub struct QUIC_STATISTICS__bindgen_ty_2 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STATISTICS__bindgen_ty_2"]
-        [::std::mem::size_of::<QUIC_STATISTICS__bindgen_ty_2>() - 12usize];
+        [::core::mem::size_of::<QUIC_STATISTICS__bindgen_ty_2>() - 12usize];
     ["Alignment of QUIC_STATISTICS__bindgen_ty_2"]
-        [::std::mem::align_of::<QUIC_STATISTICS__bindgen_ty_2>() - 4usize];
+        [::core::mem::align_of::<QUIC_STATISTICS__bindgen_ty_2>() - 4usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_2::ClientFlight1Bytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_2, ClientFlight1Bytes) - 0usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_2, ClientFlight1Bytes) - 0usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_2::ServerFlight1Bytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_2, ServerFlight1Bytes) - 4usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_2, ServerFlight1Bytes) - 4usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_2::ClientFlight2Bytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_2, ClientFlight2Bytes) - 8usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_2, ClientFlight2Bytes) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -811,26 +814,26 @@ pub struct QUIC_STATISTICS__bindgen_ty_3 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STATISTICS__bindgen_ty_3"]
-        [::std::mem::size_of::<QUIC_STATISTICS__bindgen_ty_3>() - 64usize];
+        [::core::mem::size_of::<QUIC_STATISTICS__bindgen_ty_3>() - 64usize];
     ["Alignment of QUIC_STATISTICS__bindgen_ty_3"]
-        [::std::mem::align_of::<QUIC_STATISTICS__bindgen_ty_3>() - 8usize];
+        [::core::mem::align_of::<QUIC_STATISTICS__bindgen_ty_3>() - 8usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::PathMtu"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, PathMtu) - 0usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, PathMtu) - 0usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::TotalPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, TotalPackets) - 8usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, TotalPackets) - 8usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::RetransmittablePackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, RetransmittablePackets) - 16usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, RetransmittablePackets) - 16usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::SuspectedLostPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, SuspectedLostPackets) - 24usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, SuspectedLostPackets) - 24usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::SpuriousLostPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, SpuriousLostPackets) - 32usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, SpuriousLostPackets) - 32usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::TotalBytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, TotalBytes) - 40usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, TotalBytes) - 40usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::TotalStreamBytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, TotalStreamBytes) - 48usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, TotalStreamBytes) - 48usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::CongestionCount"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, CongestionCount) - 56usize];
-    ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::PersistentCongestionCount"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_3, CongestionCount) - 56usize];
+    ["Offset of field: QUIC_STATISTICS__bindgen_ty_3::PersistentCongestionCount"][::core::mem::offset_of!(
         QUIC_STATISTICS__bindgen_ty_3,
         PersistentCongestionCount
     ) - 60usize];
@@ -850,25 +853,25 @@ pub struct QUIC_STATISTICS__bindgen_ty_4 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STATISTICS__bindgen_ty_4"]
-        [::std::mem::size_of::<QUIC_STATISTICS__bindgen_ty_4>() - 64usize];
+        [::core::mem::size_of::<QUIC_STATISTICS__bindgen_ty_4>() - 64usize];
     ["Alignment of QUIC_STATISTICS__bindgen_ty_4"]
-        [::std::mem::align_of::<QUIC_STATISTICS__bindgen_ty_4>() - 8usize];
+        [::core::mem::align_of::<QUIC_STATISTICS__bindgen_ty_4>() - 8usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_4::TotalPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, TotalPackets) - 0usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, TotalPackets) - 0usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_4::ReorderedPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, ReorderedPackets) - 8usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, ReorderedPackets) - 8usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_4::DroppedPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, DroppedPackets) - 16usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, DroppedPackets) - 16usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_4::DuplicatePackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, DuplicatePackets) - 24usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, DuplicatePackets) - 24usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_4::TotalBytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, TotalBytes) - 32usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, TotalBytes) - 32usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_4::TotalStreamBytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, TotalStreamBytes) - 40usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, TotalStreamBytes) - 40usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_4::DecryptionFailures"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, DecryptionFailures) - 48usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, DecryptionFailures) - 48usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_4::ValidAckFrames"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, ValidAckFrames) - 56usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_4, ValidAckFrames) - 56usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -878,52 +881,52 @@ pub struct QUIC_STATISTICS__bindgen_ty_5 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STATISTICS__bindgen_ty_5"]
-        [::std::mem::size_of::<QUIC_STATISTICS__bindgen_ty_5>() - 4usize];
+        [::core::mem::size_of::<QUIC_STATISTICS__bindgen_ty_5>() - 4usize];
     ["Alignment of QUIC_STATISTICS__bindgen_ty_5"]
-        [::std::mem::align_of::<QUIC_STATISTICS__bindgen_ty_5>() - 4usize];
+        [::core::mem::align_of::<QUIC_STATISTICS__bindgen_ty_5>() - 4usize];
     ["Offset of field: QUIC_STATISTICS__bindgen_ty_5::KeyUpdateCount"]
-        [::std::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_5, KeyUpdateCount) - 0usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS__bindgen_ty_5, KeyUpdateCount) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_STATISTICS"][::std::mem::size_of::<QUIC_STATISTICS>() - 200usize];
-    ["Alignment of QUIC_STATISTICS"][::std::mem::align_of::<QUIC_STATISTICS>() - 8usize];
+    ["Size of QUIC_STATISTICS"][::core::mem::size_of::<QUIC_STATISTICS>() - 200usize];
+    ["Alignment of QUIC_STATISTICS"][::core::mem::align_of::<QUIC_STATISTICS>() - 8usize];
     ["Offset of field: QUIC_STATISTICS::CorrelationId"]
-        [::std::mem::offset_of!(QUIC_STATISTICS, CorrelationId) - 0usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS, CorrelationId) - 0usize];
     ["Offset of field: QUIC_STATISTICS::Rtt"]
-        [::std::mem::offset_of!(QUIC_STATISTICS, Rtt) - 12usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS, Rtt) - 12usize];
     ["Offset of field: QUIC_STATISTICS::MinRtt"]
-        [::std::mem::offset_of!(QUIC_STATISTICS, MinRtt) - 16usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS, MinRtt) - 16usize];
     ["Offset of field: QUIC_STATISTICS::MaxRtt"]
-        [::std::mem::offset_of!(QUIC_STATISTICS, MaxRtt) - 20usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS, MaxRtt) - 20usize];
     ["Offset of field: QUIC_STATISTICS::Timing"]
-        [::std::mem::offset_of!(QUIC_STATISTICS, Timing) - 24usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS, Timing) - 24usize];
     ["Offset of field: QUIC_STATISTICS::Handshake"]
-        [::std::mem::offset_of!(QUIC_STATISTICS, Handshake) - 48usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS, Handshake) - 48usize];
     ["Offset of field: QUIC_STATISTICS::Send"]
-        [::std::mem::offset_of!(QUIC_STATISTICS, Send) - 64usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS, Send) - 64usize];
     ["Offset of field: QUIC_STATISTICS::Recv"]
-        [::std::mem::offset_of!(QUIC_STATISTICS, Recv) - 128usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS, Recv) - 128usize];
     ["Offset of field: QUIC_STATISTICS::Misc"]
-        [::std::mem::offset_of!(QUIC_STATISTICS, Misc) - 192usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS, Misc) - 192usize];
 };
 impl QUIC_STATISTICS {
     #[inline]
     pub fn VersionNegotiation(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_VersionNegotiation(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn VersionNegotiation_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u32)
@@ -932,9 +935,9 @@ impl QUIC_STATISTICS {
     #[inline]
     pub unsafe fn set_VersionNegotiation_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -943,20 +946,20 @@ impl QUIC_STATISTICS {
     }
     #[inline]
     pub fn StatelessRetry(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_StatelessRetry(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn StatelessRetry_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 1u8,
             ) as u32)
@@ -965,9 +968,9 @@ impl QUIC_STATISTICS {
     #[inline]
     pub unsafe fn set_StatelessRetry_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 1u8,
                 val as u64,
@@ -976,20 +979,20 @@ impl QUIC_STATISTICS {
     }
     #[inline]
     pub fn ResumptionAttempted(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_ResumptionAttempted(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ResumptionAttempted_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 2usize,
                 1u8,
             ) as u32)
@@ -998,9 +1001,9 @@ impl QUIC_STATISTICS {
     #[inline]
     pub unsafe fn set_ResumptionAttempted_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 2usize,
                 1u8,
                 val as u64,
@@ -1009,20 +1012,20 @@ impl QUIC_STATISTICS {
     }
     #[inline]
     pub fn ResumptionSucceeded(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_ResumptionSucceeded(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(3usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ResumptionSucceeded_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 3usize,
                 1u8,
             ) as u32)
@@ -1031,9 +1034,9 @@ impl QUIC_STATISTICS {
     #[inline]
     pub unsafe fn set_ResumptionSucceeded_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 3usize,
                 1u8,
                 val as u64,
@@ -1049,19 +1052,19 @@ impl QUIC_STATISTICS {
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let VersionNegotiation: u32 = unsafe { ::std::mem::transmute(VersionNegotiation) };
+            let VersionNegotiation: u32 = unsafe { ::core::mem::transmute(VersionNegotiation) };
             VersionNegotiation as u64
         });
         __bindgen_bitfield_unit.set(1usize, 1u8, {
-            let StatelessRetry: u32 = unsafe { ::std::mem::transmute(StatelessRetry) };
+            let StatelessRetry: u32 = unsafe { ::core::mem::transmute(StatelessRetry) };
             StatelessRetry as u64
         });
         __bindgen_bitfield_unit.set(2usize, 1u8, {
-            let ResumptionAttempted: u32 = unsafe { ::std::mem::transmute(ResumptionAttempted) };
+            let ResumptionAttempted: u32 = unsafe { ::core::mem::transmute(ResumptionAttempted) };
             ResumptionAttempted as u64
         });
         __bindgen_bitfield_unit.set(3usize, 1u8, {
-            let ResumptionSucceeded: u32 = unsafe { ::std::mem::transmute(ResumptionSucceeded) };
+            let ResumptionSucceeded: u32 = unsafe { ::core::mem::transmute(ResumptionSucceeded) };
             ResumptionSucceeded as u64
         });
         __bindgen_bitfield_unit
@@ -1107,90 +1110,90 @@ pub struct QUIC_STATISTICS_V2 {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_STATISTICS_V2"][::std::mem::size_of::<QUIC_STATISTICS_V2>() - 208usize];
-    ["Alignment of QUIC_STATISTICS_V2"][::std::mem::align_of::<QUIC_STATISTICS_V2>() - 8usize];
+    ["Size of QUIC_STATISTICS_V2"][::core::mem::size_of::<QUIC_STATISTICS_V2>() - 208usize];
+    ["Alignment of QUIC_STATISTICS_V2"][::core::mem::align_of::<QUIC_STATISTICS_V2>() - 8usize];
     ["Offset of field: QUIC_STATISTICS_V2::CorrelationId"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, CorrelationId) - 0usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, CorrelationId) - 0usize];
     ["Offset of field: QUIC_STATISTICS_V2::Rtt"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, Rtt) - 12usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, Rtt) - 12usize];
     ["Offset of field: QUIC_STATISTICS_V2::MinRtt"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, MinRtt) - 16usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, MinRtt) - 16usize];
     ["Offset of field: QUIC_STATISTICS_V2::MaxRtt"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, MaxRtt) - 20usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, MaxRtt) - 20usize];
     ["Offset of field: QUIC_STATISTICS_V2::TimingStart"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, TimingStart) - 24usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, TimingStart) - 24usize];
     ["Offset of field: QUIC_STATISTICS_V2::TimingInitialFlightEnd"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, TimingInitialFlightEnd) - 32usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, TimingInitialFlightEnd) - 32usize];
     ["Offset of field: QUIC_STATISTICS_V2::TimingHandshakeFlightEnd"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, TimingHandshakeFlightEnd) - 40usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, TimingHandshakeFlightEnd) - 40usize];
     ["Offset of field: QUIC_STATISTICS_V2::HandshakeClientFlight1Bytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, HandshakeClientFlight1Bytes) - 48usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, HandshakeClientFlight1Bytes) - 48usize];
     ["Offset of field: QUIC_STATISTICS_V2::HandshakeServerFlight1Bytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, HandshakeServerFlight1Bytes) - 52usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, HandshakeServerFlight1Bytes) - 52usize];
     ["Offset of field: QUIC_STATISTICS_V2::HandshakeClientFlight2Bytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, HandshakeClientFlight2Bytes) - 56usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, HandshakeClientFlight2Bytes) - 56usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendPathMtu"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendPathMtu) - 60usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendPathMtu) - 60usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendTotalPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendTotalPackets) - 64usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendTotalPackets) - 64usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendRetransmittablePackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendRetransmittablePackets) - 72usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendRetransmittablePackets) - 72usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendSuspectedLostPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendSuspectedLostPackets) - 80usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendSuspectedLostPackets) - 80usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendSpuriousLostPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendSpuriousLostPackets) - 88usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendSpuriousLostPackets) - 88usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendTotalBytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendTotalBytes) - 96usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendTotalBytes) - 96usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendTotalStreamBytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendTotalStreamBytes) - 104usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendTotalStreamBytes) - 104usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendCongestionCount"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendCongestionCount) - 112usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendCongestionCount) - 112usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendPersistentCongestionCount"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendPersistentCongestionCount) - 116usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendPersistentCongestionCount) - 116usize];
     ["Offset of field: QUIC_STATISTICS_V2::RecvTotalPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, RecvTotalPackets) - 120usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, RecvTotalPackets) - 120usize];
     ["Offset of field: QUIC_STATISTICS_V2::RecvReorderedPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, RecvReorderedPackets) - 128usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, RecvReorderedPackets) - 128usize];
     ["Offset of field: QUIC_STATISTICS_V2::RecvDroppedPackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, RecvDroppedPackets) - 136usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, RecvDroppedPackets) - 136usize];
     ["Offset of field: QUIC_STATISTICS_V2::RecvDuplicatePackets"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, RecvDuplicatePackets) - 144usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, RecvDuplicatePackets) - 144usize];
     ["Offset of field: QUIC_STATISTICS_V2::RecvTotalBytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, RecvTotalBytes) - 152usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, RecvTotalBytes) - 152usize];
     ["Offset of field: QUIC_STATISTICS_V2::RecvTotalStreamBytes"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, RecvTotalStreamBytes) - 160usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, RecvTotalStreamBytes) - 160usize];
     ["Offset of field: QUIC_STATISTICS_V2::RecvDecryptionFailures"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, RecvDecryptionFailures) - 168usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, RecvDecryptionFailures) - 168usize];
     ["Offset of field: QUIC_STATISTICS_V2::RecvValidAckFrames"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, RecvValidAckFrames) - 176usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, RecvValidAckFrames) - 176usize];
     ["Offset of field: QUIC_STATISTICS_V2::KeyUpdateCount"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, KeyUpdateCount) - 184usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, KeyUpdateCount) - 184usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendCongestionWindow"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendCongestionWindow) - 188usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendCongestionWindow) - 188usize];
     ["Offset of field: QUIC_STATISTICS_V2::DestCidUpdateCount"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, DestCidUpdateCount) - 192usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, DestCidUpdateCount) - 192usize];
     ["Offset of field: QUIC_STATISTICS_V2::SendEcnCongestionCount"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, SendEcnCongestionCount) - 196usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, SendEcnCongestionCount) - 196usize];
     ["Offset of field: QUIC_STATISTICS_V2::HandshakeHopLimitTTL"]
-        [::std::mem::offset_of!(QUIC_STATISTICS_V2, HandshakeHopLimitTTL) - 200usize];
+        [::core::mem::offset_of!(QUIC_STATISTICS_V2, HandshakeHopLimitTTL) - 200usize];
 };
 impl QUIC_STATISTICS_V2 {
     #[inline]
     pub fn VersionNegotiation(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_VersionNegotiation(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn VersionNegotiation_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u32)
@@ -1199,9 +1202,9 @@ impl QUIC_STATISTICS_V2 {
     #[inline]
     pub unsafe fn set_VersionNegotiation_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 4usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -1210,20 +1213,20 @@ impl QUIC_STATISTICS_V2 {
     }
     #[inline]
     pub fn StatelessRetry(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_StatelessRetry(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn StatelessRetry_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 1u8,
             ) as u32)
@@ -1232,9 +1235,9 @@ impl QUIC_STATISTICS_V2 {
     #[inline]
     pub unsafe fn set_StatelessRetry_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 4usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 1u8,
                 val as u64,
@@ -1243,20 +1246,20 @@ impl QUIC_STATISTICS_V2 {
     }
     #[inline]
     pub fn ResumptionAttempted(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_ResumptionAttempted(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ResumptionAttempted_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 2usize,
                 1u8,
             ) as u32)
@@ -1265,9 +1268,9 @@ impl QUIC_STATISTICS_V2 {
     #[inline]
     pub unsafe fn set_ResumptionAttempted_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 4usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 2usize,
                 1u8,
                 val as u64,
@@ -1276,20 +1279,20 @@ impl QUIC_STATISTICS_V2 {
     }
     #[inline]
     pub fn ResumptionSucceeded(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_ResumptionSucceeded(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(3usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ResumptionSucceeded_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 3usize,
                 1u8,
             ) as u32)
@@ -1298,9 +1301,9 @@ impl QUIC_STATISTICS_V2 {
     #[inline]
     pub unsafe fn set_ResumptionSucceeded_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 4usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 3usize,
                 1u8,
                 val as u64,
@@ -1309,20 +1312,20 @@ impl QUIC_STATISTICS_V2 {
     }
     #[inline]
     pub fn GreaseBitNegotiated(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_GreaseBitNegotiated(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(4usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn GreaseBitNegotiated_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 4usize,
                 1u8,
             ) as u32)
@@ -1331,9 +1334,9 @@ impl QUIC_STATISTICS_V2 {
     #[inline]
     pub unsafe fn set_GreaseBitNegotiated_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 4usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 4usize,
                 1u8,
                 val as u64,
@@ -1342,20 +1345,20 @@ impl QUIC_STATISTICS_V2 {
     }
     #[inline]
     pub fn EcnCapable(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_EcnCapable(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(5usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn EcnCapable_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 5usize,
                 1u8,
             ) as u32)
@@ -1364,9 +1367,9 @@ impl QUIC_STATISTICS_V2 {
     #[inline]
     pub unsafe fn set_EcnCapable_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 4usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 5usize,
                 1u8,
                 val as u64,
@@ -1375,20 +1378,20 @@ impl QUIC_STATISTICS_V2 {
     }
     #[inline]
     pub fn EncryptionOffloaded(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u32) }
     }
     #[inline]
     pub fn set_EncryptionOffloaded(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(6usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn EncryptionOffloaded_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 6usize,
                 1u8,
             ) as u32)
@@ -1397,9 +1400,9 @@ impl QUIC_STATISTICS_V2 {
     #[inline]
     pub unsafe fn set_EncryptionOffloaded_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 4usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 6usize,
                 1u8,
                 val as u64,
@@ -1408,20 +1411,20 @@ impl QUIC_STATISTICS_V2 {
     }
     #[inline]
     pub fn RESERVED(&self) -> u32 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(7usize, 25u8) as u32) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(7usize, 25u8) as u32) }
     }
     #[inline]
     pub fn set_RESERVED(&mut self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             self._bitfield_1.set(7usize, 25u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn RESERVED_raw(this: *const Self) -> u32 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 4usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 7usize,
                 25u8,
             ) as u32)
@@ -1430,9 +1433,9 @@ impl QUIC_STATISTICS_V2 {
     #[inline]
     pub unsafe fn set_RESERVED_raw(this: *mut Self, val: u32) {
         unsafe {
-            let val: u32 = ::std::mem::transmute(val);
+            let val: u32 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 4usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 7usize,
                 25u8,
                 val as u64,
@@ -1452,35 +1455,35 @@ impl QUIC_STATISTICS_V2 {
     ) -> __BindgenBitfieldUnit<[u8; 4usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 4usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let VersionNegotiation: u32 = unsafe { ::std::mem::transmute(VersionNegotiation) };
+            let VersionNegotiation: u32 = unsafe { ::core::mem::transmute(VersionNegotiation) };
             VersionNegotiation as u64
         });
         __bindgen_bitfield_unit.set(1usize, 1u8, {
-            let StatelessRetry: u32 = unsafe { ::std::mem::transmute(StatelessRetry) };
+            let StatelessRetry: u32 = unsafe { ::core::mem::transmute(StatelessRetry) };
             StatelessRetry as u64
         });
         __bindgen_bitfield_unit.set(2usize, 1u8, {
-            let ResumptionAttempted: u32 = unsafe { ::std::mem::transmute(ResumptionAttempted) };
+            let ResumptionAttempted: u32 = unsafe { ::core::mem::transmute(ResumptionAttempted) };
             ResumptionAttempted as u64
         });
         __bindgen_bitfield_unit.set(3usize, 1u8, {
-            let ResumptionSucceeded: u32 = unsafe { ::std::mem::transmute(ResumptionSucceeded) };
+            let ResumptionSucceeded: u32 = unsafe { ::core::mem::transmute(ResumptionSucceeded) };
             ResumptionSucceeded as u64
         });
         __bindgen_bitfield_unit.set(4usize, 1u8, {
-            let GreaseBitNegotiated: u32 = unsafe { ::std::mem::transmute(GreaseBitNegotiated) };
+            let GreaseBitNegotiated: u32 = unsafe { ::core::mem::transmute(GreaseBitNegotiated) };
             GreaseBitNegotiated as u64
         });
         __bindgen_bitfield_unit.set(5usize, 1u8, {
-            let EcnCapable: u32 = unsafe { ::std::mem::transmute(EcnCapable) };
+            let EcnCapable: u32 = unsafe { ::core::mem::transmute(EcnCapable) };
             EcnCapable as u64
         });
         __bindgen_bitfield_unit.set(6usize, 1u8, {
-            let EncryptionOffloaded: u32 = unsafe { ::std::mem::transmute(EncryptionOffloaded) };
+            let EncryptionOffloaded: u32 = unsafe { ::core::mem::transmute(EncryptionOffloaded) };
             EncryptionOffloaded as u64
         });
         __bindgen_bitfield_unit.set(7usize, 25u8, {
-            let RESERVED: u32 = unsafe { ::std::mem::transmute(RESERVED) };
+            let RESERVED: u32 = unsafe { ::core::mem::transmute(RESERVED) };
             RESERVED as u64
         });
         __bindgen_bitfield_unit
@@ -1496,15 +1499,15 @@ pub struct QUIC_LISTENER_STATISTICS {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_LISTENER_STATISTICS"]
-        [::std::mem::size_of::<QUIC_LISTENER_STATISTICS>() - 24usize];
+        [::core::mem::size_of::<QUIC_LISTENER_STATISTICS>() - 24usize];
     ["Alignment of QUIC_LISTENER_STATISTICS"]
-        [::std::mem::align_of::<QUIC_LISTENER_STATISTICS>() - 8usize];
+        [::core::mem::align_of::<QUIC_LISTENER_STATISTICS>() - 8usize];
     ["Offset of field: QUIC_LISTENER_STATISTICS::TotalAcceptedConnections"]
-        [::std::mem::offset_of!(QUIC_LISTENER_STATISTICS, TotalAcceptedConnections) - 0usize];
+        [::core::mem::offset_of!(QUIC_LISTENER_STATISTICS, TotalAcceptedConnections) - 0usize];
     ["Offset of field: QUIC_LISTENER_STATISTICS::TotalRejectedConnections"]
-        [::std::mem::offset_of!(QUIC_LISTENER_STATISTICS, TotalRejectedConnections) - 8usize];
+        [::core::mem::offset_of!(QUIC_LISTENER_STATISTICS, TotalRejectedConnections) - 8usize];
     ["Offset of field: QUIC_LISTENER_STATISTICS::BindingRecvDroppedPackets"]
-        [::std::mem::offset_of!(QUIC_LISTENER_STATISTICS, BindingRecvDroppedPackets) - 16usize];
+        [::core::mem::offset_of!(QUIC_LISTENER_STATISTICS, BindingRecvDroppedPackets) - 16usize];
 };
 pub const QUIC_PERFORMANCE_COUNTERS_QUIC_PERF_COUNTER_CONN_CREATED: QUIC_PERFORMANCE_COUNTERS = 0;
 pub const QUIC_PERFORMANCE_COUNTERS_QUIC_PERF_COUNTER_CONN_HANDSHAKE_FAIL:
@@ -1561,7 +1564,7 @@ pub const QUIC_PERFORMANCE_COUNTERS_QUIC_PERF_COUNTER_SEND_STATELESS_RETRY:
 pub const QUIC_PERFORMANCE_COUNTERS_QUIC_PERF_COUNTER_CONN_LOAD_REJECT: QUIC_PERFORMANCE_COUNTERS =
     31;
 pub const QUIC_PERFORMANCE_COUNTERS_QUIC_PERF_COUNTER_MAX: QUIC_PERFORMANCE_COUNTERS = 32;
-pub type QUIC_PERFORMANCE_COUNTERS = ::std::os::raw::c_uint;
+pub type QUIC_PERFORMANCE_COUNTERS = ::core::ffi::c_uint;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct QUIC_GLOBAL_SETTINGS {
@@ -1585,27 +1588,27 @@ pub struct QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1>() - 8usize];
+        [::core::mem::size_of::<QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1>() - 8usize];
     ["Alignment of QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1>() - 8usize];
 };
 impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub fn RetryMemoryLimit(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_RetryMemoryLimit(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn RetryMemoryLimit_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u64)
@@ -1614,9 +1617,9 @@ impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_RetryMemoryLimit_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -1625,20 +1628,20 @@ impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn LoadBalancingMode(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_LoadBalancingMode(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn LoadBalancingMode_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 1u8,
             ) as u64)
@@ -1647,9 +1650,9 @@ impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_LoadBalancingMode_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 1u8,
                 val as u64,
@@ -1658,20 +1661,20 @@ impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn FixedServerID(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_FixedServerID(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn FixedServerID_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 2usize,
                 1u8,
             ) as u64)
@@ -1680,9 +1683,9 @@ impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_FixedServerID_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 2usize,
                 1u8,
                 val as u64,
@@ -1691,20 +1694,20 @@ impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn RESERVED(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 61u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(3usize, 61u8) as u64) }
     }
     #[inline]
     pub fn set_RESERVED(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(3usize, 61u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn RESERVED_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 3usize,
                 61u8,
             ) as u64)
@@ -1713,9 +1716,9 @@ impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_RESERVED_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 3usize,
                 61u8,
                 val as u64,
@@ -1731,19 +1734,19 @@ impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     ) -> __BindgenBitfieldUnit<[u8; 8usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 8usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let RetryMemoryLimit: u64 = unsafe { ::std::mem::transmute(RetryMemoryLimit) };
+            let RetryMemoryLimit: u64 = unsafe { ::core::mem::transmute(RetryMemoryLimit) };
             RetryMemoryLimit as u64
         });
         __bindgen_bitfield_unit.set(1usize, 1u8, {
-            let LoadBalancingMode: u64 = unsafe { ::std::mem::transmute(LoadBalancingMode) };
+            let LoadBalancingMode: u64 = unsafe { ::core::mem::transmute(LoadBalancingMode) };
             LoadBalancingMode as u64
         });
         __bindgen_bitfield_unit.set(2usize, 1u8, {
-            let FixedServerID: u64 = unsafe { ::std::mem::transmute(FixedServerID) };
+            let FixedServerID: u64 = unsafe { ::core::mem::transmute(FixedServerID) };
             FixedServerID as u64
         });
         __bindgen_bitfield_unit.set(3usize, 61u8, {
-            let RESERVED: u64 = unsafe { ::std::mem::transmute(RESERVED) };
+            let RESERVED: u64 = unsafe { ::core::mem::transmute(RESERVED) };
             RESERVED as u64
         });
         __bindgen_bitfield_unit
@@ -1752,24 +1755,24 @@ impl QUIC_GLOBAL_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_GLOBAL_SETTINGS__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_GLOBAL_SETTINGS__bindgen_ty_1>() - 8usize];
+        [::core::mem::size_of::<QUIC_GLOBAL_SETTINGS__bindgen_ty_1>() - 8usize];
     ["Alignment of QUIC_GLOBAL_SETTINGS__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_GLOBAL_SETTINGS__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_GLOBAL_SETTINGS__bindgen_ty_1>() - 8usize];
     ["Offset of field: QUIC_GLOBAL_SETTINGS__bindgen_ty_1::IsSetFlags"]
-        [::std::mem::offset_of!(QUIC_GLOBAL_SETTINGS__bindgen_ty_1, IsSetFlags) - 0usize];
+        [::core::mem::offset_of!(QUIC_GLOBAL_SETTINGS__bindgen_ty_1, IsSetFlags) - 0usize];
     ["Offset of field: QUIC_GLOBAL_SETTINGS__bindgen_ty_1::IsSet"]
-        [::std::mem::offset_of!(QUIC_GLOBAL_SETTINGS__bindgen_ty_1, IsSet) - 0usize];
+        [::core::mem::offset_of!(QUIC_GLOBAL_SETTINGS__bindgen_ty_1, IsSet) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_GLOBAL_SETTINGS"][::std::mem::size_of::<QUIC_GLOBAL_SETTINGS>() - 16usize];
-    ["Alignment of QUIC_GLOBAL_SETTINGS"][::std::mem::align_of::<QUIC_GLOBAL_SETTINGS>() - 8usize];
+    ["Size of QUIC_GLOBAL_SETTINGS"][::core::mem::size_of::<QUIC_GLOBAL_SETTINGS>() - 16usize];
+    ["Alignment of QUIC_GLOBAL_SETTINGS"][::core::mem::align_of::<QUIC_GLOBAL_SETTINGS>() - 8usize];
     ["Offset of field: QUIC_GLOBAL_SETTINGS::RetryMemoryLimit"]
-        [::std::mem::offset_of!(QUIC_GLOBAL_SETTINGS, RetryMemoryLimit) - 8usize];
+        [::core::mem::offset_of!(QUIC_GLOBAL_SETTINGS, RetryMemoryLimit) - 8usize];
     ["Offset of field: QUIC_GLOBAL_SETTINGS::LoadBalancingMode"]
-        [::std::mem::offset_of!(QUIC_GLOBAL_SETTINGS, LoadBalancingMode) - 10usize];
+        [::core::mem::offset_of!(QUIC_GLOBAL_SETTINGS, LoadBalancingMode) - 10usize];
     ["Offset of field: QUIC_GLOBAL_SETTINGS::FixedServerID"]
-        [::std::mem::offset_of!(QUIC_GLOBAL_SETTINGS, FixedServerID) - 12usize];
+        [::core::mem::offset_of!(QUIC_GLOBAL_SETTINGS, FixedServerID) - 12usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -1825,27 +1828,27 @@ pub struct QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1>() - 8usize];
+        [::core::mem::size_of::<QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1>() - 8usize];
     ["Alignment of QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1>() - 8usize];
 };
 impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub fn MaxBytesPerKey(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MaxBytesPerKey(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MaxBytesPerKey_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u64)
@@ -1854,9 +1857,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MaxBytesPerKey_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -1865,20 +1868,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn HandshakeIdleTimeoutMs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_HandshakeIdleTimeoutMs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn HandshakeIdleTimeoutMs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 1u8,
             ) as u64)
@@ -1887,9 +1890,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_HandshakeIdleTimeoutMs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 1u8,
                 val as u64,
@@ -1898,20 +1901,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn IdleTimeoutMs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_IdleTimeoutMs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn IdleTimeoutMs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 2usize,
                 1u8,
             ) as u64)
@@ -1920,9 +1923,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_IdleTimeoutMs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 2usize,
                 1u8,
                 val as u64,
@@ -1931,20 +1934,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MtuDiscoverySearchCompleteTimeoutUs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MtuDiscoverySearchCompleteTimeoutUs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(3usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MtuDiscoverySearchCompleteTimeoutUs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 3usize,
                 1u8,
             ) as u64)
@@ -1953,9 +1956,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MtuDiscoverySearchCompleteTimeoutUs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 3usize,
                 1u8,
                 val as u64,
@@ -1964,20 +1967,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn TlsClientMaxSendBuffer(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_TlsClientMaxSendBuffer(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(4usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn TlsClientMaxSendBuffer_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 4usize,
                 1u8,
             ) as u64)
@@ -1986,9 +1989,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_TlsClientMaxSendBuffer_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 4usize,
                 1u8,
                 val as u64,
@@ -1997,20 +2000,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn TlsServerMaxSendBuffer(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_TlsServerMaxSendBuffer(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(5usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn TlsServerMaxSendBuffer_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 5usize,
                 1u8,
             ) as u64)
@@ -2019,9 +2022,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_TlsServerMaxSendBuffer_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 5usize,
                 1u8,
                 val as u64,
@@ -2030,20 +2033,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn StreamRecvWindowDefault(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_StreamRecvWindowDefault(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(6usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn StreamRecvWindowDefault_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 6usize,
                 1u8,
             ) as u64)
@@ -2052,9 +2055,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_StreamRecvWindowDefault_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 6usize,
                 1u8,
                 val as u64,
@@ -2063,20 +2066,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn StreamRecvBufferDefault(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(7usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(7usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_StreamRecvBufferDefault(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(7usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn StreamRecvBufferDefault_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 7usize,
                 1u8,
             ) as u64)
@@ -2085,9 +2088,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_StreamRecvBufferDefault_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 7usize,
                 1u8,
                 val as u64,
@@ -2096,20 +2099,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn ConnFlowControlWindow(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(8usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(8usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_ConnFlowControlWindow(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(8usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ConnFlowControlWindow_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 8usize,
                 1u8,
             ) as u64)
@@ -2118,9 +2121,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_ConnFlowControlWindow_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 8usize,
                 1u8,
                 val as u64,
@@ -2129,20 +2132,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MaxWorkerQueueDelayUs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(9usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(9usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MaxWorkerQueueDelayUs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(9usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MaxWorkerQueueDelayUs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 9usize,
                 1u8,
             ) as u64)
@@ -2151,9 +2154,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MaxWorkerQueueDelayUs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 9usize,
                 1u8,
                 val as u64,
@@ -2162,20 +2165,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MaxStatelessOperations(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(10usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(10usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MaxStatelessOperations(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(10usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MaxStatelessOperations_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 10usize,
                 1u8,
             ) as u64)
@@ -2184,9 +2187,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MaxStatelessOperations_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 10usize,
                 1u8,
                 val as u64,
@@ -2195,20 +2198,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn InitialWindowPackets(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(11usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(11usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_InitialWindowPackets(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(11usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn InitialWindowPackets_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 11usize,
                 1u8,
             ) as u64)
@@ -2217,9 +2220,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_InitialWindowPackets_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 11usize,
                 1u8,
                 val as u64,
@@ -2228,20 +2231,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn SendIdleTimeoutMs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(12usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(12usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_SendIdleTimeoutMs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(12usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn SendIdleTimeoutMs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 12usize,
                 1u8,
             ) as u64)
@@ -2250,9 +2253,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_SendIdleTimeoutMs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 12usize,
                 1u8,
                 val as u64,
@@ -2261,20 +2264,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn InitialRttMs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(13usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(13usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_InitialRttMs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(13usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn InitialRttMs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 13usize,
                 1u8,
             ) as u64)
@@ -2283,9 +2286,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_InitialRttMs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 13usize,
                 1u8,
                 val as u64,
@@ -2294,20 +2297,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MaxAckDelayMs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(14usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(14usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MaxAckDelayMs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(14usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MaxAckDelayMs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 14usize,
                 1u8,
             ) as u64)
@@ -2316,9 +2319,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MaxAckDelayMs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 14usize,
                 1u8,
                 val as u64,
@@ -2327,20 +2330,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn DisconnectTimeoutMs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(15usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(15usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_DisconnectTimeoutMs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(15usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn DisconnectTimeoutMs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 15usize,
                 1u8,
             ) as u64)
@@ -2349,9 +2352,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_DisconnectTimeoutMs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 15usize,
                 1u8,
                 val as u64,
@@ -2360,20 +2363,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn KeepAliveIntervalMs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(16usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(16usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_KeepAliveIntervalMs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(16usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn KeepAliveIntervalMs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 16usize,
                 1u8,
             ) as u64)
@@ -2382,9 +2385,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_KeepAliveIntervalMs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 16usize,
                 1u8,
                 val as u64,
@@ -2393,20 +2396,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn CongestionControlAlgorithm(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(17usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(17usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_CongestionControlAlgorithm(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(17usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn CongestionControlAlgorithm_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 17usize,
                 1u8,
             ) as u64)
@@ -2415,9 +2418,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_CongestionControlAlgorithm_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 17usize,
                 1u8,
                 val as u64,
@@ -2426,20 +2429,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn PeerBidiStreamCount(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(18usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(18usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_PeerBidiStreamCount(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(18usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn PeerBidiStreamCount_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 18usize,
                 1u8,
             ) as u64)
@@ -2448,9 +2451,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_PeerBidiStreamCount_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 18usize,
                 1u8,
                 val as u64,
@@ -2459,20 +2462,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn PeerUnidiStreamCount(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(19usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(19usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_PeerUnidiStreamCount(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(19usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn PeerUnidiStreamCount_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 19usize,
                 1u8,
             ) as u64)
@@ -2481,9 +2484,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_PeerUnidiStreamCount_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 19usize,
                 1u8,
                 val as u64,
@@ -2492,20 +2495,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MaxBindingStatelessOperations(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(20usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(20usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MaxBindingStatelessOperations(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(20usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MaxBindingStatelessOperations_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 20usize,
                 1u8,
             ) as u64)
@@ -2514,9 +2517,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MaxBindingStatelessOperations_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 20usize,
                 1u8,
                 val as u64,
@@ -2525,20 +2528,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn StatelessOperationExpirationMs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(21usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(21usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_StatelessOperationExpirationMs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(21usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn StatelessOperationExpirationMs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 21usize,
                 1u8,
             ) as u64)
@@ -2547,9 +2550,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_StatelessOperationExpirationMs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 21usize,
                 1u8,
                 val as u64,
@@ -2558,20 +2561,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MinimumMtu(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(22usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(22usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MinimumMtu(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(22usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MinimumMtu_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 22usize,
                 1u8,
             ) as u64)
@@ -2580,9 +2583,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MinimumMtu_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 22usize,
                 1u8,
                 val as u64,
@@ -2591,20 +2594,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MaximumMtu(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(23usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(23usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MaximumMtu(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(23usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MaximumMtu_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 23usize,
                 1u8,
             ) as u64)
@@ -2613,9 +2616,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MaximumMtu_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 23usize,
                 1u8,
                 val as u64,
@@ -2624,20 +2627,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn SendBufferingEnabled(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(24usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(24usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_SendBufferingEnabled(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(24usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn SendBufferingEnabled_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 24usize,
                 1u8,
             ) as u64)
@@ -2646,9 +2649,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_SendBufferingEnabled_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 24usize,
                 1u8,
                 val as u64,
@@ -2657,20 +2660,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn PacingEnabled(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(25usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(25usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_PacingEnabled(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(25usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn PacingEnabled_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 25usize,
                 1u8,
             ) as u64)
@@ -2679,9 +2682,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_PacingEnabled_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 25usize,
                 1u8,
                 val as u64,
@@ -2690,20 +2693,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MigrationEnabled(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(26usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(26usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MigrationEnabled(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(26usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MigrationEnabled_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 26usize,
                 1u8,
             ) as u64)
@@ -2712,9 +2715,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MigrationEnabled_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 26usize,
                 1u8,
                 val as u64,
@@ -2723,20 +2726,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn DatagramReceiveEnabled(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(27usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(27usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_DatagramReceiveEnabled(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(27usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn DatagramReceiveEnabled_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 27usize,
                 1u8,
             ) as u64)
@@ -2745,9 +2748,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_DatagramReceiveEnabled_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 27usize,
                 1u8,
                 val as u64,
@@ -2756,20 +2759,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn ServerResumptionLevel(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(28usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(28usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_ServerResumptionLevel(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(28usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ServerResumptionLevel_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 28usize,
                 1u8,
             ) as u64)
@@ -2778,9 +2781,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_ServerResumptionLevel_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 28usize,
                 1u8,
                 val as u64,
@@ -2789,20 +2792,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MaxOperationsPerDrain(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(29usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(29usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MaxOperationsPerDrain(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(29usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MaxOperationsPerDrain_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 29usize,
                 1u8,
             ) as u64)
@@ -2811,9 +2814,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MaxOperationsPerDrain_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 29usize,
                 1u8,
                 val as u64,
@@ -2822,20 +2825,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn MtuDiscoveryMissingProbeCount(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(30usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(30usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_MtuDiscoveryMissingProbeCount(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(30usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MtuDiscoveryMissingProbeCount_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 30usize,
                 1u8,
             ) as u64)
@@ -2844,9 +2847,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_MtuDiscoveryMissingProbeCount_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 30usize,
                 1u8,
                 val as u64,
@@ -2855,20 +2858,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn DestCidUpdateIdleTimeoutMs(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(31usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(31usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_DestCidUpdateIdleTimeoutMs(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(31usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn DestCidUpdateIdleTimeoutMs_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 31usize,
                 1u8,
             ) as u64)
@@ -2877,9 +2880,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_DestCidUpdateIdleTimeoutMs_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 31usize,
                 1u8,
                 val as u64,
@@ -2888,20 +2891,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn GreaseQuicBitEnabled(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(32usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(32usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_GreaseQuicBitEnabled(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(32usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn GreaseQuicBitEnabled_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 32usize,
                 1u8,
             ) as u64)
@@ -2910,9 +2913,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_GreaseQuicBitEnabled_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 32usize,
                 1u8,
                 val as u64,
@@ -2921,20 +2924,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn EcnEnabled(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(33usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(33usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_EcnEnabled(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(33usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn EcnEnabled_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 33usize,
                 1u8,
             ) as u64)
@@ -2943,9 +2946,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_EcnEnabled_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 33usize,
                 1u8,
                 val as u64,
@@ -2954,20 +2957,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn HyStartEnabled(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(34usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(34usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_HyStartEnabled(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(34usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn HyStartEnabled_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 34usize,
                 1u8,
             ) as u64)
@@ -2976,9 +2979,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_HyStartEnabled_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 34usize,
                 1u8,
                 val as u64,
@@ -2987,20 +2990,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn StreamRecvWindowBidiLocalDefault(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(35usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(35usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_StreamRecvWindowBidiLocalDefault(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(35usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn StreamRecvWindowBidiLocalDefault_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 35usize,
                 1u8,
             ) as u64)
@@ -3009,9 +3012,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_StreamRecvWindowBidiLocalDefault_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 35usize,
                 1u8,
                 val as u64,
@@ -3020,20 +3023,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn StreamRecvWindowBidiRemoteDefault(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(36usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(36usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_StreamRecvWindowBidiRemoteDefault(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(36usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn StreamRecvWindowBidiRemoteDefault_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 36usize,
                 1u8,
             ) as u64)
@@ -3042,9 +3045,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_StreamRecvWindowBidiRemoteDefault_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 36usize,
                 1u8,
                 val as u64,
@@ -3053,20 +3056,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn StreamRecvWindowUnidiDefault(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(37usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(37usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_StreamRecvWindowUnidiDefault(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(37usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn StreamRecvWindowUnidiDefault_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 37usize,
                 1u8,
             ) as u64)
@@ -3075,9 +3078,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_StreamRecvWindowUnidiDefault_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 37usize,
                 1u8,
                 val as u64,
@@ -3086,20 +3089,20 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn RESERVED(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(38usize, 26u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(38usize, 26u8) as u64) }
     }
     #[inline]
     pub fn set_RESERVED(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(38usize, 26u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn RESERVED_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 38usize,
                 26u8,
             ) as u64)
@@ -3108,9 +3111,9 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_RESERVED_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 38usize,
                 26u8,
                 val as u64,
@@ -3161,179 +3164,179 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
     ) -> __BindgenBitfieldUnit<[u8; 8usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 8usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let MaxBytesPerKey: u64 = unsafe { ::std::mem::transmute(MaxBytesPerKey) };
+            let MaxBytesPerKey: u64 = unsafe { ::core::mem::transmute(MaxBytesPerKey) };
             MaxBytesPerKey as u64
         });
         __bindgen_bitfield_unit.set(1usize, 1u8, {
             let HandshakeIdleTimeoutMs: u64 =
-                unsafe { ::std::mem::transmute(HandshakeIdleTimeoutMs) };
+                unsafe { ::core::mem::transmute(HandshakeIdleTimeoutMs) };
             HandshakeIdleTimeoutMs as u64
         });
         __bindgen_bitfield_unit.set(2usize, 1u8, {
-            let IdleTimeoutMs: u64 = unsafe { ::std::mem::transmute(IdleTimeoutMs) };
+            let IdleTimeoutMs: u64 = unsafe { ::core::mem::transmute(IdleTimeoutMs) };
             IdleTimeoutMs as u64
         });
         __bindgen_bitfield_unit.set(3usize, 1u8, {
             let MtuDiscoverySearchCompleteTimeoutUs: u64 =
-                unsafe { ::std::mem::transmute(MtuDiscoverySearchCompleteTimeoutUs) };
+                unsafe { ::core::mem::transmute(MtuDiscoverySearchCompleteTimeoutUs) };
             MtuDiscoverySearchCompleteTimeoutUs as u64
         });
         __bindgen_bitfield_unit.set(4usize, 1u8, {
             let TlsClientMaxSendBuffer: u64 =
-                unsafe { ::std::mem::transmute(TlsClientMaxSendBuffer) };
+                unsafe { ::core::mem::transmute(TlsClientMaxSendBuffer) };
             TlsClientMaxSendBuffer as u64
         });
         __bindgen_bitfield_unit.set(5usize, 1u8, {
             let TlsServerMaxSendBuffer: u64 =
-                unsafe { ::std::mem::transmute(TlsServerMaxSendBuffer) };
+                unsafe { ::core::mem::transmute(TlsServerMaxSendBuffer) };
             TlsServerMaxSendBuffer as u64
         });
         __bindgen_bitfield_unit.set(6usize, 1u8, {
             let StreamRecvWindowDefault: u64 =
-                unsafe { ::std::mem::transmute(StreamRecvWindowDefault) };
+                unsafe { ::core::mem::transmute(StreamRecvWindowDefault) };
             StreamRecvWindowDefault as u64
         });
         __bindgen_bitfield_unit.set(7usize, 1u8, {
             let StreamRecvBufferDefault: u64 =
-                unsafe { ::std::mem::transmute(StreamRecvBufferDefault) };
+                unsafe { ::core::mem::transmute(StreamRecvBufferDefault) };
             StreamRecvBufferDefault as u64
         });
         __bindgen_bitfield_unit.set(8usize, 1u8, {
             let ConnFlowControlWindow: u64 =
-                unsafe { ::std::mem::transmute(ConnFlowControlWindow) };
+                unsafe { ::core::mem::transmute(ConnFlowControlWindow) };
             ConnFlowControlWindow as u64
         });
         __bindgen_bitfield_unit.set(9usize, 1u8, {
             let MaxWorkerQueueDelayUs: u64 =
-                unsafe { ::std::mem::transmute(MaxWorkerQueueDelayUs) };
+                unsafe { ::core::mem::transmute(MaxWorkerQueueDelayUs) };
             MaxWorkerQueueDelayUs as u64
         });
         __bindgen_bitfield_unit.set(10usize, 1u8, {
             let MaxStatelessOperations: u64 =
-                unsafe { ::std::mem::transmute(MaxStatelessOperations) };
+                unsafe { ::core::mem::transmute(MaxStatelessOperations) };
             MaxStatelessOperations as u64
         });
         __bindgen_bitfield_unit.set(11usize, 1u8, {
-            let InitialWindowPackets: u64 = unsafe { ::std::mem::transmute(InitialWindowPackets) };
+            let InitialWindowPackets: u64 = unsafe { ::core::mem::transmute(InitialWindowPackets) };
             InitialWindowPackets as u64
         });
         __bindgen_bitfield_unit.set(12usize, 1u8, {
-            let SendIdleTimeoutMs: u64 = unsafe { ::std::mem::transmute(SendIdleTimeoutMs) };
+            let SendIdleTimeoutMs: u64 = unsafe { ::core::mem::transmute(SendIdleTimeoutMs) };
             SendIdleTimeoutMs as u64
         });
         __bindgen_bitfield_unit.set(13usize, 1u8, {
-            let InitialRttMs: u64 = unsafe { ::std::mem::transmute(InitialRttMs) };
+            let InitialRttMs: u64 = unsafe { ::core::mem::transmute(InitialRttMs) };
             InitialRttMs as u64
         });
         __bindgen_bitfield_unit.set(14usize, 1u8, {
-            let MaxAckDelayMs: u64 = unsafe { ::std::mem::transmute(MaxAckDelayMs) };
+            let MaxAckDelayMs: u64 = unsafe { ::core::mem::transmute(MaxAckDelayMs) };
             MaxAckDelayMs as u64
         });
         __bindgen_bitfield_unit.set(15usize, 1u8, {
-            let DisconnectTimeoutMs: u64 = unsafe { ::std::mem::transmute(DisconnectTimeoutMs) };
+            let DisconnectTimeoutMs: u64 = unsafe { ::core::mem::transmute(DisconnectTimeoutMs) };
             DisconnectTimeoutMs as u64
         });
         __bindgen_bitfield_unit.set(16usize, 1u8, {
-            let KeepAliveIntervalMs: u64 = unsafe { ::std::mem::transmute(KeepAliveIntervalMs) };
+            let KeepAliveIntervalMs: u64 = unsafe { ::core::mem::transmute(KeepAliveIntervalMs) };
             KeepAliveIntervalMs as u64
         });
         __bindgen_bitfield_unit.set(17usize, 1u8, {
             let CongestionControlAlgorithm: u64 =
-                unsafe { ::std::mem::transmute(CongestionControlAlgorithm) };
+                unsafe { ::core::mem::transmute(CongestionControlAlgorithm) };
             CongestionControlAlgorithm as u64
         });
         __bindgen_bitfield_unit.set(18usize, 1u8, {
-            let PeerBidiStreamCount: u64 = unsafe { ::std::mem::transmute(PeerBidiStreamCount) };
+            let PeerBidiStreamCount: u64 = unsafe { ::core::mem::transmute(PeerBidiStreamCount) };
             PeerBidiStreamCount as u64
         });
         __bindgen_bitfield_unit.set(19usize, 1u8, {
-            let PeerUnidiStreamCount: u64 = unsafe { ::std::mem::transmute(PeerUnidiStreamCount) };
+            let PeerUnidiStreamCount: u64 = unsafe { ::core::mem::transmute(PeerUnidiStreamCount) };
             PeerUnidiStreamCount as u64
         });
         __bindgen_bitfield_unit.set(20usize, 1u8, {
             let MaxBindingStatelessOperations: u64 =
-                unsafe { ::std::mem::transmute(MaxBindingStatelessOperations) };
+                unsafe { ::core::mem::transmute(MaxBindingStatelessOperations) };
             MaxBindingStatelessOperations as u64
         });
         __bindgen_bitfield_unit.set(21usize, 1u8, {
             let StatelessOperationExpirationMs: u64 =
-                unsafe { ::std::mem::transmute(StatelessOperationExpirationMs) };
+                unsafe { ::core::mem::transmute(StatelessOperationExpirationMs) };
             StatelessOperationExpirationMs as u64
         });
         __bindgen_bitfield_unit.set(22usize, 1u8, {
-            let MinimumMtu: u64 = unsafe { ::std::mem::transmute(MinimumMtu) };
+            let MinimumMtu: u64 = unsafe { ::core::mem::transmute(MinimumMtu) };
             MinimumMtu as u64
         });
         __bindgen_bitfield_unit.set(23usize, 1u8, {
-            let MaximumMtu: u64 = unsafe { ::std::mem::transmute(MaximumMtu) };
+            let MaximumMtu: u64 = unsafe { ::core::mem::transmute(MaximumMtu) };
             MaximumMtu as u64
         });
         __bindgen_bitfield_unit.set(24usize, 1u8, {
-            let SendBufferingEnabled: u64 = unsafe { ::std::mem::transmute(SendBufferingEnabled) };
+            let SendBufferingEnabled: u64 = unsafe { ::core::mem::transmute(SendBufferingEnabled) };
             SendBufferingEnabled as u64
         });
         __bindgen_bitfield_unit.set(25usize, 1u8, {
-            let PacingEnabled: u64 = unsafe { ::std::mem::transmute(PacingEnabled) };
+            let PacingEnabled: u64 = unsafe { ::core::mem::transmute(PacingEnabled) };
             PacingEnabled as u64
         });
         __bindgen_bitfield_unit.set(26usize, 1u8, {
-            let MigrationEnabled: u64 = unsafe { ::std::mem::transmute(MigrationEnabled) };
+            let MigrationEnabled: u64 = unsafe { ::core::mem::transmute(MigrationEnabled) };
             MigrationEnabled as u64
         });
         __bindgen_bitfield_unit.set(27usize, 1u8, {
             let DatagramReceiveEnabled: u64 =
-                unsafe { ::std::mem::transmute(DatagramReceiveEnabled) };
+                unsafe { ::core::mem::transmute(DatagramReceiveEnabled) };
             DatagramReceiveEnabled as u64
         });
         __bindgen_bitfield_unit.set(28usize, 1u8, {
             let ServerResumptionLevel: u64 =
-                unsafe { ::std::mem::transmute(ServerResumptionLevel) };
+                unsafe { ::core::mem::transmute(ServerResumptionLevel) };
             ServerResumptionLevel as u64
         });
         __bindgen_bitfield_unit.set(29usize, 1u8, {
             let MaxOperationsPerDrain: u64 =
-                unsafe { ::std::mem::transmute(MaxOperationsPerDrain) };
+                unsafe { ::core::mem::transmute(MaxOperationsPerDrain) };
             MaxOperationsPerDrain as u64
         });
         __bindgen_bitfield_unit.set(30usize, 1u8, {
             let MtuDiscoveryMissingProbeCount: u64 =
-                unsafe { ::std::mem::transmute(MtuDiscoveryMissingProbeCount) };
+                unsafe { ::core::mem::transmute(MtuDiscoveryMissingProbeCount) };
             MtuDiscoveryMissingProbeCount as u64
         });
         __bindgen_bitfield_unit.set(31usize, 1u8, {
             let DestCidUpdateIdleTimeoutMs: u64 =
-                unsafe { ::std::mem::transmute(DestCidUpdateIdleTimeoutMs) };
+                unsafe { ::core::mem::transmute(DestCidUpdateIdleTimeoutMs) };
             DestCidUpdateIdleTimeoutMs as u64
         });
         __bindgen_bitfield_unit.set(32usize, 1u8, {
-            let GreaseQuicBitEnabled: u64 = unsafe { ::std::mem::transmute(GreaseQuicBitEnabled) };
+            let GreaseQuicBitEnabled: u64 = unsafe { ::core::mem::transmute(GreaseQuicBitEnabled) };
             GreaseQuicBitEnabled as u64
         });
         __bindgen_bitfield_unit.set(33usize, 1u8, {
-            let EcnEnabled: u64 = unsafe { ::std::mem::transmute(EcnEnabled) };
+            let EcnEnabled: u64 = unsafe { ::core::mem::transmute(EcnEnabled) };
             EcnEnabled as u64
         });
         __bindgen_bitfield_unit.set(34usize, 1u8, {
-            let HyStartEnabled: u64 = unsafe { ::std::mem::transmute(HyStartEnabled) };
+            let HyStartEnabled: u64 = unsafe { ::core::mem::transmute(HyStartEnabled) };
             HyStartEnabled as u64
         });
         __bindgen_bitfield_unit.set(35usize, 1u8, {
             let StreamRecvWindowBidiLocalDefault: u64 =
-                unsafe { ::std::mem::transmute(StreamRecvWindowBidiLocalDefault) };
+                unsafe { ::core::mem::transmute(StreamRecvWindowBidiLocalDefault) };
             StreamRecvWindowBidiLocalDefault as u64
         });
         __bindgen_bitfield_unit.set(36usize, 1u8, {
             let StreamRecvWindowBidiRemoteDefault: u64 =
-                unsafe { ::std::mem::transmute(StreamRecvWindowBidiRemoteDefault) };
+                unsafe { ::core::mem::transmute(StreamRecvWindowBidiRemoteDefault) };
             StreamRecvWindowBidiRemoteDefault as u64
         });
         __bindgen_bitfield_unit.set(37usize, 1u8, {
             let StreamRecvWindowUnidiDefault: u64 =
-                unsafe { ::std::mem::transmute(StreamRecvWindowUnidiDefault) };
+                unsafe { ::core::mem::transmute(StreamRecvWindowUnidiDefault) };
             StreamRecvWindowUnidiDefault as u64
         });
         __bindgen_bitfield_unit.set(38usize, 26u8, {
-            let RESERVED: u64 = unsafe { ::std::mem::transmute(RESERVED) };
+            let RESERVED: u64 = unsafe { ::core::mem::transmute(RESERVED) };
             RESERVED as u64
         });
         __bindgen_bitfield_unit
@@ -3342,13 +3345,13 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_SETTINGS__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_SETTINGS__bindgen_ty_1>() - 8usize];
+        [::core::mem::size_of::<QUIC_SETTINGS__bindgen_ty_1>() - 8usize];
     ["Alignment of QUIC_SETTINGS__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_SETTINGS__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_SETTINGS__bindgen_ty_1>() - 8usize];
     ["Offset of field: QUIC_SETTINGS__bindgen_ty_1::IsSetFlags"]
-        [::std::mem::offset_of!(QUIC_SETTINGS__bindgen_ty_1, IsSetFlags) - 0usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS__bindgen_ty_1, IsSetFlags) - 0usize];
     ["Offset of field: QUIC_SETTINGS__bindgen_ty_1::IsSet"]
-        [::std::mem::offset_of!(QUIC_SETTINGS__bindgen_ty_1, IsSet) - 0usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS__bindgen_ty_1, IsSet) - 0usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -3365,27 +3368,27 @@ pub struct QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1>() - 8usize];
+        [::core::mem::size_of::<QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1>() - 8usize];
     ["Alignment of QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1>() - 8usize];
 };
 impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
     #[inline]
     pub fn HyStartEnabled(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u64) }
     }
     #[inline]
     pub fn set_HyStartEnabled(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn HyStartEnabled_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u64)
@@ -3394,9 +3397,9 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_HyStartEnabled_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -3405,20 +3408,20 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
     }
     #[inline]
     pub fn ReservedFlags(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 63u8) as u64) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 63u8) as u64) }
     }
     #[inline]
     pub fn set_ReservedFlags(&mut self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 63u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ReservedFlags_raw(this: *const Self) -> u64 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 63u8,
             ) as u64)
@@ -3427,9 +3430,9 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_ReservedFlags_raw(this: *mut Self, val: u64) {
         unsafe {
-            let val: u64 = ::std::mem::transmute(val);
+            let val: u64 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 63u8,
                 val as u64,
@@ -3443,11 +3446,11 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
     ) -> __BindgenBitfieldUnit<[u8; 8usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 8usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let HyStartEnabled: u64 = unsafe { ::std::mem::transmute(HyStartEnabled) };
+            let HyStartEnabled: u64 = unsafe { ::core::mem::transmute(HyStartEnabled) };
             HyStartEnabled as u64
         });
         __bindgen_bitfield_unit.set(1usize, 63u8, {
-            let ReservedFlags: u64 = unsafe { ::std::mem::transmute(ReservedFlags) };
+            let ReservedFlags: u64 = unsafe { ::core::mem::transmute(ReservedFlags) };
             ReservedFlags as u64
         });
         __bindgen_bitfield_unit
@@ -3456,94 +3459,94 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_SETTINGS__bindgen_ty_2"]
-        [::std::mem::size_of::<QUIC_SETTINGS__bindgen_ty_2>() - 8usize];
+        [::core::mem::size_of::<QUIC_SETTINGS__bindgen_ty_2>() - 8usize];
     ["Alignment of QUIC_SETTINGS__bindgen_ty_2"]
-        [::std::mem::align_of::<QUIC_SETTINGS__bindgen_ty_2>() - 8usize];
+        [::core::mem::align_of::<QUIC_SETTINGS__bindgen_ty_2>() - 8usize];
     ["Offset of field: QUIC_SETTINGS__bindgen_ty_2::Flags"]
-        [::std::mem::offset_of!(QUIC_SETTINGS__bindgen_ty_2, Flags) - 0usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS__bindgen_ty_2, Flags) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_SETTINGS"][::std::mem::size_of::<QUIC_SETTINGS>() - 144usize];
-    ["Alignment of QUIC_SETTINGS"][::std::mem::align_of::<QUIC_SETTINGS>() - 8usize];
+    ["Size of QUIC_SETTINGS"][::core::mem::size_of::<QUIC_SETTINGS>() - 144usize];
+    ["Alignment of QUIC_SETTINGS"][::core::mem::align_of::<QUIC_SETTINGS>() - 8usize];
     ["Offset of field: QUIC_SETTINGS::MaxBytesPerKey"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MaxBytesPerKey) - 8usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MaxBytesPerKey) - 8usize];
     ["Offset of field: QUIC_SETTINGS::HandshakeIdleTimeoutMs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, HandshakeIdleTimeoutMs) - 16usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, HandshakeIdleTimeoutMs) - 16usize];
     ["Offset of field: QUIC_SETTINGS::IdleTimeoutMs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, IdleTimeoutMs) - 24usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, IdleTimeoutMs) - 24usize];
     ["Offset of field: QUIC_SETTINGS::MtuDiscoverySearchCompleteTimeoutUs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MtuDiscoverySearchCompleteTimeoutUs) - 32usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MtuDiscoverySearchCompleteTimeoutUs) - 32usize];
     ["Offset of field: QUIC_SETTINGS::TlsClientMaxSendBuffer"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, TlsClientMaxSendBuffer) - 40usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, TlsClientMaxSendBuffer) - 40usize];
     ["Offset of field: QUIC_SETTINGS::TlsServerMaxSendBuffer"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, TlsServerMaxSendBuffer) - 44usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, TlsServerMaxSendBuffer) - 44usize];
     ["Offset of field: QUIC_SETTINGS::StreamRecvWindowDefault"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, StreamRecvWindowDefault) - 48usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, StreamRecvWindowDefault) - 48usize];
     ["Offset of field: QUIC_SETTINGS::StreamRecvBufferDefault"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, StreamRecvBufferDefault) - 52usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, StreamRecvBufferDefault) - 52usize];
     ["Offset of field: QUIC_SETTINGS::ConnFlowControlWindow"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, ConnFlowControlWindow) - 56usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, ConnFlowControlWindow) - 56usize];
     ["Offset of field: QUIC_SETTINGS::MaxWorkerQueueDelayUs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MaxWorkerQueueDelayUs) - 60usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MaxWorkerQueueDelayUs) - 60usize];
     ["Offset of field: QUIC_SETTINGS::MaxStatelessOperations"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MaxStatelessOperations) - 64usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MaxStatelessOperations) - 64usize];
     ["Offset of field: QUIC_SETTINGS::InitialWindowPackets"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, InitialWindowPackets) - 68usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, InitialWindowPackets) - 68usize];
     ["Offset of field: QUIC_SETTINGS::SendIdleTimeoutMs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, SendIdleTimeoutMs) - 72usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, SendIdleTimeoutMs) - 72usize];
     ["Offset of field: QUIC_SETTINGS::InitialRttMs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, InitialRttMs) - 76usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, InitialRttMs) - 76usize];
     ["Offset of field: QUIC_SETTINGS::MaxAckDelayMs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MaxAckDelayMs) - 80usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MaxAckDelayMs) - 80usize];
     ["Offset of field: QUIC_SETTINGS::DisconnectTimeoutMs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, DisconnectTimeoutMs) - 84usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, DisconnectTimeoutMs) - 84usize];
     ["Offset of field: QUIC_SETTINGS::KeepAliveIntervalMs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, KeepAliveIntervalMs) - 88usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, KeepAliveIntervalMs) - 88usize];
     ["Offset of field: QUIC_SETTINGS::CongestionControlAlgorithm"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, CongestionControlAlgorithm) - 92usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, CongestionControlAlgorithm) - 92usize];
     ["Offset of field: QUIC_SETTINGS::PeerBidiStreamCount"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, PeerBidiStreamCount) - 94usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, PeerBidiStreamCount) - 94usize];
     ["Offset of field: QUIC_SETTINGS::PeerUnidiStreamCount"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, PeerUnidiStreamCount) - 96usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, PeerUnidiStreamCount) - 96usize];
     ["Offset of field: QUIC_SETTINGS::MaxBindingStatelessOperations"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MaxBindingStatelessOperations) - 98usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MaxBindingStatelessOperations) - 98usize];
     ["Offset of field: QUIC_SETTINGS::StatelessOperationExpirationMs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, StatelessOperationExpirationMs) - 100usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, StatelessOperationExpirationMs) - 100usize];
     ["Offset of field: QUIC_SETTINGS::MinimumMtu"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MinimumMtu) - 102usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MinimumMtu) - 102usize];
     ["Offset of field: QUIC_SETTINGS::MaximumMtu"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MaximumMtu) - 104usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MaximumMtu) - 104usize];
     ["Offset of field: QUIC_SETTINGS::MaxOperationsPerDrain"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MaxOperationsPerDrain) - 107usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MaxOperationsPerDrain) - 107usize];
     ["Offset of field: QUIC_SETTINGS::MtuDiscoveryMissingProbeCount"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, MtuDiscoveryMissingProbeCount) - 108usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, MtuDiscoveryMissingProbeCount) - 108usize];
     ["Offset of field: QUIC_SETTINGS::DestCidUpdateIdleTimeoutMs"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, DestCidUpdateIdleTimeoutMs) - 112usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, DestCidUpdateIdleTimeoutMs) - 112usize];
     ["Offset of field: QUIC_SETTINGS::StreamRecvWindowBidiLocalDefault"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, StreamRecvWindowBidiLocalDefault) - 128usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, StreamRecvWindowBidiLocalDefault) - 128usize];
     ["Offset of field: QUIC_SETTINGS::StreamRecvWindowBidiRemoteDefault"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, StreamRecvWindowBidiRemoteDefault) - 132usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, StreamRecvWindowBidiRemoteDefault) - 132usize];
     ["Offset of field: QUIC_SETTINGS::StreamRecvWindowUnidiDefault"]
-        [::std::mem::offset_of!(QUIC_SETTINGS, StreamRecvWindowUnidiDefault) - 136usize];
+        [::core::mem::offset_of!(QUIC_SETTINGS, StreamRecvWindowUnidiDefault) - 136usize];
 };
 impl QUIC_SETTINGS {
     #[inline]
     pub fn SendBufferingEnabled(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_SendBufferingEnabled(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn SendBufferingEnabled_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u8)
@@ -3552,9 +3555,9 @@ impl QUIC_SETTINGS {
     #[inline]
     pub unsafe fn set_SendBufferingEnabled_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -3563,20 +3566,20 @@ impl QUIC_SETTINGS {
     }
     #[inline]
     pub fn PacingEnabled(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_PacingEnabled(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn PacingEnabled_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 1u8,
             ) as u8)
@@ -3585,9 +3588,9 @@ impl QUIC_SETTINGS {
     #[inline]
     pub unsafe fn set_PacingEnabled_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 1u8,
                 val as u64,
@@ -3596,20 +3599,20 @@ impl QUIC_SETTINGS {
     }
     #[inline]
     pub fn MigrationEnabled(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_MigrationEnabled(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn MigrationEnabled_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 2usize,
                 1u8,
             ) as u8)
@@ -3618,9 +3621,9 @@ impl QUIC_SETTINGS {
     #[inline]
     pub unsafe fn set_MigrationEnabled_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 2usize,
                 1u8,
                 val as u64,
@@ -3629,20 +3632,20 @@ impl QUIC_SETTINGS {
     }
     #[inline]
     pub fn DatagramReceiveEnabled(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_DatagramReceiveEnabled(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(3usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn DatagramReceiveEnabled_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 3usize,
                 1u8,
             ) as u8)
@@ -3651,9 +3654,9 @@ impl QUIC_SETTINGS {
     #[inline]
     pub unsafe fn set_DatagramReceiveEnabled_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 3usize,
                 1u8,
                 val as u64,
@@ -3662,20 +3665,20 @@ impl QUIC_SETTINGS {
     }
     #[inline]
     pub fn ServerResumptionLevel(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 2u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(4usize, 2u8) as u8) }
     }
     #[inline]
     pub fn set_ServerResumptionLevel(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(4usize, 2u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ServerResumptionLevel_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 4usize,
                 2u8,
             ) as u8)
@@ -3684,9 +3687,9 @@ impl QUIC_SETTINGS {
     #[inline]
     pub unsafe fn set_ServerResumptionLevel_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 4usize,
                 2u8,
                 val as u64,
@@ -3695,20 +3698,20 @@ impl QUIC_SETTINGS {
     }
     #[inline]
     pub fn GreaseQuicBitEnabled(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(6usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_GreaseQuicBitEnabled(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(6usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn GreaseQuicBitEnabled_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 6usize,
                 1u8,
             ) as u8)
@@ -3717,9 +3720,9 @@ impl QUIC_SETTINGS {
     #[inline]
     pub unsafe fn set_GreaseQuicBitEnabled_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 6usize,
                 1u8,
                 val as u64,
@@ -3728,20 +3731,20 @@ impl QUIC_SETTINGS {
     }
     #[inline]
     pub fn EcnEnabled(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(7usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(7usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_EcnEnabled(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(7usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn EcnEnabled_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 7usize,
                 1u8,
             ) as u8)
@@ -3750,9 +3753,9 @@ impl QUIC_SETTINGS {
     #[inline]
     pub unsafe fn set_EcnEnabled_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 7usize,
                 1u8,
                 val as u64,
@@ -3771,32 +3774,33 @@ impl QUIC_SETTINGS {
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let SendBufferingEnabled: u8 = unsafe { ::std::mem::transmute(SendBufferingEnabled) };
+            let SendBufferingEnabled: u8 = unsafe { ::core::mem::transmute(SendBufferingEnabled) };
             SendBufferingEnabled as u64
         });
         __bindgen_bitfield_unit.set(1usize, 1u8, {
-            let PacingEnabled: u8 = unsafe { ::std::mem::transmute(PacingEnabled) };
+            let PacingEnabled: u8 = unsafe { ::core::mem::transmute(PacingEnabled) };
             PacingEnabled as u64
         });
         __bindgen_bitfield_unit.set(2usize, 1u8, {
-            let MigrationEnabled: u8 = unsafe { ::std::mem::transmute(MigrationEnabled) };
+            let MigrationEnabled: u8 = unsafe { ::core::mem::transmute(MigrationEnabled) };
             MigrationEnabled as u64
         });
         __bindgen_bitfield_unit.set(3usize, 1u8, {
             let DatagramReceiveEnabled: u8 =
-                unsafe { ::std::mem::transmute(DatagramReceiveEnabled) };
+                unsafe { ::core::mem::transmute(DatagramReceiveEnabled) };
             DatagramReceiveEnabled as u64
         });
         __bindgen_bitfield_unit.set(4usize, 2u8, {
-            let ServerResumptionLevel: u8 = unsafe { ::std::mem::transmute(ServerResumptionLevel) };
+            let ServerResumptionLevel: u8 =
+                unsafe { ::core::mem::transmute(ServerResumptionLevel) };
             ServerResumptionLevel as u64
         });
         __bindgen_bitfield_unit.set(6usize, 1u8, {
-            let GreaseQuicBitEnabled: u8 = unsafe { ::std::mem::transmute(GreaseQuicBitEnabled) };
+            let GreaseQuicBitEnabled: u8 = unsafe { ::core::mem::transmute(GreaseQuicBitEnabled) };
             GreaseQuicBitEnabled as u64
         });
         __bindgen_bitfield_unit.set(7usize, 1u8, {
-            let EcnEnabled: u8 = unsafe { ::std::mem::transmute(EcnEnabled) };
+            let EcnEnabled: u8 = unsafe { ::core::mem::transmute(EcnEnabled) };
             EcnEnabled as u64
         });
         __bindgen_bitfield_unit
@@ -3823,27 +3827,27 @@ pub struct QUIC_TLS_SECRETS__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_TLS_SECRETS__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_TLS_SECRETS__bindgen_ty_1>() - 1usize];
+        [::core::mem::size_of::<QUIC_TLS_SECRETS__bindgen_ty_1>() - 1usize];
     ["Alignment of QUIC_TLS_SECRETS__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_TLS_SECRETS__bindgen_ty_1>() - 1usize];
+        [::core::mem::align_of::<QUIC_TLS_SECRETS__bindgen_ty_1>() - 1usize];
 };
 impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     #[inline]
     pub fn ClientRandom(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_ClientRandom(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ClientRandom_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u8)
@@ -3852,9 +3856,9 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_ClientRandom_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -3863,20 +3867,20 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     }
     #[inline]
     pub fn ClientEarlyTrafficSecret(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_ClientEarlyTrafficSecret(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ClientEarlyTrafficSecret_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 1u8,
             ) as u8)
@@ -3885,9 +3889,9 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_ClientEarlyTrafficSecret_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 1u8,
                 val as u64,
@@ -3896,20 +3900,20 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     }
     #[inline]
     pub fn ClientHandshakeTrafficSecret(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_ClientHandshakeTrafficSecret(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ClientHandshakeTrafficSecret_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 2usize,
                 1u8,
             ) as u8)
@@ -3918,9 +3922,9 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_ClientHandshakeTrafficSecret_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 2usize,
                 1u8,
                 val as u64,
@@ -3929,20 +3933,20 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     }
     #[inline]
     pub fn ServerHandshakeTrafficSecret(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(3usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_ServerHandshakeTrafficSecret(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(3usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ServerHandshakeTrafficSecret_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 3usize,
                 1u8,
             ) as u8)
@@ -3951,9 +3955,9 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_ServerHandshakeTrafficSecret_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 3usize,
                 1u8,
                 val as u64,
@@ -3962,20 +3966,20 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     }
     #[inline]
     pub fn ClientTrafficSecret0(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(4usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_ClientTrafficSecret0(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(4usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ClientTrafficSecret0_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 4usize,
                 1u8,
             ) as u8)
@@ -3984,9 +3988,9 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_ClientTrafficSecret0_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 4usize,
                 1u8,
                 val as u64,
@@ -3995,20 +3999,20 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     }
     #[inline]
     pub fn ServerTrafficSecret0(&self) -> u8 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(5usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_ServerTrafficSecret0(&mut self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(5usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ServerTrafficSecret0_raw(this: *const Self) -> u8 {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 5usize,
                 1u8,
             ) as u8)
@@ -4017,9 +4021,9 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_ServerTrafficSecret0_raw(this: *mut Self, val: u8) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 5usize,
                 1u8,
                 val as u64,
@@ -4037,30 +4041,30 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let ClientRandom: u8 = unsafe { ::std::mem::transmute(ClientRandom) };
+            let ClientRandom: u8 = unsafe { ::core::mem::transmute(ClientRandom) };
             ClientRandom as u64
         });
         __bindgen_bitfield_unit.set(1usize, 1u8, {
             let ClientEarlyTrafficSecret: u8 =
-                unsafe { ::std::mem::transmute(ClientEarlyTrafficSecret) };
+                unsafe { ::core::mem::transmute(ClientEarlyTrafficSecret) };
             ClientEarlyTrafficSecret as u64
         });
         __bindgen_bitfield_unit.set(2usize, 1u8, {
             let ClientHandshakeTrafficSecret: u8 =
-                unsafe { ::std::mem::transmute(ClientHandshakeTrafficSecret) };
+                unsafe { ::core::mem::transmute(ClientHandshakeTrafficSecret) };
             ClientHandshakeTrafficSecret as u64
         });
         __bindgen_bitfield_unit.set(3usize, 1u8, {
             let ServerHandshakeTrafficSecret: u8 =
-                unsafe { ::std::mem::transmute(ServerHandshakeTrafficSecret) };
+                unsafe { ::core::mem::transmute(ServerHandshakeTrafficSecret) };
             ServerHandshakeTrafficSecret as u64
         });
         __bindgen_bitfield_unit.set(4usize, 1u8, {
-            let ClientTrafficSecret0: u8 = unsafe { ::std::mem::transmute(ClientTrafficSecret0) };
+            let ClientTrafficSecret0: u8 = unsafe { ::core::mem::transmute(ClientTrafficSecret0) };
             ClientTrafficSecret0 as u64
         });
         __bindgen_bitfield_unit.set(5usize, 1u8, {
-            let ServerTrafficSecret0: u8 = unsafe { ::std::mem::transmute(ServerTrafficSecret0) };
+            let ServerTrafficSecret0: u8 = unsafe { ::core::mem::transmute(ServerTrafficSecret0) };
             ServerTrafficSecret0 as u64
         });
         __bindgen_bitfield_unit
@@ -4068,24 +4072,24 @@ impl QUIC_TLS_SECRETS__bindgen_ty_1 {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_TLS_SECRETS"][::std::mem::size_of::<QUIC_TLS_SECRETS>() - 354usize];
-    ["Alignment of QUIC_TLS_SECRETS"][::std::mem::align_of::<QUIC_TLS_SECRETS>() - 1usize];
+    ["Size of QUIC_TLS_SECRETS"][::core::mem::size_of::<QUIC_TLS_SECRETS>() - 354usize];
+    ["Alignment of QUIC_TLS_SECRETS"][::core::mem::align_of::<QUIC_TLS_SECRETS>() - 1usize];
     ["Offset of field: QUIC_TLS_SECRETS::SecretLength"]
-        [::std::mem::offset_of!(QUIC_TLS_SECRETS, SecretLength) - 0usize];
+        [::core::mem::offset_of!(QUIC_TLS_SECRETS, SecretLength) - 0usize];
     ["Offset of field: QUIC_TLS_SECRETS::IsSet"]
-        [::std::mem::offset_of!(QUIC_TLS_SECRETS, IsSet) - 1usize];
+        [::core::mem::offset_of!(QUIC_TLS_SECRETS, IsSet) - 1usize];
     ["Offset of field: QUIC_TLS_SECRETS::ClientRandom"]
-        [::std::mem::offset_of!(QUIC_TLS_SECRETS, ClientRandom) - 2usize];
+        [::core::mem::offset_of!(QUIC_TLS_SECRETS, ClientRandom) - 2usize];
     ["Offset of field: QUIC_TLS_SECRETS::ClientEarlyTrafficSecret"]
-        [::std::mem::offset_of!(QUIC_TLS_SECRETS, ClientEarlyTrafficSecret) - 34usize];
+        [::core::mem::offset_of!(QUIC_TLS_SECRETS, ClientEarlyTrafficSecret) - 34usize];
     ["Offset of field: QUIC_TLS_SECRETS::ClientHandshakeTrafficSecret"]
-        [::std::mem::offset_of!(QUIC_TLS_SECRETS, ClientHandshakeTrafficSecret) - 98usize];
+        [::core::mem::offset_of!(QUIC_TLS_SECRETS, ClientHandshakeTrafficSecret) - 98usize];
     ["Offset of field: QUIC_TLS_SECRETS::ServerHandshakeTrafficSecret"]
-        [::std::mem::offset_of!(QUIC_TLS_SECRETS, ServerHandshakeTrafficSecret) - 162usize];
+        [::core::mem::offset_of!(QUIC_TLS_SECRETS, ServerHandshakeTrafficSecret) - 162usize];
     ["Offset of field: QUIC_TLS_SECRETS::ClientTrafficSecret0"]
-        [::std::mem::offset_of!(QUIC_TLS_SECRETS, ClientTrafficSecret0) - 226usize];
+        [::core::mem::offset_of!(QUIC_TLS_SECRETS, ClientTrafficSecret0) - 226usize];
     ["Offset of field: QUIC_TLS_SECRETS::ServerTrafficSecret0"]
-        [::std::mem::offset_of!(QUIC_TLS_SECRETS, ServerTrafficSecret0) - 290usize];
+        [::core::mem::offset_of!(QUIC_TLS_SECRETS, ServerTrafficSecret0) - 290usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -4101,115 +4105,114 @@ pub struct QUIC_STREAM_STATISTICS {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_STREAM_STATISTICS"][::std::mem::size_of::<QUIC_STREAM_STATISTICS>() - 64usize];
+    ["Size of QUIC_STREAM_STATISTICS"][::core::mem::size_of::<QUIC_STREAM_STATISTICS>() - 64usize];
     ["Alignment of QUIC_STREAM_STATISTICS"]
-        [::std::mem::align_of::<QUIC_STREAM_STATISTICS>() - 8usize];
+        [::core::mem::align_of::<QUIC_STREAM_STATISTICS>() - 8usize];
     ["Offset of field: QUIC_STREAM_STATISTICS::ConnBlockedBySchedulingUs"]
-        [::std::mem::offset_of!(QUIC_STREAM_STATISTICS, ConnBlockedBySchedulingUs) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_STATISTICS, ConnBlockedBySchedulingUs) - 0usize];
     ["Offset of field: QUIC_STREAM_STATISTICS::ConnBlockedByPacingUs"]
-        [::std::mem::offset_of!(QUIC_STREAM_STATISTICS, ConnBlockedByPacingUs) - 8usize];
-    ["Offset of field: QUIC_STREAM_STATISTICS::ConnBlockedByAmplificationProtUs"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_STREAM_STATISTICS, ConnBlockedByPacingUs) - 8usize];
+    ["Offset of field: QUIC_STREAM_STATISTICS::ConnBlockedByAmplificationProtUs"][::core::mem::offset_of!(
         QUIC_STREAM_STATISTICS,
         ConnBlockedByAmplificationProtUs
     ) - 16usize];
-    ["Offset of field: QUIC_STREAM_STATISTICS::ConnBlockedByCongestionControlUs"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_STREAM_STATISTICS::ConnBlockedByCongestionControlUs"][::core::mem::offset_of!(
         QUIC_STREAM_STATISTICS,
         ConnBlockedByCongestionControlUs
     ) - 24usize];
     ["Offset of field: QUIC_STREAM_STATISTICS::ConnBlockedByFlowControlUs"]
-        [::std::mem::offset_of!(QUIC_STREAM_STATISTICS, ConnBlockedByFlowControlUs) - 32usize];
+        [::core::mem::offset_of!(QUIC_STREAM_STATISTICS, ConnBlockedByFlowControlUs) - 32usize];
     ["Offset of field: QUIC_STREAM_STATISTICS::StreamBlockedByIdFlowControlUs"]
-        [::std::mem::offset_of!(QUIC_STREAM_STATISTICS, StreamBlockedByIdFlowControlUs) - 40usize];
+        [::core::mem::offset_of!(QUIC_STREAM_STATISTICS, StreamBlockedByIdFlowControlUs) - 40usize];
     ["Offset of field: QUIC_STREAM_STATISTICS::StreamBlockedByFlowControlUs"]
-        [::std::mem::offset_of!(QUIC_STREAM_STATISTICS, StreamBlockedByFlowControlUs) - 48usize];
+        [::core::mem::offset_of!(QUIC_STREAM_STATISTICS, StreamBlockedByFlowControlUs) - 48usize];
     ["Offset of field: QUIC_STREAM_STATISTICS::StreamBlockedByAppUs"]
-        [::std::mem::offset_of!(QUIC_STREAM_STATISTICS, StreamBlockedByAppUs) - 56usize];
+        [::core::mem::offset_of!(QUIC_STREAM_STATISTICS, StreamBlockedByAppUs) - 56usize];
 };
-pub type QUIC_SET_CONTEXT_FN = ::std::option::Option<
-    unsafe extern "C" fn(Handle: HQUIC, Context: *mut ::std::os::raw::c_void),
->;
+pub type QUIC_SET_CONTEXT_FN =
+    ::core::option::Option<unsafe extern "C" fn(Handle: HQUIC, Context: *mut ::core::ffi::c_void)>;
 pub type QUIC_GET_CONTEXT_FN =
-    ::std::option::Option<unsafe extern "C" fn(Handle: HQUIC) -> *mut ::std::os::raw::c_void>;
-pub type QUIC_SET_CALLBACK_HANDLER_FN = ::std::option::Option<
+    ::core::option::Option<unsafe extern "C" fn(Handle: HQUIC) -> *mut ::core::ffi::c_void>;
+pub type QUIC_SET_CALLBACK_HANDLER_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Handle: HQUIC,
-        Handler: *mut ::std::os::raw::c_void,
-        Context: *mut ::std::os::raw::c_void,
+        Handler: *mut ::core::ffi::c_void,
+        Context: *mut ::core::ffi::c_void,
     ),
 >;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W {
-    pub Attribute: ::std::os::raw::c_ulong,
-    pub BufferLength: ::std::os::raw::c_ulong,
-    pub Buffer: *mut ::std::os::raw::c_void,
+    pub Attribute: ::core::ffi::c_ulong,
+    pub BufferLength: ::core::ffi::c_ulong,
+    pub Buffer: *mut ::core::ffi::c_void,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W"]
-        [::std::mem::size_of::<QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W>() - 24usize];
+        [::core::mem::size_of::<QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W>() - 24usize];
     ["Alignment of QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W"]
-        [::std::mem::align_of::<QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W>() - 8usize];
+        [::core::mem::align_of::<QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W>() - 8usize];
     ["Offset of field: QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W::Attribute"]
-        [::std::mem::offset_of!(QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W, Attribute) - 0usize];
+        [::core::mem::offset_of!(QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W, Attribute) - 0usize];
     ["Offset of field: QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W::BufferLength"]
-        [::std::mem::offset_of!(QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W, BufferLength) - 8usize];
+        [::core::mem::offset_of!(QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W, BufferLength) - 8usize];
     ["Offset of field: QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W::Buffer"]
-        [::std::mem::offset_of!(QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W, Buffer) - 16usize];
+        [::core::mem::offset_of!(QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W, Buffer) - 16usize];
 };
-pub type QUIC_SET_PARAM_FN = ::std::option::Option<
+pub type QUIC_SET_PARAM_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Handle: HQUIC,
         Param: u32,
         BufferLength: u32,
-        Buffer: *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_uint,
+        Buffer: *const ::core::ffi::c_void,
+    ) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_GET_PARAM_FN = ::std::option::Option<
+pub type QUIC_GET_PARAM_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Handle: HQUIC,
         Param: u32,
         BufferLength: *mut u32,
-        Buffer: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_uint,
+        Buffer: *mut ::core::ffi::c_void,
+    ) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_REGISTRATION_OPEN_FN = ::std::option::Option<
+pub type QUIC_REGISTRATION_OPEN_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Config: *const QUIC_REGISTRATION_CONFIG,
         Registration: *mut HQUIC,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
 pub type QUIC_REGISTRATION_CLOSE_FN =
-    ::std::option::Option<unsafe extern "C" fn(Registration: HQUIC)>;
-pub type QUIC_REGISTRATION_SHUTDOWN_FN = ::std::option::Option<
+    ::core::option::Option<unsafe extern "C" fn(Registration: HQUIC)>;
+pub type QUIC_REGISTRATION_SHUTDOWN_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Registration: HQUIC,
         Flags: QUIC_CONNECTION_SHUTDOWN_FLAGS,
         ErrorCode: QUIC_UINT62,
     ),
 >;
-pub type QUIC_CONFIGURATION_OPEN_FN = ::std::option::Option<
+pub type QUIC_CONFIGURATION_OPEN_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Registration: HQUIC,
         AlpnBuffers: *const QUIC_BUFFER,
         AlpnBufferCount: u32,
         Settings: *const QUIC_SETTINGS,
         SettingsSize: u32,
-        Context: *mut ::std::os::raw::c_void,
+        Context: *mut ::core::ffi::c_void,
         Configuration: *mut HQUIC,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
 pub type QUIC_CONFIGURATION_CLOSE_FN =
-    ::std::option::Option<unsafe extern "C" fn(Configuration: HQUIC)>;
-pub type QUIC_CONFIGURATION_LOAD_CREDENTIAL_FN = ::std::option::Option<
+    ::core::option::Option<unsafe extern "C" fn(Configuration: HQUIC)>;
+pub type QUIC_CONFIGURATION_LOAD_CREDENTIAL_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Configuration: HQUIC,
         CredConfig: *const QUIC_CREDENTIAL_CONFIG,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
 pub const QUIC_LISTENER_EVENT_TYPE_QUIC_LISTENER_EVENT_NEW_CONNECTION: QUIC_LISTENER_EVENT_TYPE = 0;
 pub const QUIC_LISTENER_EVENT_TYPE_QUIC_LISTENER_EVENT_STOP_COMPLETE: QUIC_LISTENER_EVENT_TYPE = 1;
-pub type QUIC_LISTENER_EVENT_TYPE = ::std::os::raw::c_uint;
+pub type QUIC_LISTENER_EVENT_TYPE = ::core::ffi::c_uint;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct QUIC_LISTENER_EVENT {
@@ -4231,12 +4234,12 @@ pub struct QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1>() - 16usize];
+        [::core::mem::size_of::<QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1>() - 16usize];
     ["Alignment of QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1>() - 8usize];
     ["Offset of field: QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1::Info"]
-        [::std::mem::offset_of!(QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1, Info) - 0usize];
-    ["Offset of field: QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1::Connection"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1, Info) - 0usize];
+    ["Offset of field: QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1::Connection"][::core::mem::offset_of!(
         QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_1,
         Connection
     ) - 8usize];
@@ -4250,27 +4253,27 @@ pub struct QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2"]
-        [::std::mem::size_of::<QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2>() - 1usize];
+        [::core::mem::size_of::<QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2>() - 1usize];
     ["Alignment of QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2"]
-        [::std::mem::align_of::<QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2>() - 1usize];
+        [::core::mem::align_of::<QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2>() - 1usize];
 };
 impl QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2 {
     #[inline]
     pub fn AppCloseInProgress(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_AppCloseInProgress(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn AppCloseInProgress_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u8)
@@ -4279,9 +4282,9 @@ impl QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2 {
     #[inline]
     pub unsafe fn set_AppCloseInProgress_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -4290,20 +4293,20 @@ impl QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2 {
     }
     #[inline]
     pub fn RESERVED(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 7u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 7u8) as u8) }
     }
     #[inline]
     pub fn set_RESERVED(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 7u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn RESERVED_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 7u8,
             ) as u8)
@@ -4312,9 +4315,9 @@ impl QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2 {
     #[inline]
     pub unsafe fn set_RESERVED_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 7u8,
                 val as u64,
@@ -4328,11 +4331,11 @@ impl QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2 {
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let AppCloseInProgress: u8 = unsafe { ::std::mem::transmute(AppCloseInProgress) };
+            let AppCloseInProgress: u8 = unsafe { ::core::mem::transmute(AppCloseInProgress) };
             AppCloseInProgress as u64
         });
         __bindgen_bitfield_unit.set(1usize, 7u8, {
-            let RESERVED: u8 = unsafe { ::std::mem::transmute(RESERVED) };
+            let RESERVED: u8 = unsafe { ::core::mem::transmute(RESERVED) };
             RESERVED as u64
         });
         __bindgen_bitfield_unit
@@ -4341,47 +4344,47 @@ impl QUIC_LISTENER_EVENT__bindgen_ty_1__bindgen_ty_2 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_LISTENER_EVENT__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_LISTENER_EVENT__bindgen_ty_1>() - 16usize];
+        [::core::mem::size_of::<QUIC_LISTENER_EVENT__bindgen_ty_1>() - 16usize];
     ["Alignment of QUIC_LISTENER_EVENT__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_LISTENER_EVENT__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_LISTENER_EVENT__bindgen_ty_1>() - 8usize];
     ["Offset of field: QUIC_LISTENER_EVENT__bindgen_ty_1::NEW_CONNECTION"]
-        [::std::mem::offset_of!(QUIC_LISTENER_EVENT__bindgen_ty_1, NEW_CONNECTION) - 0usize];
+        [::core::mem::offset_of!(QUIC_LISTENER_EVENT__bindgen_ty_1, NEW_CONNECTION) - 0usize];
     ["Offset of field: QUIC_LISTENER_EVENT__bindgen_ty_1::STOP_COMPLETE"]
-        [::std::mem::offset_of!(QUIC_LISTENER_EVENT__bindgen_ty_1, STOP_COMPLETE) - 0usize];
+        [::core::mem::offset_of!(QUIC_LISTENER_EVENT__bindgen_ty_1, STOP_COMPLETE) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_LISTENER_EVENT"][::std::mem::size_of::<QUIC_LISTENER_EVENT>() - 24usize];
-    ["Alignment of QUIC_LISTENER_EVENT"][::std::mem::align_of::<QUIC_LISTENER_EVENT>() - 8usize];
+    ["Size of QUIC_LISTENER_EVENT"][::core::mem::size_of::<QUIC_LISTENER_EVENT>() - 24usize];
+    ["Alignment of QUIC_LISTENER_EVENT"][::core::mem::align_of::<QUIC_LISTENER_EVENT>() - 8usize];
     ["Offset of field: QUIC_LISTENER_EVENT::Type"]
-        [::std::mem::offset_of!(QUIC_LISTENER_EVENT, Type) - 0usize];
+        [::core::mem::offset_of!(QUIC_LISTENER_EVENT, Type) - 0usize];
 };
-pub type QUIC_LISTENER_CALLBACK = ::std::option::Option<
+pub type QUIC_LISTENER_CALLBACK = ::core::option::Option<
     unsafe extern "C" fn(
         Listener: HQUIC,
-        Context: *mut ::std::os::raw::c_void,
+        Context: *mut ::core::ffi::c_void,
         Event: *mut QUIC_LISTENER_EVENT,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
 pub type QUIC_LISTENER_CALLBACK_HANDLER = QUIC_LISTENER_CALLBACK;
-pub type QUIC_LISTENER_OPEN_FN = ::std::option::Option<
+pub type QUIC_LISTENER_OPEN_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Registration: HQUIC,
         Handler: QUIC_LISTENER_CALLBACK_HANDLER,
-        Context: *mut ::std::os::raw::c_void,
+        Context: *mut ::core::ffi::c_void,
         Listener: *mut HQUIC,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_LISTENER_CLOSE_FN = ::std::option::Option<unsafe extern "C" fn(Listener: HQUIC)>;
-pub type QUIC_LISTENER_START_FN = ::std::option::Option<
+pub type QUIC_LISTENER_CLOSE_FN = ::core::option::Option<unsafe extern "C" fn(Listener: HQUIC)>;
+pub type QUIC_LISTENER_START_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Listener: HQUIC,
         AlpnBuffers: *const QUIC_BUFFER,
         AlpnBufferCount: u32,
         LocalAddress: *const QUIC_ADDR,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_LISTENER_STOP_FN = ::std::option::Option<unsafe extern "C" fn(Listener: HQUIC)>;
+pub type QUIC_LISTENER_STOP_FN = ::core::option::Option<unsafe extern "C" fn(Listener: HQUIC)>;
 pub const QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_CONNECTED: QUIC_CONNECTION_EVENT_TYPE =
     0;
 pub const QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_TRANSPORT:
@@ -4413,7 +4416,7 @@ pub const QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_RESUMPTION_TICKET_REC
     QUIC_CONNECTION_EVENT_TYPE = 14;
 pub const QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_PEER_CERTIFICATE_RECEIVED:
     QUIC_CONNECTION_EVENT_TYPE = 15;
-pub type QUIC_CONNECTION_EVENT_TYPE = ::std::os::raw::c_uint;
+pub type QUIC_CONNECTION_EVENT_TYPE = ::core::ffi::c_uint;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct QUIC_CONNECTION_EVENT {
@@ -4450,20 +4453,20 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1>() - 16usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1>() - 16usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1::SessionResumed"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1::SessionResumed"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1,
         SessionResumed
     )
         - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1::NegotiatedAlpnLength"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1::NegotiatedAlpnLength"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1,
         NegotiatedAlpnLength
     )
         - 1usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1::NegotiatedAlpn"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1::NegotiatedAlpn"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_1,
         NegotiatedAlpn
     )
@@ -4472,20 +4475,20 @@ const _: () = {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2 {
-    pub Status: ::std::os::raw::c_uint,
+    pub Status: ::core::ffi::c_uint,
     pub ErrorCode: QUIC_UINT62,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2>() - 16usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2>() - 16usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2::Status"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2::Status"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2,
         Status
     ) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2::ErrorCode"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2::ErrorCode"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_2,
         ErrorCode
     ) - 8usize];
@@ -4498,10 +4501,10 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3>() - 8usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3>() - 8usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3::ErrorCode"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3::ErrorCode"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_3,
         ErrorCode
     ) - 0usize];
@@ -4515,27 +4518,27 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4>() - 1usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4>() - 1usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4>() - 1usize];
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4>() - 1usize];
 };
 impl QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4 {
     #[inline]
     pub fn HandshakeCompleted(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_HandshakeCompleted(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn HandshakeCompleted_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u8)
@@ -4544,9 +4547,9 @@ impl QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4 {
     #[inline]
     pub unsafe fn set_HandshakeCompleted_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -4555,20 +4558,20 @@ impl QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4 {
     }
     #[inline]
     pub fn PeerAcknowledgedShutdown(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_PeerAcknowledgedShutdown(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn PeerAcknowledgedShutdown_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 1u8,
             ) as u8)
@@ -4577,9 +4580,9 @@ impl QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4 {
     #[inline]
     pub unsafe fn set_PeerAcknowledgedShutdown_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 1u8,
                 val as u64,
@@ -4588,20 +4591,20 @@ impl QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4 {
     }
     #[inline]
     pub fn AppCloseInProgress(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_AppCloseInProgress(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn AppCloseInProgress_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 2usize,
                 1u8,
             ) as u8)
@@ -4610,9 +4613,9 @@ impl QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4 {
     #[inline]
     pub unsafe fn set_AppCloseInProgress_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 2usize,
                 1u8,
                 val as u64,
@@ -4627,16 +4630,16 @@ impl QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_4 {
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let HandshakeCompleted: u8 = unsafe { ::std::mem::transmute(HandshakeCompleted) };
+            let HandshakeCompleted: u8 = unsafe { ::core::mem::transmute(HandshakeCompleted) };
             HandshakeCompleted as u64
         });
         __bindgen_bitfield_unit.set(1usize, 1u8, {
             let PeerAcknowledgedShutdown: u8 =
-                unsafe { ::std::mem::transmute(PeerAcknowledgedShutdown) };
+                unsafe { ::core::mem::transmute(PeerAcknowledgedShutdown) };
             PeerAcknowledgedShutdown as u64
         });
         __bindgen_bitfield_unit.set(2usize, 1u8, {
-            let AppCloseInProgress: u8 = unsafe { ::std::mem::transmute(AppCloseInProgress) };
+            let AppCloseInProgress: u8 = unsafe { ::core::mem::transmute(AppCloseInProgress) };
             AppCloseInProgress as u64
         });
         __bindgen_bitfield_unit
@@ -4650,10 +4653,10 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5>() - 8usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5>() - 8usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5::Address"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5::Address"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_5,
         Address
     ) - 0usize];
@@ -4666,10 +4669,10 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6>() - 8usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6>() - 8usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6::Address"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6::Address"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_6,
         Address
     ) - 0usize];
@@ -4683,15 +4686,17 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7>() - 16usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7>() - 16usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7::Stream"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7::Stream"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7,
         Stream
     ) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7::Flags"]
-        [::std::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7, Flags) - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7::Flags"][::core::mem::offset_of!(
+        QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_7,
+        Flags
+    ) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -4702,15 +4707,15 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8>() - 4usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8>() - 4usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8>() - 2usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8::BidirectionalCount"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8>() - 2usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8::BidirectionalCount"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8,
         BidirectionalCount
     )
         - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8::UnidirectionalCount"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8::UnidirectionalCount"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_8,
         UnidirectionalCount
     )
@@ -4724,10 +4729,10 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9>() - 1usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9>() - 1usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9>() - 1usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9::Bidirectional"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9>() - 1usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9::Bidirectional"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_9,
         Bidirectional
     )
@@ -4742,15 +4747,15 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10>() - 4usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10>() - 4usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10>() - 2usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10::IdealProcessor"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10>() - 2usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10::IdealProcessor"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10,
         IdealProcessor
     )
         - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10::PartitionIndex"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10::PartitionIndex"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_10,
         PartitionIndex
     )
@@ -4765,15 +4770,15 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11>() - 4usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11>() - 4usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11>() - 2usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11::SendEnabled"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11>() - 2usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11::SendEnabled"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11,
         SendEnabled
     )
         - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11::MaxSendLength"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11::MaxSendLength"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_11,
         MaxSendLength
     )
@@ -4788,14 +4793,14 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12>() - 16usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12>() - 16usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12::Buffer"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12::Buffer"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12,
         Buffer
     ) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12::Flags"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12::Flags"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_12,
         Flags
     ) - 8usize];
@@ -4803,21 +4808,21 @@ const _: () = {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13 {
-    pub ClientContext: *mut ::std::os::raw::c_void,
+    pub ClientContext: *mut ::core::ffi::c_void,
     pub State: QUIC_DATAGRAM_SEND_STATE,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13>() - 16usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13>() - 16usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13::ClientContext"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13::ClientContext"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13,
         ClientContext
     )
         - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13::State"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13::State"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_13,
         State
     ) - 8usize];
@@ -4831,11 +4836,11 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14>() - 16usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14>() - 16usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14::ResumptionStateLength"] [:: std :: mem :: offset_of ! (QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14 , ResumptionStateLength) - 0usize] ;
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14::ResumptionState"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14::ResumptionStateLength"] [:: core :: mem :: offset_of ! (QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14 , ResumptionStateLength) - 0usize] ;
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14::ResumptionState"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_14,
         ResumptionState
     )
@@ -4850,11 +4855,11 @@ pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15>() - 16usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15>() - 16usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15::ResumptionTicketLength"] [:: std :: mem :: offset_of ! (QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15 , ResumptionTicketLength) - 0usize] ;
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15::ResumptionTicket"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15::ResumptionTicketLength"] [:: core :: mem :: offset_of ! (QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15 , ResumptionTicketLength) - 0usize] ;
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15::ResumptionTicket"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_15,
         ResumptionTicket
     )
@@ -4865,31 +4870,31 @@ const _: () = {
 pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16 {
     pub Certificate: *mut QUIC_CERTIFICATE,
     pub DeferredErrorFlags: u32,
-    pub DeferredStatus: ::std::os::raw::c_uint,
+    pub DeferredStatus: ::core::ffi::c_uint,
     pub Chain: *mut QUIC_CERTIFICATE_CHAIN,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16>() - 24usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16>() - 24usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16>() - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16::Certificate"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16::Certificate"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16,
         Certificate
     )
         - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16::DeferredErrorFlags"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16::DeferredErrorFlags"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16,
         DeferredErrorFlags
     )
         - 8usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16::DeferredStatus"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16::DeferredStatus"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16,
         DeferredStatus
     )
         - 12usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16::Chain"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16::Chain"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_16,
         Chain
     ) - 16usize];
@@ -4897,125 +4902,127 @@ const _: () = {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1>() - 24usize];
+        [::core::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1>() - 24usize];
     ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1>() - 8usize];
     ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::CONNECTED"]
-        [::std::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, CONNECTED) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::SHUTDOWN_INITIATED_BY_TRANSPORT"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, CONNECTED) - 0usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::SHUTDOWN_INITIATED_BY_TRANSPORT"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1,
         SHUTDOWN_INITIATED_BY_TRANSPORT
     )
         - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::SHUTDOWN_INITIATED_BY_PEER"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::SHUTDOWN_INITIATED_BY_PEER"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1,
         SHUTDOWN_INITIATED_BY_PEER
     )
         - 0usize];
     ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::SHUTDOWN_COMPLETE"]
-        [::std::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, SHUTDOWN_COMPLETE) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::LOCAL_ADDRESS_CHANGED"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, SHUTDOWN_COMPLETE) - 0usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::LOCAL_ADDRESS_CHANGED"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1,
         LOCAL_ADDRESS_CHANGED
     ) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::PEER_ADDRESS_CHANGED"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::PEER_ADDRESS_CHANGED"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1,
         PEER_ADDRESS_CHANGED
     ) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::PEER_STREAM_STARTED"]
-        [::std::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, PEER_STREAM_STARTED) - 0usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::PEER_STREAM_STARTED"][::core::mem::offset_of!(
+        QUIC_CONNECTION_EVENT__bindgen_ty_1,
+        PEER_STREAM_STARTED
+    ) - 0usize];
     ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::STREAMS_AVAILABLE"]
-        [::std::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, STREAMS_AVAILABLE) - 0usize];
+        [::core::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, STREAMS_AVAILABLE) - 0usize];
     ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::PEER_NEEDS_STREAMS"]
-        [::std::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, PEER_NEEDS_STREAMS) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::IDEAL_PROCESSOR_CHANGED"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, PEER_NEEDS_STREAMS) - 0usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::IDEAL_PROCESSOR_CHANGED"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1,
         IDEAL_PROCESSOR_CHANGED
     ) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::DATAGRAM_STATE_CHANGED"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::DATAGRAM_STATE_CHANGED"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1,
         DATAGRAM_STATE_CHANGED
     ) - 0usize];
     ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::DATAGRAM_RECEIVED"]
-        [::std::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, DATAGRAM_RECEIVED) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::DATAGRAM_SEND_STATE_CHANGED"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, DATAGRAM_RECEIVED) - 0usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::DATAGRAM_SEND_STATE_CHANGED"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1,
         DATAGRAM_SEND_STATE_CHANGED
     )
         - 0usize];
     ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::RESUMED"]
-        [::std::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, RESUMED) - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::RESUMPTION_TICKET_RECEIVED"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, RESUMED) - 0usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::RESUMPTION_TICKET_RECEIVED"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1,
         RESUMPTION_TICKET_RECEIVED
     )
         - 0usize];
-    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::PEER_CERTIFICATE_RECEIVED"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::PEER_CERTIFICATE_RECEIVED"][::core::mem::offset_of!(
         QUIC_CONNECTION_EVENT__bindgen_ty_1,
         PEER_CERTIFICATE_RECEIVED
     ) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_CONNECTION_EVENT"][::std::mem::size_of::<QUIC_CONNECTION_EVENT>() - 32usize];
+    ["Size of QUIC_CONNECTION_EVENT"][::core::mem::size_of::<QUIC_CONNECTION_EVENT>() - 32usize];
     ["Alignment of QUIC_CONNECTION_EVENT"]
-        [::std::mem::align_of::<QUIC_CONNECTION_EVENT>() - 8usize];
+        [::core::mem::align_of::<QUIC_CONNECTION_EVENT>() - 8usize];
     ["Offset of field: QUIC_CONNECTION_EVENT::Type"]
-        [::std::mem::offset_of!(QUIC_CONNECTION_EVENT, Type) - 0usize];
+        [::core::mem::offset_of!(QUIC_CONNECTION_EVENT, Type) - 0usize];
 };
-pub type QUIC_CONNECTION_CALLBACK = ::std::option::Option<
+pub type QUIC_CONNECTION_CALLBACK = ::core::option::Option<
     unsafe extern "C" fn(
         Connection: HQUIC,
-        Context: *mut ::std::os::raw::c_void,
+        Context: *mut ::core::ffi::c_void,
         Event: *mut QUIC_CONNECTION_EVENT,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
 pub type QUIC_CONNECTION_CALLBACK_HANDLER = QUIC_CONNECTION_CALLBACK;
-pub type QUIC_CONNECTION_OPEN_FN = ::std::option::Option<
+pub type QUIC_CONNECTION_OPEN_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Registration: HQUIC,
         Handler: QUIC_CONNECTION_CALLBACK_HANDLER,
-        Context: *mut ::std::os::raw::c_void,
+        Context: *mut ::core::ffi::c_void,
         Connection: *mut HQUIC,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_CONNECTION_CLOSE_FN = ::std::option::Option<unsafe extern "C" fn(Connection: HQUIC)>;
-pub type QUIC_CONNECTION_SHUTDOWN_FN = ::std::option::Option<
+pub type QUIC_CONNECTION_CLOSE_FN = ::core::option::Option<unsafe extern "C" fn(Connection: HQUIC)>;
+pub type QUIC_CONNECTION_SHUTDOWN_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Connection: HQUIC,
         Flags: QUIC_CONNECTION_SHUTDOWN_FLAGS,
         ErrorCode: QUIC_UINT62,
     ),
 >;
-pub type QUIC_CONNECTION_START_FN = ::std::option::Option<
+pub type QUIC_CONNECTION_START_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Connection: HQUIC,
         Configuration: HQUIC,
         Family: QUIC_ADDRESS_FAMILY,
-        ServerName: *const ::std::os::raw::c_char,
+        ServerName: *const ::core::ffi::c_char,
         ServerPort: u16,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_CONNECTION_SET_CONFIGURATION_FN = ::std::option::Option<
-    unsafe extern "C" fn(Connection: HQUIC, Configuration: HQUIC) -> ::std::os::raw::c_uint,
+pub type QUIC_CONNECTION_SET_CONFIGURATION_FN = ::core::option::Option<
+    unsafe extern "C" fn(Connection: HQUIC, Configuration: HQUIC) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_CONNECTION_SEND_RESUMPTION_FN = ::std::option::Option<
+pub type QUIC_CONNECTION_SEND_RESUMPTION_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Connection: HQUIC,
         Flags: QUIC_SEND_RESUMPTION_FLAGS,
         DataLength: u16,
         ResumptionData: *const u8,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_CONNECTION_COMP_RESUMPTION_FN = ::std::option::Option<
-    unsafe extern "C" fn(Connection: HQUIC, Result: BOOLEAN) -> ::std::os::raw::c_uint,
+pub type QUIC_CONNECTION_COMP_RESUMPTION_FN = ::core::option::Option<
+    unsafe extern "C" fn(Connection: HQUIC, Result: BOOLEAN) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_CONNECTION_COMP_CERT_FN = ::std::option::Option<
+pub type QUIC_CONNECTION_COMP_CERT_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Connection: HQUIC,
         Result: BOOLEAN,
         TlsAlert: QUIC_TLS_ALERT_CODES,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
 pub const QUIC_STREAM_EVENT_TYPE_QUIC_STREAM_EVENT_START_COMPLETE: QUIC_STREAM_EVENT_TYPE = 0;
 pub const QUIC_STREAM_EVENT_TYPE_QUIC_STREAM_EVENT_RECEIVE: QUIC_STREAM_EVENT_TYPE = 1;
@@ -5030,7 +5037,7 @@ pub const QUIC_STREAM_EVENT_TYPE_QUIC_STREAM_EVENT_IDEAL_SEND_BUFFER_SIZE: QUIC_
     8;
 pub const QUIC_STREAM_EVENT_TYPE_QUIC_STREAM_EVENT_PEER_ACCEPTED: QUIC_STREAM_EVENT_TYPE = 9;
 pub const QUIC_STREAM_EVENT_TYPE_QUIC_STREAM_EVENT_CANCEL_ON_LOSS: QUIC_STREAM_EVENT_TYPE = 10;
-pub type QUIC_STREAM_EVENT_TYPE = ::std::os::raw::c_uint;
+pub type QUIC_STREAM_EVENT_TYPE = ::core::ffi::c_uint;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct QUIC_STREAM_EVENT {
@@ -5053,7 +5060,7 @@ pub union QUIC_STREAM_EVENT__bindgen_ty_1 {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1 {
-    pub Status: ::std::os::raw::c_uint,
+    pub Status: ::core::ffi::c_uint,
     pub ID: QUIC_UINT62,
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
@@ -5062,31 +5069,31 @@ pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1>() - 24usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1>() - 24usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1>() - 8usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1::Status"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1, Status) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1, Status) - 0usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1::ID"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1, ID) - 8usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1, ID) - 8usize];
 };
 impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub fn PeerAccepted(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_PeerAccepted(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn PeerAccepted_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u8)
@@ -5095,9 +5102,9 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_PeerAccepted_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -5106,20 +5113,20 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1 {
     }
     #[inline]
     pub fn RESERVED(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 7u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 7u8) as u8) }
     }
     #[inline]
     pub fn set_RESERVED(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 7u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn RESERVED_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 7u8,
             ) as u8)
@@ -5128,9 +5135,9 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1 {
     #[inline]
     pub unsafe fn set_RESERVED_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 7u8,
                 val as u64,
@@ -5144,11 +5151,11 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_1 {
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let PeerAccepted: u8 = unsafe { ::std::mem::transmute(PeerAccepted) };
+            let PeerAccepted: u8 = unsafe { ::core::mem::transmute(PeerAccepted) };
             PeerAccepted as u64
         });
         __bindgen_bitfield_unit.set(1usize, 7u8, {
-            let RESERVED: u8 = unsafe { ::std::mem::transmute(RESERVED) };
+            let RESERVED: u8 = unsafe { ::core::mem::transmute(RESERVED) };
             RESERVED as u64
         });
         __bindgen_bitfield_unit
@@ -5166,42 +5173,42 @@ pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2>() - 32usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2>() - 32usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2>() - 8usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2::AbsoluteOffset"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2>() - 8usize];
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2::AbsoluteOffset"][::core::mem::offset_of!(
         QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2,
         AbsoluteOffset
     ) - 0usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2::TotalBufferLength"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2::TotalBufferLength"][::core::mem::offset_of!(
         QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2,
         TotalBufferLength
     )
         - 8usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2::Buffers"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2, Buffers) - 16usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2::BufferCount"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2, Buffers) - 16usize];
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2::BufferCount"][::core::mem::offset_of!(
         QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2,
         BufferCount
     ) - 24usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2::Flags"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2, Flags) - 28usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_2, Flags) - 28usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3 {
     pub Canceled: BOOLEAN,
-    pub ClientContext: *mut ::std::os::raw::c_void,
+    pub ClientContext: *mut ::core::ffi::c_void,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3>() - 16usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3>() - 16usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3>() - 8usize];
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3>() - 8usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3::Canceled"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3, Canceled) - 0usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3::ClientContext"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3, Canceled) - 0usize];
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3::ClientContext"][::core::mem::offset_of!(
         QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_3,
         ClientContext
     ) - 8usize];
@@ -5214,11 +5221,13 @@ pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4>() - 8usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4>() - 8usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4>() - 8usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4::ErrorCode"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4, ErrorCode) - 0usize];
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4>() - 8usize];
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4::ErrorCode"][::core::mem::offset_of!(
+        QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_4,
+        ErrorCode
+    ) - 0usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5228,11 +5237,13 @@ pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5>() - 8usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5>() - 8usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5>() - 8usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5::ErrorCode"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5, ErrorCode) - 0usize];
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5>() - 8usize];
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5::ErrorCode"][::core::mem::offset_of!(
+        QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_5,
+        ErrorCode
+    ) - 0usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5242,11 +5253,11 @@ pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6>() - 1usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6>() - 1usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6>() - 1usize];
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6>() - 1usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6::Graceful"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6, Graceful) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_6, Graceful) - 0usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5255,25 +5266,25 @@ pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     pub _bitfield_align_1: [u8; 0],
     pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
     pub ConnectionErrorCode: QUIC_UINT62,
-    pub ConnectionCloseStatus: ::std::os::raw::c_uint,
+    pub ConnectionCloseStatus: ::core::ffi::c_uint,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7>() - 24usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7>() - 24usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7>() - 8usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7::ConnectionShutdown"][::std::mem::offset_of!(
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7>() - 8usize];
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7::ConnectionShutdown"][::core::mem::offset_of!(
         QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7,
         ConnectionShutdown
     )
         - 0usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7::ConnectionErrorCode"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7::ConnectionErrorCode"][::core::mem::offset_of!(
         QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7,
         ConnectionErrorCode
     )
         - 8usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7::ConnectionCloseStatus"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7::ConnectionCloseStatus"][::core::mem::offset_of!(
         QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7,
         ConnectionCloseStatus
     )
@@ -5282,20 +5293,20 @@ const _: () = {
 impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     #[inline]
     pub fn AppCloseInProgress(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_AppCloseInProgress(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(0usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn AppCloseInProgress_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 0usize,
                 1u8,
             ) as u8)
@@ -5304,9 +5315,9 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     #[inline]
     pub unsafe fn set_AppCloseInProgress_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 0usize,
                 1u8,
                 val as u64,
@@ -5315,20 +5326,20 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     }
     #[inline]
     pub fn ConnectionShutdownByApp(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_ConnectionShutdownByApp(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(1usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ConnectionShutdownByApp_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 1usize,
                 1u8,
             ) as u8)
@@ -5337,9 +5348,9 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     #[inline]
     pub unsafe fn set_ConnectionShutdownByApp_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 1usize,
                 1u8,
                 val as u64,
@@ -5348,20 +5359,20 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     }
     #[inline]
     pub fn ConnectionClosedRemotely(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
     }
     #[inline]
     pub fn set_ConnectionClosedRemotely(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(2usize, 1u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn ConnectionClosedRemotely_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 2usize,
                 1u8,
             ) as u8)
@@ -5370,9 +5381,9 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     #[inline]
     pub unsafe fn set_ConnectionClosedRemotely_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 2usize,
                 1u8,
                 val as u64,
@@ -5381,20 +5392,20 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     }
     #[inline]
     pub fn RESERVED(&self) -> BOOLEAN {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(3usize, 5u8) as u8) }
+        unsafe { ::core::mem::transmute(self._bitfield_1.get(3usize, 5u8) as u8) }
     }
     #[inline]
     pub fn set_RESERVED(&mut self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             self._bitfield_1.set(3usize, 5u8, val as u64)
         }
     }
     #[inline]
     pub unsafe fn RESERVED_raw(this: *const Self) -> BOOLEAN {
         unsafe {
-            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
-                ::std::ptr::addr_of!((*this)._bitfield_1),
+            ::core::mem::transmute(<__BindgenBitfieldUnit<[u8; 1usize]>>::raw_get(
+                ::core::ptr::addr_of!((*this)._bitfield_1),
                 3usize,
                 5u8,
             ) as u8)
@@ -5403,9 +5414,9 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     #[inline]
     pub unsafe fn set_RESERVED_raw(this: *mut Self, val: BOOLEAN) {
         unsafe {
-            let val: u8 = ::std::mem::transmute(val);
+            let val: u8 = ::core::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 1usize]>>::raw_set(
-                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                ::core::ptr::addr_of_mut!((*this)._bitfield_1),
                 3usize,
                 5u8,
                 val as u64,
@@ -5421,21 +5432,21 @@ impl QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_7 {
     ) -> __BindgenBitfieldUnit<[u8; 1usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize]> = Default::default();
         __bindgen_bitfield_unit.set(0usize, 1u8, {
-            let AppCloseInProgress: u8 = unsafe { ::std::mem::transmute(AppCloseInProgress) };
+            let AppCloseInProgress: u8 = unsafe { ::core::mem::transmute(AppCloseInProgress) };
             AppCloseInProgress as u64
         });
         __bindgen_bitfield_unit.set(1usize, 1u8, {
             let ConnectionShutdownByApp: u8 =
-                unsafe { ::std::mem::transmute(ConnectionShutdownByApp) };
+                unsafe { ::core::mem::transmute(ConnectionShutdownByApp) };
             ConnectionShutdownByApp as u64
         });
         __bindgen_bitfield_unit.set(2usize, 1u8, {
             let ConnectionClosedRemotely: u8 =
-                unsafe { ::std::mem::transmute(ConnectionClosedRemotely) };
+                unsafe { ::core::mem::transmute(ConnectionClosedRemotely) };
             ConnectionClosedRemotely as u64
         });
         __bindgen_bitfield_unit.set(3usize, 5u8, {
-            let RESERVED: u8 = unsafe { ::std::mem::transmute(RESERVED) };
+            let RESERVED: u8 = unsafe { ::core::mem::transmute(RESERVED) };
             RESERVED as u64
         });
         __bindgen_bitfield_unit
@@ -5449,11 +5460,13 @@ pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8>() - 8usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8>() - 8usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8>() - 8usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8::ByteCount"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8, ByteCount) - 0usize];
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8>() - 8usize];
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8::ByteCount"][::core::mem::offset_of!(
+        QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_8,
+        ByteCount
+    ) - 0usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5463,94 +5476,96 @@ pub struct QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9 {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9>() - 8usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9>() - 8usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9>() - 8usize];
-    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9::ErrorCode"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9, ErrorCode) - 0usize];
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9>() - 8usize];
+    ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9::ErrorCode"][::core::mem::offset_of!(
+        QUIC_STREAM_EVENT__bindgen_ty_1__bindgen_ty_9,
+        ErrorCode
+    ) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_STREAM_EVENT__bindgen_ty_1"]
-        [::std::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1>() - 32usize];
+        [::core::mem::size_of::<QUIC_STREAM_EVENT__bindgen_ty_1>() - 32usize];
     ["Alignment of QUIC_STREAM_EVENT__bindgen_ty_1"]
-        [::std::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1>() - 8usize];
+        [::core::mem::align_of::<QUIC_STREAM_EVENT__bindgen_ty_1>() - 8usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1::START_COMPLETE"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, START_COMPLETE) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, START_COMPLETE) - 0usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1::RECEIVE"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, RECEIVE) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, RECEIVE) - 0usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1::SEND_COMPLETE"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, SEND_COMPLETE) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, SEND_COMPLETE) - 0usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1::PEER_SEND_ABORTED"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, PEER_SEND_ABORTED) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, PEER_SEND_ABORTED) - 0usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1::PEER_RECEIVE_ABORTED"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, PEER_RECEIVE_ABORTED) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, PEER_RECEIVE_ABORTED) - 0usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1::SEND_SHUTDOWN_COMPLETE"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, SEND_SHUTDOWN_COMPLETE) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, SEND_SHUTDOWN_COMPLETE) - 0usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1::SHUTDOWN_COMPLETE"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, SHUTDOWN_COMPLETE) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, SHUTDOWN_COMPLETE) - 0usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1::IDEAL_SEND_BUFFER_SIZE"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, IDEAL_SEND_BUFFER_SIZE) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, IDEAL_SEND_BUFFER_SIZE) - 0usize];
     ["Offset of field: QUIC_STREAM_EVENT__bindgen_ty_1::CANCEL_ON_LOSS"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, CANCEL_ON_LOSS) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT__bindgen_ty_1, CANCEL_ON_LOSS) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_STREAM_EVENT"][::std::mem::size_of::<QUIC_STREAM_EVENT>() - 40usize];
-    ["Alignment of QUIC_STREAM_EVENT"][::std::mem::align_of::<QUIC_STREAM_EVENT>() - 8usize];
+    ["Size of QUIC_STREAM_EVENT"][::core::mem::size_of::<QUIC_STREAM_EVENT>() - 40usize];
+    ["Alignment of QUIC_STREAM_EVENT"][::core::mem::align_of::<QUIC_STREAM_EVENT>() - 8usize];
     ["Offset of field: QUIC_STREAM_EVENT::Type"]
-        [::std::mem::offset_of!(QUIC_STREAM_EVENT, Type) - 0usize];
+        [::core::mem::offset_of!(QUIC_STREAM_EVENT, Type) - 0usize];
 };
-pub type QUIC_STREAM_CALLBACK = ::std::option::Option<
+pub type QUIC_STREAM_CALLBACK = ::core::option::Option<
     unsafe extern "C" fn(
         Stream: HQUIC,
-        Context: *mut ::std::os::raw::c_void,
+        Context: *mut ::core::ffi::c_void,
         Event: *mut QUIC_STREAM_EVENT,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
 pub type QUIC_STREAM_CALLBACK_HANDLER = QUIC_STREAM_CALLBACK;
-pub type QUIC_STREAM_OPEN_FN = ::std::option::Option<
+pub type QUIC_STREAM_OPEN_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Connection: HQUIC,
         Flags: QUIC_STREAM_OPEN_FLAGS,
         Handler: QUIC_STREAM_CALLBACK_HANDLER,
-        Context: *mut ::std::os::raw::c_void,
+        Context: *mut ::core::ffi::c_void,
         Stream: *mut HQUIC,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_STREAM_CLOSE_FN = ::std::option::Option<unsafe extern "C" fn(Stream: HQUIC)>;
-pub type QUIC_STREAM_START_FN = ::std::option::Option<
-    unsafe extern "C" fn(Stream: HQUIC, Flags: QUIC_STREAM_START_FLAGS) -> ::std::os::raw::c_uint,
+pub type QUIC_STREAM_CLOSE_FN = ::core::option::Option<unsafe extern "C" fn(Stream: HQUIC)>;
+pub type QUIC_STREAM_START_FN = ::core::option::Option<
+    unsafe extern "C" fn(Stream: HQUIC, Flags: QUIC_STREAM_START_FLAGS) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_STREAM_SHUTDOWN_FN = ::std::option::Option<
+pub type QUIC_STREAM_SHUTDOWN_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Stream: HQUIC,
         Flags: QUIC_STREAM_SHUTDOWN_FLAGS,
         ErrorCode: QUIC_UINT62,
-    ) -> ::std::os::raw::c_uint,
+    ) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_STREAM_SEND_FN = ::std::option::Option<
+pub type QUIC_STREAM_SEND_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Stream: HQUIC,
         Buffers: *const QUIC_BUFFER,
         BufferCount: u32,
         Flags: QUIC_SEND_FLAGS,
-        ClientSendContext: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_uint,
+        ClientSendContext: *mut ::core::ffi::c_void,
+    ) -> ::core::ffi::c_uint,
 >;
 pub type QUIC_STREAM_RECEIVE_COMPLETE_FN =
-    ::std::option::Option<unsafe extern "C" fn(Stream: HQUIC, BufferLength: u64)>;
-pub type QUIC_STREAM_RECEIVE_SET_ENABLED_FN = ::std::option::Option<
-    unsafe extern "C" fn(Stream: HQUIC, IsEnabled: BOOLEAN) -> ::std::os::raw::c_uint,
+    ::core::option::Option<unsafe extern "C" fn(Stream: HQUIC, BufferLength: u64)>;
+pub type QUIC_STREAM_RECEIVE_SET_ENABLED_FN = ::core::option::Option<
+    unsafe extern "C" fn(Stream: HQUIC, IsEnabled: BOOLEAN) -> ::core::ffi::c_uint,
 >;
-pub type QUIC_DATAGRAM_SEND_FN = ::std::option::Option<
+pub type QUIC_DATAGRAM_SEND_FN = ::core::option::Option<
     unsafe extern "C" fn(
         Connection: HQUIC,
         Buffers: *const QUIC_BUFFER,
         BufferCount: u32,
         Flags: QUIC_SEND_FLAGS,
-        ClientSendContext: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_uint,
+        ClientSendContext: *mut ::core::ffi::c_void,
+    ) -> ::core::ffi::c_uint,
 >;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5589,71 +5604,71 @@ pub struct QUIC_API_TABLE {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of QUIC_API_TABLE"][::std::mem::size_of::<QUIC_API_TABLE>() - 248usize];
-    ["Alignment of QUIC_API_TABLE"][::std::mem::align_of::<QUIC_API_TABLE>() - 8usize];
+    ["Size of QUIC_API_TABLE"][::core::mem::size_of::<QUIC_API_TABLE>() - 248usize];
+    ["Alignment of QUIC_API_TABLE"][::core::mem::align_of::<QUIC_API_TABLE>() - 8usize];
     ["Offset of field: QUIC_API_TABLE::SetContext"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, SetContext) - 0usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, SetContext) - 0usize];
     ["Offset of field: QUIC_API_TABLE::GetContext"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, GetContext) - 8usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, GetContext) - 8usize];
     ["Offset of field: QUIC_API_TABLE::SetCallbackHandler"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, SetCallbackHandler) - 16usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, SetCallbackHandler) - 16usize];
     ["Offset of field: QUIC_API_TABLE::SetParam"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, SetParam) - 24usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, SetParam) - 24usize];
     ["Offset of field: QUIC_API_TABLE::GetParam"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, GetParam) - 32usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, GetParam) - 32usize];
     ["Offset of field: QUIC_API_TABLE::RegistrationOpen"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, RegistrationOpen) - 40usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, RegistrationOpen) - 40usize];
     ["Offset of field: QUIC_API_TABLE::RegistrationClose"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, RegistrationClose) - 48usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, RegistrationClose) - 48usize];
     ["Offset of field: QUIC_API_TABLE::RegistrationShutdown"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, RegistrationShutdown) - 56usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, RegistrationShutdown) - 56usize];
     ["Offset of field: QUIC_API_TABLE::ConfigurationOpen"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ConfigurationOpen) - 64usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ConfigurationOpen) - 64usize];
     ["Offset of field: QUIC_API_TABLE::ConfigurationClose"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ConfigurationClose) - 72usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ConfigurationClose) - 72usize];
     ["Offset of field: QUIC_API_TABLE::ConfigurationLoadCredential"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ConfigurationLoadCredential) - 80usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ConfigurationLoadCredential) - 80usize];
     ["Offset of field: QUIC_API_TABLE::ListenerOpen"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ListenerOpen) - 88usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ListenerOpen) - 88usize];
     ["Offset of field: QUIC_API_TABLE::ListenerClose"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ListenerClose) - 96usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ListenerClose) - 96usize];
     ["Offset of field: QUIC_API_TABLE::ListenerStart"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ListenerStart) - 104usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ListenerStart) - 104usize];
     ["Offset of field: QUIC_API_TABLE::ListenerStop"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ListenerStop) - 112usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ListenerStop) - 112usize];
     ["Offset of field: QUIC_API_TABLE::ConnectionOpen"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ConnectionOpen) - 120usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ConnectionOpen) - 120usize];
     ["Offset of field: QUIC_API_TABLE::ConnectionClose"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ConnectionClose) - 128usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ConnectionClose) - 128usize];
     ["Offset of field: QUIC_API_TABLE::ConnectionShutdown"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ConnectionShutdown) - 136usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ConnectionShutdown) - 136usize];
     ["Offset of field: QUIC_API_TABLE::ConnectionStart"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ConnectionStart) - 144usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ConnectionStart) - 144usize];
     ["Offset of field: QUIC_API_TABLE::ConnectionSetConfiguration"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ConnectionSetConfiguration) - 152usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ConnectionSetConfiguration) - 152usize];
     ["Offset of field: QUIC_API_TABLE::ConnectionSendResumptionTicket"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, ConnectionSendResumptionTicket) - 160usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, ConnectionSendResumptionTicket) - 160usize];
     ["Offset of field: QUIC_API_TABLE::StreamOpen"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, StreamOpen) - 168usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, StreamOpen) - 168usize];
     ["Offset of field: QUIC_API_TABLE::StreamClose"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, StreamClose) - 176usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, StreamClose) - 176usize];
     ["Offset of field: QUIC_API_TABLE::StreamStart"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, StreamStart) - 184usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, StreamStart) - 184usize];
     ["Offset of field: QUIC_API_TABLE::StreamShutdown"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, StreamShutdown) - 192usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, StreamShutdown) - 192usize];
     ["Offset of field: QUIC_API_TABLE::StreamSend"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, StreamSend) - 200usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, StreamSend) - 200usize];
     ["Offset of field: QUIC_API_TABLE::StreamReceiveComplete"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, StreamReceiveComplete) - 208usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, StreamReceiveComplete) - 208usize];
     ["Offset of field: QUIC_API_TABLE::StreamReceiveSetEnabled"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, StreamReceiveSetEnabled) - 216usize];
+        [::core::mem::offset_of!(QUIC_API_TABLE, StreamReceiveSetEnabled) - 216usize];
     ["Offset of field: QUIC_API_TABLE::DatagramSend"]
-        [::std::mem::offset_of!(QUIC_API_TABLE, DatagramSend) - 224usize];
-    ["Offset of field: QUIC_API_TABLE::ConnectionResumptionTicketValidationComplete"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(QUIC_API_TABLE, DatagramSend) - 224usize];
+    ["Offset of field: QUIC_API_TABLE::ConnectionResumptionTicketValidationComplete"][::core::mem::offset_of!(
         QUIC_API_TABLE,
         ConnectionResumptionTicketValidationComplete
     ) - 232usize];
-    ["Offset of field: QUIC_API_TABLE::ConnectionCertificateValidationComplete"][::std::mem::offset_of!(
+    ["Offset of field: QUIC_API_TABLE::ConnectionCertificateValidationComplete"][::core::mem::offset_of!(
         QUIC_API_TABLE,
         ConnectionCertificateValidationComplete
     ) - 240usize];
@@ -5693,4 +5708,4 @@ pub const QUIC_ERROR_REQUIRED_CERTIFICATE: QUIC_ERROR = 200000372;
 pub const QUIC_ERROR_CERT_EXPIRED: QUIC_ERROR = 200000513;
 pub const QUIC_ERROR_CERT_UNTRUSTED_ROOT: QUIC_ERROR = 200000514;
 pub const QUIC_ERROR_CERT_NO_CERT: QUIC_ERROR = 200000515;
-pub type QUIC_ERROR = ::std::os::raw::c_uint;
+pub type QUIC_ERROR = ::core::ffi::c_uint;

@@ -33,8 +33,11 @@ pub mod ffi;
 
 #[cfg(windows)]
 mod windows {
+    #[cfg(feature = "std")]
+    pub type sa_family_t = windows_sys::Win32::Networking::WinSock::ADDRESS_FAMILY;
     pub type sockaddr_in = windows_sys::Win32::Networking::WinSock::SOCKADDR_IN;
     pub type sockaddr_in6 = windows_sys::Win32::Networking::WinSock::SOCKADDR_IN6;
+    #[cfg(feature = "std")]
     pub type socklen_t = windows_sys::Win32::Networking::WinSock::socklen_t;
 
     pub type ADDRESS_FAMILY = windows_sys::Win32::Networking::WinSock::ADDRESS_FAMILY;
@@ -47,14 +50,17 @@ use self::windows::*;
 
 #[cfg(not(windows))]
 mod unix {
-    type sockaddr_in = libc::sockaddr_in;
-    type sockaddr_in6 = libc::sockaddr_in6;
-    type socklen_t = libc::socklen_t;
+    #[cfg(feature = "std")]
+    pub type sa_family_t = libc::sa_family_t;
+    pub type sockaddr_in = libc::sockaddr_in;
+    pub type sockaddr_in6 = libc::sockaddr_in6;
+    #[cfg(feature = "std")]
+    pub type socklen_t = libc::socklen_t;
 
-    type ADDRESS_FAMILY = libc::c_int;
-    const AF_UNSPEC: ADDRESS_FAMILY = libc::AF_UNSPEC;
-    const AF_INET: ADDRESS_FAMILY = libc::AF_INET;
-    const AF_INET6: ADDRESS_FAMILY = libc::AF_INET6;
+    pub type ADDRESS_FAMILY = libc::c_int;
+    pub const AF_UNSPEC: ADDRESS_FAMILY = libc::AF_UNSPEC;
+    pub const AF_INET: ADDRESS_FAMILY = libc::AF_INET;
+    pub const AF_INET6: ADDRESS_FAMILY = libc::AF_INET6;
 }
 #[cfg(not(windows))]
 use self::unix::*;
@@ -96,12 +102,12 @@ impl Addr {
     pub fn as_socket(&self) -> Option<SocketAddr> {
         unsafe {
             SockAddr::try_init(|addr, len| {
-                if self.ipv4.sin_family == AF_INET {
+                if self.ipv4.sin_family == AF_INET as sa_family_t {
                     let addr = addr.cast::<sockaddr_in>();
                     *addr = self.ipv4;
                     *len = mem::size_of::<sockaddr_in>() as socklen_t;
                     Ok(())
-                } else if self.ipv4.sin_family == AF_INET6 {
+                } else if self.ipv4.sin_family == AF_INET6 as sa_family_t {
                     let addr = addr.cast::<sockaddr_in6>();
                     *addr = self.ipv6;
                     *len = mem::size_of::<sockaddr_in6>() as socklen_t;
