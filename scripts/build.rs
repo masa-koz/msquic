@@ -1,11 +1,21 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-use cmake::Config;
 use std::env;
 use std::path::Path;
 
 fn main() {
+    #[cfg(not(feature = "winkernel"))]
+    cmake_build();
+    #[cfg(feature = "winkernel")]
+    msbuild_build();
+
+    #[cfg(all(feature = "overwrite", not(target_os = "macos")))]
+    overwrite_bindgen();
+}
+
+#[cfg(not(feature = "winkernel"))]
+fn cmake_build() {
     let path_extra = "lib";
     let mut logging_enabled = "off";
     if cfg!(windows) {
@@ -18,7 +28,7 @@ fn main() {
     let quic_output_dir = Path::new(&out_dir).join("lib");
 
     // Builds the native MsQuic and installs it into $OUT_DIR.
-    let mut config = Config::new(".");
+    let mut config = cmake::Config::new(".");
     config
         .define("QUIC_ENABLE_LOGGING", logging_enabled)
         .define("QUIC_OUTPUT_DIR", quic_output_dir.to_str().unwrap());
@@ -63,9 +73,49 @@ fn main() {
         }
         println!("cargo:rustc-link-lib=static=msquic");
     }
+}
 
-    #[cfg(all(feature = "overwrite", not(target_os = "macos")))]
-    overwrite_bindgen();
+#[cfg(feature = "winkernel")]
+fn msbuild_build() {
+    let output = std::process::Command::new("MSBuild.exe")
+        .args(["msquic.kernel.sln",
+            "-t:restore",
+            "/p:RestorePackagesConfig=true",
+            "/p:Configuration=Release",
+            "/p:Platform=x64"
+        ])
+        .output()
+        .expect("Failed to run msbuild");
+    if let Some(c) = output.status.code() {
+        if c != 0 {
+            panic!("Failed to run msbuild: {:?}", output);
+        }
+    }
+    let output = std::process::Command::new("MSBuild.exe")
+        .args(["msquic.kernel.sln",
+            "/m",
+            "/p:Configuration=Release",
+            "/p:Platform=x64"
+        ])
+        .output()
+        .expect("Failed to run msbuild");
+    if let Some(c) = output.status.code() {
+        if c != 0 {
+            panic!("Failed to run msbuild: {:?}", output);
+        }
+    }
+
+    let current_dir = env::current_dir().unwrap();
+    let lib_path = Path::join(current_dir.as_path(), Path::new("./artifacts/bin/winkernel/x64_Release_schannel"));
+    println!("cargo:rustc-link-search=native={}", lib_path.display());
+    println!("cargo:rustc-link-lib=dylib=cng");
+    println!("cargo:rustc-link-lib=dylib=ksecdd");
+    println!("cargo:rustc-link-lib=dylib=msnetioid");
+    println!("cargo:rustc-link-lib=dylib=netio");
+    println!("cargo:rustc-link-lib=dylib=wdmsec");
+    println!("cargo:rustc-link-lib=dylib=uuid");
+    println!("cargo:rustc-link-lib=dylib=ndis");
+    println!("cargo:rustc-link-lib=static=msquic");
 }
 
 /// Read the c header and generate rust bindings.
@@ -83,6 +133,7 @@ fn overwrite_bindgen() {
     let bindings = bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
+        .use_core()
         .header(root_dir.join("src/ffi/wrapper.hpp").to_str().unwrap())
         .clang_arg(format!("-I{}", inc_dir.to_string_lossy()))
         .allowlist_recursively(false)

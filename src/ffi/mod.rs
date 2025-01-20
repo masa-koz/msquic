@@ -6,7 +6,7 @@
     clippy::all
 )]
 
-pub type QUIC_ADDR = std::ffi::c_void;
+pub type QUIC_ADDR = core::ffi::c_void;
 
 // TODO: macos currently is using the linux bindings.
 #[cfg(not(target_os = "windows"))]

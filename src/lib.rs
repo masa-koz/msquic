@@ -1,29 +1,63 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+#![allow(non_camel_case_types)]
+#![no_std]
 
-#[allow(unused_imports)]
-use c_types::AF_INET;
-#[allow(unused_imports)]
-use c_types::AF_INET6;
-#[allow(unused_imports)]
-use c_types::AF_UNSPEC;
-use c_types::{sa_family_t, sockaddr_in, sockaddr_in6, socklen_t};
+extern crate alloc;
+
+#[cfg(feature = "std")]
+extern crate std;
+
+use alloc::ffi::CString;
+use alloc::{vec, vec::Vec};
+use core::convert::TryInto;
+use core::fmt;
+use core::marker::PhantomData;
+use core::mem;
+use core::option::Option;
+use core::ptr;
+use core::result::Result;
 use libc::c_void;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "std")]
 use socket2::SockAddr;
-use std::convert::TryInto;
-use std::fmt;
+use spin::Once;
+#[cfg(feature = "std")]
 use std::io;
-use std::marker::PhantomData;
-use std::mem;
+#[cfg(feature = "std")]
 use std::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
-use std::option::Option;
-use std::ptr;
-use std::result::Result;
-use std::sync::Once;
 #[macro_use]
 extern crate bitfield;
 pub mod ffi;
+
+
+#[cfg(windows)]
+mod windows {
+    pub type sockaddr_in = windows_sys::Win32::Networking::WinSock::SOCKADDR_IN;
+    pub type sockaddr_in6 = windows_sys::Win32::Networking::WinSock::SOCKADDR_IN6;
+    pub type socklen_t = windows_sys::Win32::Networking::WinSock::socklen_t;
+
+    pub type ADDRESS_FAMILY = windows_sys::Win32::Networking::WinSock::ADDRESS_FAMILY;
+    pub const AF_UNSPEC: ADDRESS_FAMILY = windows_sys::Win32::Networking::WinSock::AF_UNSPEC;
+    pub const AF_INET: ADDRESS_FAMILY = windows_sys::Win32::Networking::WinSock::AF_INET;
+    pub const AF_INET6: ADDRESS_FAMILY = windows_sys::Win32::Networking::WinSock::AF_INET6;
+}
+#[cfg(windows)]
+use self::windows::*;
+
+#[cfg(not(windows))]
+mod unix {
+    type sockaddr_in = libc::sockaddr_in;
+    type sockaddr_in6 = libc::sockaddr_in6;
+    type socklen_t = libc::socklen_t;
+
+    type ADDRESS_FAMILY = libc::c_int;
+    const AF_UNSPEC: ADDRESS_FAMILY = libc::AF_UNSPEC;
+    const AF_INET: ADDRESS_FAMILY = libc::AF_INET;
+    const AF_INET6: ADDRESS_FAMILY = libc::AF_INET6;
+}
+#[cfg(not(windows))]
+use self::unix::*;
 
 //
 // The following starts the C interop layer of MsQuic API.
@@ -37,16 +71,16 @@ pub type Handle = *const libc::c_void;
 pub type u62 = u64;
 
 /// C-style bool.
-pub type BOOLEAN = ::std::os::raw::c_uchar;
+pub type BOOLEAN = libc::c_uchar;
 
 /// Family of an IP address.
 pub type AddressFamily = u16;
 #[allow(clippy::unnecessary_cast)]
-pub const ADDRESS_FAMILY_UNSPEC: AddressFamily = c_types::AF_UNSPEC as u16;
+pub const ADDRESS_FAMILY_UNSPEC: AddressFamily = AF_UNSPEC as u16;
 #[allow(clippy::unnecessary_cast)]
-pub const ADDRESS_FAMILY_INET: AddressFamily = c_types::AF_INET as u16;
+pub const ADDRESS_FAMILY_INET: AddressFamily = AF_INET as u16;
 #[allow(clippy::unnecessary_cast)]
-pub const ADDRESS_FAMILY_INET6: AddressFamily = c_types::AF_INET6 as u16;
+pub const ADDRESS_FAMILY_INET6: AddressFamily = AF_INET6 as u16;
 
 /// Generic representation of IPv4 or IPv6 addresses.
 #[repr(C)]
@@ -57,16 +91,17 @@ pub union Addr {
 }
 
 impl Addr {
+    #[cfg(feature = "std")]
     /// Converts the `Addr` to a `SocketAddr`.
     pub fn as_socket(&self) -> Option<SocketAddr> {
         unsafe {
             SockAddr::try_init(|addr, len| {
-                if self.ipv4.sin_family == AF_INET as sa_family_t {
+                if self.ipv4.sin_family == AF_INET {
                     let addr = addr.cast::<sockaddr_in>();
                     *addr = self.ipv4;
                     *len = mem::size_of::<sockaddr_in>() as socklen_t;
                     Ok(())
-                } else if self.ipv4.sin_family == AF_INET6 as sa_family_t {
+                } else if self.ipv4.sin_family == AF_INET6 {
                     let addr = addr.cast::<sockaddr_in6>();
                     *addr = self.ipv6;
                     *len = mem::size_of::<sockaddr_in6>() as socklen_t;
@@ -86,6 +121,7 @@ impl Addr {
     }
 }
 
+#[cfg(feature = "std")]
 impl From<SocketAddr> for Addr {
     fn from(addr: SocketAddr) -> Addr {
         match addr {
@@ -95,6 +131,7 @@ impl From<SocketAddr> for Addr {
     }
 }
 
+#[cfg(feature = "std")]
 impl From<SocketAddrV4> for Addr {
     fn from(addr: SocketAddrV4) -> Addr {
         // SAFETY: a `Addr` of all zeros is valid.
@@ -106,6 +143,7 @@ impl From<SocketAddrV4> for Addr {
     }
 }
 
+#[cfg(feature = "std")]
 impl From<SocketAddrV6> for Addr {
     fn from(addr: SocketAddrV6) -> Addr {
         // SAFETY: a `Addr` of all zeros is valid.
@@ -1534,10 +1572,10 @@ impl Api {
         let mut perf = QuicPerformance {
             counters: [0; PERF_COUNTER_MAX as usize],
         };
-        let perf_length = std::mem::size_of::<[i64; PERF_COUNTER_MAX as usize]>() as u32;
+        let perf_length = mem::size_of::<[i64; PERF_COUNTER_MAX as usize]>() as u32;
         unsafe {
             ((*APITABLE).get_param)(
-                std::ptr::null(),
+                ptr::null(),
                 PARAM_GLOBAL_PERF_COUNTERS,
                 (&perf_length) as *const u32 as *mut u32,
                 perf.counters.as_mut_ptr() as *const c_void,
@@ -1556,8 +1594,19 @@ impl Api {
     }
 }
 
+#[cfg(not(feature = "winkernel"))]
 #[ctor::dtor]
 fn close_msquic() {
+    unsafe {
+        if !APITABLE.is_null() {
+            MsQuicClose(APITABLE);
+            APITABLE = ptr::null();
+        }
+    }
+}
+
+#[cfg(feature = "winkernel")]
+pub fn close_msquic() {
     unsafe {
         if !APITABLE.is_null() {
             MsQuicClose(APITABLE);
@@ -1610,7 +1659,7 @@ impl Configuration {
         let new_configuration: Handle = ptr::null();
         let mut settings_size: u32 = 0;
         if !settings.is_null() {
-            settings_size = ::std::mem::size_of::<Settings>() as u32;
+            settings_size = mem::size_of::<Settings>() as u32;
         }
         let status = unsafe {
             ((*APITABLE).configuration_open)(
@@ -1685,7 +1734,7 @@ impl Connection {
         server_name: &str,
         server_port: u16,
     ) -> Result<(), u32> {
-        let server_name_safe = std::ffi::CString::new(server_name).unwrap();
+        let server_name_safe = CString::new(server_name).unwrap();
         let status = unsafe {
             ((*APITABLE).connection_start)(
                 self.handle,
@@ -1724,9 +1773,9 @@ impl Connection {
     }
 
     pub fn get_stats(&self) -> QuicStatistics {
-        let mut stat_buffer: [u8; std::mem::size_of::<QuicStatistics>()] =
-            [0; std::mem::size_of::<QuicStatistics>()];
-        let stat_size_mut = std::mem::size_of::<QuicStatistics>();
+        let mut stat_buffer: [u8; mem::size_of::<QuicStatistics>()] =
+            [0; mem::size_of::<QuicStatistics>()];
+        let stat_size_mut = mem::size_of::<QuicStatistics>();
         unsafe {
             ((*APITABLE).get_param)(
                 self.handle,
@@ -1740,9 +1789,9 @@ impl Connection {
     }
 
     pub fn get_stats_v2(&self) -> QuicStatisticsV2 {
-        let mut stat_buffer: [u8; std::mem::size_of::<QuicStatisticsV2>()] =
-            [0; std::mem::size_of::<QuicStatisticsV2>()];
-        let stat_size_mut = std::mem::size_of::<QuicStatisticsV2>();
+        let mut stat_buffer: [u8; mem::size_of::<QuicStatisticsV2>()] =
+            [0; mem::size_of::<QuicStatisticsV2>()];
+        let stat_size_mut = mem::size_of::<QuicStatisticsV2>();
         unsafe {
             ((*APITABLE).get_param)(
                 self.handle,
@@ -2063,8 +2112,7 @@ impl Drop for Stream {
 //
 // The following defines some simple test code.
 //
-
-#[allow(dead_code)] // Used in test code
+#[cfg(test)]
 extern "C" fn test_conn_callback(
     _connection: Handle,
     context: *mut c_void,
@@ -2099,7 +2147,7 @@ extern "C" fn test_conn_callback(
     0
 }
 
-#[allow(dead_code)] // Used in test code
+#[cfg(test)]
 extern "C" fn test_stream_callback(
     stream: Handle,
     context: *mut c_void,
@@ -2129,6 +2177,7 @@ extern "C" fn test_stream_callback(
     0
 }
 
+#[cfg(test)]
 #[test]
 fn test_module() {
     let res = Registration::new(ptr::null());
@@ -2187,6 +2236,6 @@ fn test_module() {
         res.err().unwrap()
     );
 
-    let duration = std::time::Duration::from_millis(1000);
+    let duration = core::time::Duration::from_millis(1000);
     std::thread::sleep(duration);
 }
