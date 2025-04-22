@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>StreamProvideReceiveBuffers function </title>
+      <title>QUIC_STREAM_CALLBACK function pointer signature </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="StreamProvideReceiveBuffers function ">
+      <meta name="title" content="QUIC_STREAM_CALLBACK function pointer signature ">
       
       
       <link rel="icon" href="../../favicon.ico">
@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/masa-koz/msquic/blob/main/docs/api/StreamProvideReceiveBuffers.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/masa-koz/msquic/blob/main/docs/api/QUIC_STREAM_CALLBACK.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -85,39 +85,39 @@
         </div>
 
         <article data-uid="">
-<h1 id="streamprovidereceivebuffers-function">StreamProvideReceiveBuffers function</h1>
+<h1 id="quic_stream_callback-function-pointer-signature">QUIC_STREAM_CALLBACK function pointer signature</h1>
 
-<p><strong>Preview feature</strong>: This API is in <a href="../PreviewFeatures.html">preview</a>. It should be considered unstable and can be subject to breaking changes.</p>
-<p>Provide application-owned buffers to MsQuic to store received data.
-It should be called only for a stream in app-owned buffer mode.</p>
+<p>Handles stream events.</p>
 <h1 id="syntax">Syntax</h1>
 <pre><code class="lang-C">typedef
-_IRQL_requires_max_(DISPATCH_LEVEL)
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Function_class_(QUIC_STREAM_CALLBACK)
 QUIC_STATUS
-(QUIC_API * QUIC_STREAM_PROVIDE_RECEIVE_BUFFERS_FN)(
-    _In_ _Pre_defensive_ HQUIC Stream,
-    _In_ uint32_t BufferCount,
-    _In_reads_(BufferCount) const QUIC_BUFFER* Buffers
+(QUIC_API QUIC_STREAM_CALLBACK)(
+    _In_ HQUIC Stream,
+    _In_opt_ void* Context,
+    _Inout_ QUIC_STREAM_EVENT* Event
     );
 </code></pre>
 <h1 id="parameters">Parameters</h1>
-<ul>
-<li><code>Stream</code>: A handle to the stream</li>
-<li><code>BufferCount</code>: The number of buffers provided</li>
-<li><code>Buffers</code>: An array of <code>QUIC_BUFFER</code>s pointing to the memory buffers</li>
-</ul>
+<p><code>Stream</code></p>
+<p>The valid handle to the stream object this event is for.</p>
+<p><code>Context</code></p>
+<p>The application callback context (optionally) supplied in <a href="StreamOpen.html">StreamOpen</a>, <a href="SetCallbackHandler.html">SetCallbackHandler</a> or <a href="SetContext.html">SetContext</a>.</p>
+<p><code>Event</code></p>
+<p>A pointer to the <a href="QUIC_STREAM_EVENT.html">QUIC_STREAM_EVENT</a> payload.</p>
 <h1 id="remarks">Remarks</h1>
-<p>This is an asynchronous API but it can run inline if called in a callback.
-If called inline when handling a <code>QUIC_CONNECTION_EVENT_PEER_STREAM_STARTED</code> event, it will convert the stream to app-owned buffer mode.</p>
-<h1 id="see-also">See also</h1>
-<p><a href="../Streams.html">Streams</a><br>
-<a href="StreamOpen.html">StreamOpen</a><br>
-<a href="../PreviewFeatures.html">Preview Features</a><br></p>
+<p>This is the signature of the function that handles callbacks from MsQuic for stream events. Apps are expected to keep any execution time in the callback <strong>to a minimum</strong>.</p>
+<h1 id="see-also">See Also</h1>
+<p><a href="StreamOpen.html">StreamOpen</a><br>
+<a href="QUIC_STREAM_EVENT.html">QUIC_STREAM_EVENT</a><br>
+<a href="SetCallbackHandler.html">SetCallbackHandler</a><br>
+<a href="SetContext.html">SetContext</a><br></p>
 
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/masa-koz/msquic/blob/main/docs/api/StreamProvideReceiveBuffers.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/masa-koz/msquic/blob/main/docs/api/QUIC_STREAM_CALLBACK.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>

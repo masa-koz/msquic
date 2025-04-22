@@ -151,6 +151,27 @@
 </table>
 <p><br>* Future <strong>Release Dates</strong> are subject to change.
 <br>** <strong>End of Support</strong> dates do not include possible <a href="https://docs.microsoft.com/en-us/windows-server/get-started-19/servicing-channels-19#long-term-servicing-channel-ltsc">extended support</a> extensions.</p>
+<h2 id="platforms">Platforms</h2>
+<p>We officially support the following operating systems and architectures.</p>
+<table>
+<thead>
+<tr>
+<th>OS</th>
+<th>Architectures</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows</td>
+<td>x64, arm64</td>
+</tr>
+<tr>
+<td>Linux</td>
+<td>x64, arm64, arm32</td>
+</tr>
+</tbody>
+</table>
+<p>MsQuic may work on other platforms, including macOS, iOS, Android, x86, etc. but is not currently <em>officially</em> supported.</p>
 <h1 id="publishing-a-release">Publishing a Release</h1>
 <h2 id="create-a-new-release-branch">Create a New Release Branch</h2>
 <ol>
@@ -206,11 +227,6 @@
 <li>msquic_windows_x86_Release_schannel.zip</li>
 </ul>
 </li>
-<li>From Linux (use GitHub Codespace) to publish the latest Rust Crate. (CURRENTLY BROKEN)
-<ul>
-<li>Run <code>cargo publish</code> from the <code>release/X.Y</code> branch.</li>
-</ul>
-</li>
 <li>Update (via PR) <code>main</code> branch's <code>test-down-level.yml</code> to point the newly uploaded <code>*_test.zip</code> release binaries.</li>
 </ol>
 <blockquote>
@@ -228,7 +244,7 @@
 </ul>
 <ol>
 <li>Checkout to release tag. (e.g. <code>git checkout v2.4.7</code>)</li>
-<li>Run <code>generate-alpine-packaging-file.ps1</code> script on host computer to create <code>APKBUILD</code> file for the release. (This script can run on any Linux distro, and this script will create a docker alpine container to calculate hash keys in APKBUILD file)</li>
+<li>Run <code>generate-alpine-packaging-file.ps1</code> script from the repository root on host computer to create <code>APKBUILD</code> file for the release. (This script can run on any Linux distro, and this script will create a docker alpine container to calculate hash keys in APKBUILD file)</li>
 <li>If you don't have account for <a href="https://gitlab.alpinelinux.org">AlpineLinux GitLab</a>. Create an account and <a href="https://docs.gitlab.com/ee/user/ssh.html">configure your SSH</a>.</li>
 <li>If you didn't fork <code>aports</code> repository yet, Fork <code>https://gitlab.alpinelinux.org/alpine/aports</code>.</li>
 <li>Clone <code>https://gitlab.alpinelinux.org/&lt;your_username&gt;/aports</code> repository.</li>
@@ -239,6 +255,20 @@
 <li>Owners of the <code>aports</code> repository will respond to the PR or merge it in couple of days/hours.</li>
 </ol>
 <p>For future reference: <a href="https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package">Official documentation</a></p>
+<h3 id="publishing-the-rust-crate">Publishing the Rust Crate</h3>
+<p>The following are the complete (manual) steps for publishing the Rust crate.</p>
+<ol>
+<li>Create a (Linux) GitHub CodeSpace.</li>
+<li><code>sudo apt update</code></li>
+<li><code>sudo apt install curl</code></li>
+<li><code>curl https://sh.rustup.rs -sSf | sh</code></li>
+<li>Restart bash.</li>
+<li><code>cargo login</code></li>
+<li>Create an API token on <a href="https://crates.io/settings/tokens">https://crates.io/settings/tokens</a> (with <code>publish-update</code> scope).</li>
+<li>Paste the token into bash.</li>
+<li>If doing a beta release, update <code>Cargo.toml</code> to add a # after <code>beta</code> in the version.</li>
+<li><code>cargo publish</code> or <code>cargo publish --allow-dirty</code> if beta release</li>
+</ol>
 <h2 id="synchronizing-with-windows">Synchronizing with Windows</h2>
 <ol>
 <li>Once the release branch is created, set the pipeline <a href="https://mscodehub.visualstudio.com/msquic/_build?definitionId=1868">here</a> to ingest the release branch into Windows, and run it.</li>
