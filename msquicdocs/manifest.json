@@ -662,6 +662,16 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "docs/api/RegistrationClose2.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/api/RegistrationClose2.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "docs/api/RegistrationOpen.md",
       "output": {
         ".html": {
