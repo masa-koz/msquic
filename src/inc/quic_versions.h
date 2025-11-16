@@ -15,6 +15,7 @@ Abstract:
 // The QUIC version numbers, in network byte order.
 //
 #define QUIC_VERSION_VER_NEG    0x00000000U     // Version for 'Version Negotiation'
+#define QUIC_VERSION_NOTLS      0x88d7b63bU     // Version for 'No TLS'
 #define QUIC_VERSION_2          0xcf43336bU     // Second official version
 #define QUIC_VERSION_1          0x01000000U     // First official version
 #define QUIC_VERSION_MS_1       0x0000cdabU     // First Microsoft version (currently same as latest draft)
@@ -24,6 +25,7 @@ Abstract:
 // The QUIC version numbers, in host byte order.
 //
 #define QUIC_VERSION_VER_NEG_H  0x00000000U     // Version for 'Version Negotiation'
+#define QUIC_VERSION_NOTLS_H    0x3bb6d788U     // Version for 'No TLS'
 #define QUIC_VERSION_2_H        0x6b3343cfU     // Second official version
 #define QUIC_VERSION_1_H        0x00000001U     // First official version
 #define QUIC_VERSION_1_MS_H     0xabcd0000U     // First Microsoft version (-1412628480 in decimal)

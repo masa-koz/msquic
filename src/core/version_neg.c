@@ -28,7 +28,8 @@ const QUIC_COMPATIBLE_VERSION_MAP CompatibleVersionsMap[] = {
 //
 // This list is the versions the server advertises support for.
 //
-const uint32_t DefaultSupportedVersionsList[4] = {
+const uint32_t DefaultSupportedVersionsList[5] = {
+    QUIC_VERSION_NOTLS,
     QUIC_VERSION_2,
     QUIC_VERSION_1,
     QUIC_VERSION_MS_1,

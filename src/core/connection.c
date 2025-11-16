@@ -1759,6 +1759,7 @@ QuicConnOnQuicVersionSet(
     case QUIC_VERSION_DRAFT_29:
     case QUIC_VERSION_MS_1:
     case QUIC_VERSION_2:
+    case QUIC_VERSION_NOTLS:
     default:
         Connection->State.HeaderProtectionEnabled = TRUE;
         break;
@@ -6246,6 +6247,20 @@ QuicConnParamSet(
     QUIC_SETTINGS_INTERNAL InternalSettings = {0};
 
     switch (Param) {
+
+    case QUIC_PARAM_CONN_QUIC_VERSION:
+
+        if (BufferLength != sizeof(Connection->Stats.QuicVersion)) {
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Connection->Stats.QuicVersion = CxPlatByteSwapUint32(*(uint32_t*)Buffer);
+        QuicConnOnQuicVersionSet(Connection);
+
+        Status = QUIC_STATUS_SUCCESS;
+        break;
+
 
     case QUIC_PARAM_CONN_LOCAL_ADDRESS: {
 

@@ -30,12 +30,12 @@ typedef struct QUIC_VERSION_INFO {
     //
     QUIC_HKDF_LABELS HkdfLabels;
 
-} QUIC_VERSION_INFO;
 
+} QUIC_VERSION_INFO;
 //
 // The list of supported QUIC versions.
 //
-extern const QUIC_VERSION_INFO QuicSupportedVersionList[4];
+extern const QUIC_VERSION_INFO QuicSupportedVersionList[5];
 
 //
 // Prefixes used in packet logging.
