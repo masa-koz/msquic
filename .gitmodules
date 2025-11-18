@@ -16,3 +16,6 @@
 	path = submodules/openssl
 	url = https://github.com/openssl/openssl
 	branch = openssl-3.5
+[submodule "submodules/picotls"]
+	path = submodules/picotls
+	url = https://github.com/masa-koz/picotls.git
