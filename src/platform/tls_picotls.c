@@ -79,11 +79,6 @@ typedef struct CXPLAT_TLS {
     ptls_iovec_t* AlpnVec;
 
     //
-    // Pointer to the Server Name Indication (SNI) string.
-    //
-    const char* SNI;
-
-    //
     // Picotls SSL object used for the TLS handshake and encryption.
     //
     ptls_t *Tls;
@@ -475,7 +470,6 @@ CxPlatTlsInitialize(
 {
     QUIC_STATUS Status = QUIC_STATUS_SUCCESS;
     CXPLAT_TLS* TlsContext = NULL;
-    uint16_t ServerNameLength = 0;
     UNREFERENCED_PARAMETER(State);
 
     CXPLAT_DBG_ASSERT(Config->HkdfLabels);
@@ -511,11 +505,26 @@ CxPlatTlsInitialize(
         TlsContext->Connection,
         "TLS context Created");
 
+    //
+    // Create a SSL object for the connection.
+    //
+
+    TlsContext->Tls = ptls_new(&TlsContext->SecConfig->Ctx, Config->IsServer);
+    if (TlsContext->Tls == NULL) {
+        QuicTraceEvent(
+            TlsError,
+            "[ tls][%p] ERROR, %s.",
+            TlsContext->Connection,
+            "ptls_new failed");
+        Status = QUIC_STATUS_OUT_OF_MEMORY;
+        goto Exit;
+    }
+
+    *ptls_get_data_ptr(TlsContext->Tls) = TlsContext;
+
     if (!Config->IsServer) {
-
         if (Config->ServerName != NULL) {
-
-            ServerNameLength = (uint16_t)strnlen(Config->ServerName, QUIC_MAX_SNI_LENGTH);
+            uint16_t ServerNameLength = (uint16_t)strnlen(Config->ServerName, QUIC_MAX_SNI_LENGTH);
             if (ServerNameLength == QUIC_MAX_SNI_LENGTH) {
                 QuicTraceEvent(
                     TlsError,
@@ -525,19 +534,7 @@ CxPlatTlsInitialize(
                 Status = QUIC_STATUS_INVALID_PARAMETER;
                 goto Exit;
             }
-
-            TlsContext->SNI = CXPLAT_ALLOC_NONPAGED(ServerNameLength + 1, QUIC_POOL_TLS_SNI);
-            if (TlsContext->SNI == NULL) {
-                QuicTraceEvent(
-                    AllocFailure,
-                    "Allocation of '%s' failed. (%llu bytes)",
-                    "SNI",
-                    ServerNameLength + 1);
-                Status = QUIC_STATUS_OUT_OF_MEMORY;
-                goto Exit;
-            }
-
-            memcpy((char*)TlsContext->SNI, Config->ServerName, ServerNameLength + 1);
+            ptls_set_server_name(TlsContext->Tls, Config->ServerName, ServerNameLength);
         }
 
         uint16_t AlpnListLength = TlsContext->AlpnBufferLength;
@@ -579,22 +576,6 @@ CxPlatTlsInitialize(
         TlsContext->HandshakeProperties.client.negotiated_protocols.count = AlpnListCount;
     }
 
-    //
-    // Create a SSL object for the connection.
-    //
-
-    TlsContext->Tls = ptls_new(&TlsContext->SecConfig->Ctx, Config->IsServer);
-    if (TlsContext->Tls == NULL) {
-        QuicTraceEvent(
-            TlsError,
-            "[ tls][%p] ERROR, %s.",
-            TlsContext->Connection,
-            "ptls_new failed");
-        Status = QUIC_STATUS_OUT_OF_MEMORY;
-        goto Exit;
-    }
-
-    *ptls_get_data_ptr(TlsContext->Tls) = TlsContext;
 
     TlsContext->UpdateTrafficKey.cb = CxPlatTlsUpdateTrafficKeyCallback;
     TlsContext->SecConfig->Ctx.update_traffic_key = &TlsContext->UpdateTrafficKey;
@@ -615,7 +596,6 @@ CxPlatTlsInitialize(
     TlsContext = NULL;
 
 Exit:
-
     if (TlsContext) {
         CXPLAT_FREE(TlsContext, QUIC_POOL_TLS_CTX);
     }
@@ -634,9 +614,9 @@ CxPlatTlsUninitialize(
             TlsContext->Connection,
             "Cleaning up");
 
-        if (TlsContext->SNI != NULL) {
-            CXPLAT_FREE(TlsContext->SNI, QUIC_POOL_TLS_SNI);
-            TlsContext->SNI = NULL;
+        if (TlsContext->AlpnVec != NULL) {
+            CXPLAT_FREE(TlsContext->AlpnVec, QUIC_POOL_TLS_ALPN_VEC);
+            TlsContext->AlpnVec = NULL;
         }
 
         if (TlsContext->Tls != NULL) {
@@ -771,7 +751,7 @@ CxPlatTlsProcessData(
                 const char* NegotiatedAlpn;
                 size_t NegotiatedAlpnLength;
                 NegotiatedAlpn = ptls_get_negotiated_protocol(TlsContext->Tls);
-                NegotiatedAlpnLength = NegotiatedAlpn != NULL ? strlen(NegotiatedAlpn) : 0;
+                NegotiatedAlpnLength = NegotiatedAlpn != NULL ? strnlen(NegotiatedAlpn, UINT8_MAX) : 0;
                 if (NegotiatedAlpnLength == 0) {
                     QuicTraceLogConnError(
                         PicotlsAlpnNegotiationFailure,
@@ -824,6 +804,23 @@ CxPlatTlsProcessData(
 Exit:
     ptls_buffer_dispose(&Sendbuf);
     return TlsContext->ResultFlags;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatSecConfigParamSet(
+    _In_ CXPLAT_SEC_CONFIG* TlsContext,
+    _In_ uint32_t Param,
+    _In_ uint32_t BufferLength,
+    _In_reads_bytes_(BufferLength)
+        const void* Buffer
+    )
+{
+    UNREFERENCED_PARAMETER(TlsContext);
+    UNREFERENCED_PARAMETER(Param);
+    UNREFERENCED_PARAMETER(BufferLength);
+    UNREFERENCED_PARAMETER(Buffer);
+    return QUIC_STATUS_NOT_SUPPORTED;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
