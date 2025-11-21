@@ -192,7 +192,7 @@ CxPlatTlsSecConfigCreate(
     CompletionHandler(CredConfig, Context, Status, SecurityConfig);
     SecurityConfig = NULL;
 
-    if (TlsCredFlags & QUIC_CREDENTIAL_FLAG_LOAD_ASYNCHRONOUS) {
+    if (CredConfigFlags & QUIC_CREDENTIAL_FLAG_LOAD_ASYNCHRONOUS) {
         Status = QUIC_STATUS_PENDING;
     } else {
         Status = QUIC_STATUS_SUCCESS;
@@ -261,7 +261,7 @@ CxPlatTlsCollectedExtenionsCallback(
             TlsContext->PeerTPReceived = TRUE;
             if (!TlsContext->SecConfig->Callbacks.ReceiveTP(
                                 TlsContext->Connection,
-                                Slots[i].data.len,
+                                (uint16_t)Slots[i].data.len,
                                 Slots[i].data.base)) {
                 TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_ERROR;
                 return PTLS_ERROR_LIBRARY;
@@ -566,7 +566,7 @@ CxPlatTlsInitialize(
         AlpnListLength = TlsContext->AlpnBufferLength;
         AlpnList = TlsContext->AlpnBuffer;
         size_t i = 0;
-        while (AlpnListLength != 0) {
+        while (AlpnListLength != 0 && i < AlpnListCount) {
             CXPLAT_DBG_ASSERT(AlpnList[0] + 1 <= AlpnListLength);
             TlsContext->AlpnVec[i].base = (uint8_t *)&AlpnList[1];
             TlsContext->AlpnVec[i].len = AlpnList[0];
@@ -737,7 +737,7 @@ CxPlatTlsProcessData(
         if (Sendbuf.off > 0) {
             if (State->BufferOffsetHandshake == 0 && 
                 State->WriteKeys[QUIC_PACKET_KEY_HANDSHAKE] != NULL) {
-                State->BufferOffsetHandshake = State->BufferTotalLength + EpochOffsets[QUIC_PACKET_KEY_HANDSHAKE];
+                State->BufferOffsetHandshake = State->BufferTotalLength + (uint32_t)EpochOffsets[QUIC_PACKET_KEY_HANDSHAKE];
                 QuicTraceLogConnInfo(
                     PicotlsHandshakeDataStart,
                     TlsContext->Connection,
@@ -747,7 +747,7 @@ CxPlatTlsProcessData(
 
             if (State->BufferOffset1Rtt == 0 &&
                 State->WriteKeys[QUIC_PACKET_KEY_1_RTT] != NULL) {
-                State->BufferOffset1Rtt = State->BufferTotalLength + EpochOffsets[QUIC_PACKET_KEY_1_RTT];
+                State->BufferOffset1Rtt = State->BufferTotalLength + (uint32_t)EpochOffsets[QUIC_PACKET_KEY_1_RTT];
                 QuicTraceLogConnInfo(
                     Picotls1RttDataStart,
                     TlsContext->Connection,

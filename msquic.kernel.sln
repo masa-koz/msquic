@@ -32,6 +32,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cifra.kernel", "cifra.kerne
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "picotls-minicrypto.kernel", "picotls-minicrypto.kernel.vcxproj", "{7D94BD9D-6867-4C61-BEE4-9B11360541CD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "platform-picotls.kernel", "src\platform\platform-picotls.kernel.vcxproj", "{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -268,6 +270,30 @@ Global
 		{7D94BD9D-6867-4C61-BEE4-9B11360541CD}.Release|x64.ActiveCfg = Release|x64
 		{7D94BD9D-6867-4C61-BEE4-9B11360541CD}.Release|x64.Build.0 = Release|x64
 		{7D94BD9D-6867-4C61-BEE4-9B11360541CD}.Release|x64.Deploy.0 = Release|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|ARM.ActiveCfg = Debug|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|ARM.Build.0 = Debug|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|ARM.Deploy.0 = Debug|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|ARM64.Build.0 = Debug|ARM64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|win32.ActiveCfg = Debug|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|win32.Build.0 = Debug|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|win32.Deploy.0 = Debug|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|x64.ActiveCfg = Debug|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|x64.Build.0 = Debug|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Debug|x64.Deploy.0 = Debug|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|ARM.ActiveCfg = Release|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|ARM.Build.0 = Release|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|ARM.Deploy.0 = Release|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|ARM64.ActiveCfg = Release|ARM64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|ARM64.Build.0 = Release|ARM64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|ARM64.Deploy.0 = Release|ARM64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|win32.ActiveCfg = Release|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|win32.Build.0 = Release|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|win32.Deploy.0 = Release|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|x64.ActiveCfg = Release|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|x64.Build.0 = Release|x64
+		{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}.Release|x64.Deploy.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
