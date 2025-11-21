@@ -266,6 +266,8 @@ file(GLOB PUBLIC_HEADERS "../inc/*.h" "../inc/*.hpp")
 
 if(QUIC_TLS_LIB STREQUAL "quictls" OR QUIC_TLS_LIB STREQUAL "openssl")
     list(APPEND OTHER_TARGETS OpenSSL OpenSSLQuic)
+elseif (QUIC_TLS_LIB STREQUAL "picotls")
+    list(APPEND OTHER_TARGETS PicoTLS picotls-core picotls-minicrypto OpenSSL OpenSSLQuic)
 endif()
 
 if(WIN32)

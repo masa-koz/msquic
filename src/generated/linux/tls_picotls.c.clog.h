@@ -88,17 +88,17 @@ tracepoint(CLOG_TLS_PICOTLS_C, PicotlsHandshakeComplete , arg1);\
 
 
 /*----------------------------------------------------------
-// Decoder Ring for OpenSslContextCreated
+// Decoder Ring for PicotlsContextCreated
 // [conn][%p] TLS context Created
 // QuicTraceLogConnVerbose(
-        OpenSslContextCreated,
+        PicotlsContextCreated,
         TlsContext->Connection,
         "TLS context Created");
 // arg1 = arg1 = TlsContext->Connection = arg1
 ----------------------------------------------------------*/
-#ifndef _clog_3_ARGS_TRACE_OpenSslContextCreated
-#define _clog_3_ARGS_TRACE_OpenSslContextCreated(uniqueId, arg1, encoded_arg_string)\
-tracepoint(CLOG_TLS_PICOTLS_C, OpenSslContextCreated , arg1);\
+#ifndef _clog_3_ARGS_TRACE_PicotlsContextCreated
+#define _clog_3_ARGS_TRACE_PicotlsContextCreated(uniqueId, arg1, encoded_arg_string)\
+tracepoint(CLOG_TLS_PICOTLS_C, PicotlsContextCreated , arg1);\
 
 #endif
 
@@ -106,17 +106,17 @@ tracepoint(CLOG_TLS_PICOTLS_C, OpenSslContextCreated , arg1);\
 
 
 /*----------------------------------------------------------
-// Decoder Ring for OpenSslContextCleaningUp
+// Decoder Ring for PicotlsContextCleaningUp
 // [conn][%p] Cleaning up
 // QuicTraceLogConnVerbose(
-            OpenSslContextCleaningUp,
+            PicotlsContextCleaningUp,
             TlsContext->Connection,
             "Cleaning up");
 // arg1 = arg1 = TlsContext->Connection = arg1
 ----------------------------------------------------------*/
-#ifndef _clog_3_ARGS_TRACE_OpenSslContextCleaningUp
-#define _clog_3_ARGS_TRACE_OpenSslContextCleaningUp(uniqueId, arg1, encoded_arg_string)\
-tracepoint(CLOG_TLS_PICOTLS_C, OpenSslContextCleaningUp , arg1);\
+#ifndef _clog_3_ARGS_TRACE_PicotlsContextCleaningUp
+#define _clog_3_ARGS_TRACE_PicotlsContextCleaningUp(uniqueId, arg1, encoded_arg_string)\
+tracepoint(CLOG_TLS_PICOTLS_C, PicotlsContextCleaningUp , arg1);\
 
 #endif
 
@@ -157,6 +157,28 @@ tracepoint(CLOG_TLS_PICOTLS_C, AllocFailure , arg2, arg3);\
 #ifndef _clog_4_ARGS_TRACE_TlsError
 #define _clog_4_ARGS_TRACE_TlsError(uniqueId, encoded_arg_string, arg2, arg3)\
 tracepoint(CLOG_TLS_PICOTLS_C, TlsError , arg2, arg3);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for TlsErrorStatus
+// [ tls][%p] ERROR, %u, %s.
+// QuicTraceEvent(
+            TlsErrorStatus,
+            "[ tls][%p] ERROR, %u, %s.",
+            TlsContext->Connection,
+            Status,
+            "QuicTlsPopulateOffloadKeys");
+// arg2 = arg2 = TlsContext->Connection = arg2
+// arg3 = arg3 = Status = arg3
+// arg4 = arg4 = "QuicTlsPopulateOffloadKeys" = arg4
+----------------------------------------------------------*/
+#ifndef _clog_5_ARGS_TRACE_TlsErrorStatus
+#define _clog_5_ARGS_TRACE_TlsErrorStatus(uniqueId, encoded_arg_string, arg2, arg3, arg4)\
+tracepoint(CLOG_TLS_PICOTLS_C, TlsErrorStatus , arg2, arg3, arg4);\
 
 #endif
 

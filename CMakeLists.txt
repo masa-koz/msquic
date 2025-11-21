@@ -788,9 +788,24 @@ elseif(QUIC_TLS_LIB STREQUAL "picotls")
     )
     FetchContent_MakeAvailable(PicoTLSSubmodule)
 
+    add_library(OpenSSL INTERFACE)
+
+    FetchContent_Declare(
+        OpenSSLQuic
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules
+        CMAKE_ARGS "-DQUIC_USE_SYSTEM_LIBCRYPTO=${QUIC_USE_SYSTEM_LIBCRYPTO}"
+    )
+    FetchContent_MakeAvailable(OpenSSLQuic)
+
     target_link_libraries(PicoTLS
         INTERFACE
-        picotls::picotls
+        picotls-core
+        picotls-minicrypto
+    )
+
+    target_link_libraries(OpenSSL
+        INTERFACE
+        OpenSSLQuic::OpenSSLQuic
     )
 
 endif()

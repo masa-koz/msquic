@@ -67,15 +67,15 @@ TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, PicotlsHandshakeComplete,
 
 
 /*----------------------------------------------------------
-// Decoder Ring for OpenSslContextCreated
+// Decoder Ring for PicotlsContextCreated
 // [conn][%p] TLS context Created
 // QuicTraceLogConnVerbose(
-        OpenSslContextCreated,
+        PicotlsContextCreated,
         TlsContext->Connection,
         "TLS context Created");
 // arg1 = arg1 = TlsContext->Connection = arg1
 ----------------------------------------------------------*/
-TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, OpenSslContextCreated,
+TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, PicotlsContextCreated,
     TP_ARGS(
         const void *, arg1), 
     TP_FIELDS(
@@ -86,15 +86,15 @@ TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, OpenSslContextCreated,
 
 
 /*----------------------------------------------------------
-// Decoder Ring for OpenSslContextCleaningUp
+// Decoder Ring for PicotlsContextCleaningUp
 // [conn][%p] Cleaning up
 // QuicTraceLogConnVerbose(
-            OpenSslContextCleaningUp,
+            PicotlsContextCleaningUp,
             TlsContext->Connection,
             "Cleaning up");
 // arg1 = arg1 = TlsContext->Connection = arg1
 ----------------------------------------------------------*/
-TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, OpenSslContextCleaningUp,
+TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, PicotlsContextCleaningUp,
     TP_ARGS(
         const void *, arg1), 
     TP_FIELDS(
@@ -145,5 +145,32 @@ TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, TlsError,
     TP_FIELDS(
         ctf_integer_hex(uint64_t, arg2, (uint64_t)arg2)
         ctf_string(arg3, arg3)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for TlsErrorStatus
+// [ tls][%p] ERROR, %u, %s.
+// QuicTraceEvent(
+            TlsErrorStatus,
+            "[ tls][%p] ERROR, %u, %s.",
+            TlsContext->Connection,
+            Status,
+            "QuicTlsPopulateOffloadKeys");
+// arg2 = arg2 = TlsContext->Connection = arg2
+// arg3 = arg3 = Status = arg3
+// arg4 = arg4 = "QuicTlsPopulateOffloadKeys" = arg4
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, TlsErrorStatus,
+    TP_ARGS(
+        const void *, arg2,
+        unsigned int, arg3,
+        const char *, arg4), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg2, (uint64_t)arg2)
+        ctf_integer(unsigned int, arg3, arg3)
+        ctf_string(arg4, arg4)
     )
 )

@@ -82,12 +82,13 @@ typedef struct CXPLAT_TLS {
     const char* SNI;
 
     //
-    // OpenSSL SSL object used for the TLS handshake and encryption.
+    // Picotls SSL object used for the TLS handshake and encryption.
     //
-    ptls_t *Ssl;
+    ptls_t *Tls;
 
     ptls_update_traffic_key_t UpdateTrafficKey;
     ptls_handshake_properties_t HandshakeProperties;
+    ptls_raw_extension_t Extensions[2];
 
     //
     // Pointer to internal TLS processing state.
@@ -110,6 +111,8 @@ typedef struct CXPLAT_TLS {
     QUIC_TLS_SECRETS* TlsSecrets;
 
 } CXPLAT_TLS;
+
+uint16_t CxPlatTlsTPHeaderSize = 0;
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
 QUIC_TLS_PROVIDER
@@ -460,7 +463,7 @@ CxPlatTlsInitialize(
     TlsContext->TlsSecrets = Config->TlsSecrets;
 
     QuicTraceLogConnVerbose(
-        OpenSslContextCreated,
+        PicotlsContextCreated,
         TlsContext->Connection,
         "TLS context Created");
 
@@ -498,24 +501,32 @@ CxPlatTlsInitialize(
     // Create a SSL object for the connection.
     //
 
-    TlsContext->Ssl = ptls_new(&TlsContext->SecConfig->Ctx, Config->IsServer);
-    if (TlsContext->Ssl == NULL) {
+    TlsContext->Tls = ptls_new(&TlsContext->SecConfig->Ctx, Config->IsServer);
+    if (TlsContext->Tls == NULL) {
         QuicTraceEvent(
             TlsError,
             "[ tls][%p] ERROR, %s.",
             TlsContext->Connection,
-            "SSL_new failed");
+            "ptls_new failed");
         Status = QUIC_STATUS_OUT_OF_MEMORY;
         goto Exit;
     }
 
-    *ptls_get_data_ptr(TlsContext->Ssl) = TlsContext;
+    *ptls_get_data_ptr(TlsContext->Tls) = TlsContext;
 
     TlsContext->UpdateTrafficKey.cb = CxPlatTlsUpdateTrafficKeyCallback;
     TlsContext->SecConfig->Ctx.update_traffic_key = &TlsContext->UpdateTrafficKey;
 
     TlsContext->HandshakeProperties.collect_extension = CxPlatTlsCollectExtenionCallback;
     TlsContext->HandshakeProperties.collected_extensions = CxPlatTlsCollectedExtenionsCallback;
+
+    TlsContext->Extensions[0].type = TlsContext->QuicTpExtType;
+    TlsContext->Extensions[0].data.base = (uint8_t *)Config->LocalTPBuffer;
+    TlsContext->Extensions[0].data.len = Config->LocalTPLength;
+    TlsContext->Extensions[1].type = 0xFFFF;
+    TlsContext->Extensions[1].data.base = NULL;
+    TlsContext->Extensions[1].data.len = 0;
+    TlsContext->HandshakeProperties.additional_extensions = TlsContext->Extensions;
 
     Status = QUIC_STATUS_SUCCESS;
     *NewTlsContext = TlsContext;
@@ -537,7 +548,7 @@ CxPlatTlsUninitialize(
 {
     if (TlsContext != NULL) {
         QuicTraceLogConnVerbose(
-            OpenSslContextCleaningUp,
+            PicotlsContextCleaningUp,
             TlsContext->Connection,
             "Cleaning up");
 
@@ -546,9 +557,9 @@ CxPlatTlsUninitialize(
             TlsContext->SNI = NULL;
         }
 
-        if (TlsContext->Ssl != NULL) {
-            ptls_free(TlsContext->Ssl);
-            TlsContext->Ssl = NULL;
+        if (TlsContext->Tls != NULL) {
+            ptls_free(TlsContext->Tls);
+            TlsContext->Tls = NULL;
         }
 
         CXPLAT_FREE(TlsContext, QUIC_POOL_TLS_CTX);
@@ -590,7 +601,7 @@ CxPlatTlsProcessData(
     }
 
     Ret = ptls_handle_message(
-        TlsContext->Ssl,
+        TlsContext->Tls,
         &Sendbuf,
         EpochOffsets,
         TlsContext->State->ReadKey,
@@ -673,7 +684,7 @@ CxPlatTlsProcessData(
     }
 
     if (Ret == 0 && !State->HandshakeComplete) {
-        if (ptls_handshake_is_complete(TlsContext->Ssl)) {
+        if (ptls_handshake_is_complete(TlsContext->Tls)) {
             State->HandshakeComplete = TRUE;
             TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_HANDSHAKE_COMPLETE;
 
@@ -695,4 +706,85 @@ CxPlatTlsProcessData(
 Exit:
     ptls_buffer_dispose(&Sendbuf);
     return TlsContext->ResultFlags;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatSecConfigParamGet(
+    _In_ CXPLAT_SEC_CONFIG* SecConfig,
+    _In_ uint32_t Param,
+    _Inout_ uint32_t* BufferLength,
+    _Inout_updates_bytes_opt_(*BufferLength)
+        void* Buffer
+    )
+{
+    UNREFERENCED_PARAMETER(SecConfig);
+    UNREFERENCED_PARAMETER(Param);
+    UNREFERENCED_PARAMETER(BufferLength);
+    UNREFERENCED_PARAMETER(Buffer);
+    return QUIC_STATUS_NOT_SUPPORTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatTlsParamGet(
+    _In_ CXPLAT_TLS* TlsContext,
+    _In_ uint32_t Param,
+    _Inout_ uint32_t* BufferLength,
+    _Inout_updates_bytes_opt_(*BufferLength)
+        void* Buffer
+    )
+{
+    UNREFERENCED_PARAMETER(TlsContext);
+    UNREFERENCED_PARAMETER(Param);
+    UNREFERENCED_PARAMETER(BufferLength);
+    UNREFERENCED_PARAMETER(Buffer);
+    return QUIC_STATUS_NOT_SUPPORTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatTlsParamSet(
+    _In_ CXPLAT_TLS* TlsContext,
+    _In_ uint32_t Param,
+    _In_ uint32_t BufferLength,
+    _In_reads_bytes_(BufferLength)
+        const void* Buffer
+    )
+{
+    UNREFERENCED_PARAMETER(TlsContext);
+    UNREFERENCED_PARAMETER(Param);
+    UNREFERENCED_PARAMETER(BufferLength);
+    UNREFERENCED_PARAMETER(Buffer);
+    return QUIC_STATUS_NOT_SUPPORTED;
+}
+
+_Success_(return==TRUE)
+BOOLEAN
+QuicTlsPopulateOffloadKeys(
+    _Inout_ CXPLAT_TLS* TlsContext,
+    _In_ const QUIC_PACKET_KEY* const PacketKey,
+    _In_z_ const char* const SecretName,
+    _Inout_ CXPLAT_QEO_CONNECTION* Offload
+    )
+{
+    QUIC_STATUS Status =
+        QuicPacketKeyDeriveOffload(
+            TlsContext->HkdfLabels,
+            PacketKey,
+            SecretName,
+            Offload);
+    if (!QUIC_SUCCEEDED(Status)) {
+        QuicTraceEvent(
+            TlsErrorStatus,
+            "[ tls][%p] ERROR, %u, %s.",
+            TlsContext->Connection,
+            Status,
+            "QuicTlsPopulateOffloadKeys");
+        goto Error;
+    }
+
+Error:
+
+    return QUIC_SUCCEEDED(Status);
 }

@@ -8778,6 +8778,30 @@
       ],
       "macroName": "QuicTraceLogConnInfo"
     },
+    "PicotlsContextCleaningUp": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Cleaning up",
+      "UniqueId": "PicotlsContextCleaningUp",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
+    "PicotlsContextCreated": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] TLS context Created",
+      "UniqueId": "PicotlsContextCreated",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
     "PicotlsHandshakeComplete": {
       "ModuleProperites": {},
       "TraceString": "[conn][%p] Handshake complete",
@@ -15816,6 +15840,16 @@
         "UniquenessHash": "f82407a8-441c-6ced-940a-6fcaef7bf818",
         "TraceID": "Picotls1RttDataStart",
         "EncodingString": "[conn][%p] Writing 1-RTT data starts at %u"
+      },
+      {
+        "UniquenessHash": "75649fb3-c118-aa99-adc5-c134df018797",
+        "TraceID": "PicotlsContextCleaningUp",
+        "EncodingString": "[conn][%p] Cleaning up"
+      },
+      {
+        "UniquenessHash": "6e6650c3-faab-e965-263b-d25b10ee107a",
+        "TraceID": "PicotlsContextCreated",
+        "EncodingString": "[conn][%p] TLS context Created"
       },
       {
         "UniquenessHash": "a12bd80c-e79e-8601-40a1-880aea046880",
