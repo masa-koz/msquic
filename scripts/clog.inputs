@@ -11,6 +11,7 @@
 ../src/platform/storage_winkernel.c
 ../src/platform/tls_quictls.c
 ../src/platform/tls_openssl.c
+../src/platform/tls_picotls.c
 ../src/platform/platform_winkernel.c
 ../src/platform/certificates_posix.c
 ../src/platform/hashtable.c

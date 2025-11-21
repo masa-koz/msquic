@@ -1,5 +1,9 @@
 #include "platform_internal.h"
 #include "picotls.h"
+#include "picotls/minicrypto.h"
+#ifdef QUIC_CLOG
+#include "tls_picotls.c.clog.h"
+#endif
 
 typedef struct CXPLAT_SEC_CONFIG {
 
@@ -128,6 +132,7 @@ CxPlatTlsSecConfigCreate(
 {
     CXPLAT_DBG_ASSERT(CredConfig && CompletionHandler);
 
+    QUIC_CREDENTIAL_FLAGS CredConfigFlags = CredConfig->Flags;
     QUIC_STATUS Status = QUIC_STATUS_SUCCESS;
     BOOLEAN IsClient = !!(CredConfig->Flags & QUIC_CREDENTIAL_FLAG_CLIENT);
 
@@ -145,6 +150,7 @@ CxPlatTlsSecConfigCreate(
         return QUIC_STATUS_NOT_SUPPORTED;
     }
 
+    CXPLAT_SEC_CONFIG* SecurityConfig = NULL;
     //
     // Create a security config.
     //
@@ -170,7 +176,7 @@ CxPlatTlsSecConfigCreate(
     //
 
     SecurityConfig->Ctx.random_bytes = ptls_minicrypto_random_bytes;
-    SecurityConfig->Ctx.get_time = ptls_get_time;
+    SecurityConfig->Ctx.get_time = &ptls_get_time;
     SecurityConfig->Ctx.key_exchanges = ptls_minicrypto_key_exchanges;
     SecurityConfig->Ctx.cipher_suites = ptls_minicrypto_cipher_suites;
 
@@ -181,7 +187,7 @@ CxPlatTlsSecConfigCreate(
     CompletionHandler(CredConfig, Context, Status, SecurityConfig);
     SecurityConfig = NULL;
 
-    if (CredConfigFlags & QUIC_CREDENTIAL_FLAG_LOAD_ASYNCHRONOUS) {
+    if (TlsCredFlags & QUIC_CREDENTIAL_FLAG_LOAD_ASYNCHRONOUS) {
         Status = QUIC_STATUS_PENDING;
     } else {
         Status = QUIC_STATUS_SUCCESS;
@@ -214,13 +220,15 @@ CxPlatTlsSecConfigSetTicketKeys(
     )
 {
     CXPLAT_DBG_ASSERT(KeyCount >= 1); // Only support 1, ignore the rest for now
+    UNREFERENCED_PARAMETER(SecurityConfig);
+    UNREFERENCED_PARAMETER(KeyConfig);
     UNREFERENCED_PARAMETER(KeyCount);
 
     return QUIC_STATUS_NOT_SUPPORTED;
 }
 
 int
-CxPlatTlsCollectExtenionsCallback(
+CxPlatTlsCollectExtenionCallback(
     _In_ ptls_t* Tls,
     _In_ ptls_handshake_properties_t* HandshakeProperties,
     _In_ uint16_t Type
@@ -245,7 +253,7 @@ CxPlatTlsCollectedExtenionsCallback(
     int i;
     for (i = 0; Slots[i].type != 0xffff; i++) {
         if (Slots[i].type == TlsContext->QuicTpExtType) {
-            TlsContext->State->PeerTPReceived = TRUE;
+            TlsContext->PeerTPReceived = TRUE;
             if (!TlsContext->SecConfig->Callbacks.ReceiveTP(
                                 TlsContext->Connection,
                                 Slots[i].data.len,
@@ -422,8 +430,6 @@ CxPlatTlsInitialize(
     CXPLAT_TLS* TlsContext = NULL;
     uint16_t ServerNameLength = 0;
     UNREFERENCED_PARAMETER(State);
-    struct AUX_DATA *AData;
-    BIO *ossl_bio = NULL;
 
     CXPLAT_DBG_ASSERT(Config->HkdfLabels);
     if (Config->SecConfig == NULL) {
@@ -508,14 +514,14 @@ CxPlatTlsInitialize(
     TlsContext->UpdateTrafficKey.cb = CxPlatTlsUpdateTrafficKeyCallback;
     TlsContext->SecConfig->Ctx.update_traffic_key = &TlsContext->UpdateTrafficKey;
 
-    TlsContext->HandshakeProperties.collect_extensions = CxPlatTlsCollectExtenionsCallback;
+    TlsContext->HandshakeProperties.collect_extension = CxPlatTlsCollectExtenionCallback;
     TlsContext->HandshakeProperties.collected_extensions = CxPlatTlsCollectedExtenionsCallback;
 
     Status = QUIC_STATUS_SUCCESS;
     *NewTlsContext = TlsContext;
     TlsContext = NULL;
 
-Error:
+Exit:
 
     if (TlsContext) {
         CXPLAT_FREE(TlsContext, QUIC_POOL_TLS_CTX);

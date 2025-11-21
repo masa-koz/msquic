@@ -8762,6 +8762,50 @@
       ],
       "macroName": "QuicTraceLogConnVerbose"
     },
+    "Picotls1RttDataStart": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Writing 1-RTT data starts at %u",
+      "UniqueId": "Picotls1RttDataStart",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        },
+        {
+          "DefinationEncoding": "u",
+          "MacroVariableName": "arg3"
+        }
+      ],
+      "macroName": "QuicTraceLogConnInfo"
+    },
+    "PicotlsHandshakeComplete": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Handshake complete",
+      "UniqueId": "PicotlsHandshakeComplete",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnInfo"
+    },
+    "PicotlsHandshakeDataStart": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Writing Handshake data starts at %u",
+      "UniqueId": "PicotlsHandshakeDataStart",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        },
+        {
+          "DefinationEncoding": "u",
+          "MacroVariableName": "arg3"
+        }
+      ],
+      "macroName": "QuicTraceLogConnInfo"
+    },
     "PlatformThreadCreateFailed": {
       "ModuleProperites": {},
       "TraceString": "[ lib] pthread_create failed, retrying without affinitization",
@@ -15767,6 +15811,21 @@
         "UniquenessHash": "f7b20b43-0f5a-76ed-71ab-00e2a293b9b4",
         "TraceID": "PhaseShiftUpdated",
         "EncodingString": "[conn][%p] New Phase Shift: %lld us"
+      },
+      {
+        "UniquenessHash": "f82407a8-441c-6ced-940a-6fcaef7bf818",
+        "TraceID": "Picotls1RttDataStart",
+        "EncodingString": "[conn][%p] Writing 1-RTT data starts at %u"
+      },
+      {
+        "UniquenessHash": "a12bd80c-e79e-8601-40a1-880aea046880",
+        "TraceID": "PicotlsHandshakeComplete",
+        "EncodingString": "[conn][%p] Handshake complete"
+      },
+      {
+        "UniquenessHash": "55ff915e-4cd4-f8bc-2912-4c9e82bd8b88",
+        "TraceID": "PicotlsHandshakeDataStart",
+        "EncodingString": "[conn][%p] Writing Handshake data starts at %u"
       },
       {
         "UniquenessHash": "c77e1439-2c2d-7baf-4509-bd2f7eeea771",
