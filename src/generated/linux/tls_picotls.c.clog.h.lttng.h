@@ -2,6 +2,63 @@
 
 
 /*----------------------------------------------------------
+// Decoder Ring for PicotlsAlpnNegotiationFailure
+// [conn][%p] Failed to negotiate ALPN
+// QuicTraceLogConnError(
+                        PicotlsAlpnNegotiationFailure,
+                        TlsContext->Connection,
+                        "Failed to negotiate ALPN");
+// arg1 = arg1 = TlsContext->Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, PicotlsAlpnNegotiationFailure,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for PicotlsInvalidAlpnLength
+// [conn][%p] Invalid negotiated ALPN length
+// QuicTraceLogConnError(
+                        PicotlsInvalidAlpnLength,
+                        TlsContext->Connection,
+                        "Invalid negotiated ALPN length");
+// arg1 = arg1 = TlsContext->Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, PicotlsInvalidAlpnLength,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for PicotlsNoMatchingAlpn
+// [conn][%p] Failed to find a matching ALPN
+// QuicTraceLogConnError(
+                        PicotlsNoMatchingAlpn,
+                        TlsContext->Connection,
+                        "Failed to find a matching ALPN");
+// arg1 = arg1 = TlsContext->Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_TLS_PICOTLS_C, PicotlsNoMatchingAlpn,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
+    )
+)
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for PicotlsHandshakeDataStart
 // [conn][%p] Writing Handshake data starts at %u
 // QuicTraceLogConnInfo(

@@ -8778,6 +8778,18 @@
       ],
       "macroName": "QuicTraceLogConnInfo"
     },
+    "PicotlsAlpnNegotiationFailure": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Failed to negotiate ALPN",
+      "UniqueId": "PicotlsAlpnNegotiationFailure",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnError"
+    },
     "PicotlsContextCleaningUp": {
       "ModuleProperites": {},
       "TraceString": "[conn][%p] Cleaning up",
@@ -8829,6 +8841,30 @@
         }
       ],
       "macroName": "QuicTraceLogConnInfo"
+    },
+    "PicotlsInvalidAlpnLength": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Invalid negotiated ALPN length",
+      "UniqueId": "PicotlsInvalidAlpnLength",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnError"
+    },
+    "PicotlsNoMatchingAlpn": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Failed to find a matching ALPN",
+      "UniqueId": "PicotlsNoMatchingAlpn",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnError"
     },
     "PlatformThreadCreateFailed": {
       "ModuleProperites": {},
@@ -15842,6 +15878,11 @@
         "EncodingString": "[conn][%p] Writing 1-RTT data starts at %u"
       },
       {
+        "UniquenessHash": "6dadf498-97c1-f52c-ad2c-3d2b9db09551",
+        "TraceID": "PicotlsAlpnNegotiationFailure",
+        "EncodingString": "[conn][%p] Failed to negotiate ALPN"
+      },
+      {
         "UniquenessHash": "75649fb3-c118-aa99-adc5-c134df018797",
         "TraceID": "PicotlsContextCleaningUp",
         "EncodingString": "[conn][%p] Cleaning up"
@@ -15860,6 +15901,16 @@
         "UniquenessHash": "55ff915e-4cd4-f8bc-2912-4c9e82bd8b88",
         "TraceID": "PicotlsHandshakeDataStart",
         "EncodingString": "[conn][%p] Writing Handshake data starts at %u"
+      },
+      {
+        "UniquenessHash": "adfe5d1c-84f9-e393-68c3-33f83e41b471",
+        "TraceID": "PicotlsInvalidAlpnLength",
+        "EncodingString": "[conn][%p] Invalid negotiated ALPN length"
+      },
+      {
+        "UniquenessHash": "500d05f4-d4db-f7e0-45e1-060b193ce3d1",
+        "TraceID": "PicotlsNoMatchingAlpn",
+        "EncodingString": "[conn][%p] Failed to find a matching ALPN"
       },
       {
         "UniquenessHash": "c77e1439-2c2d-7baf-4509-bd2f7eeea771",

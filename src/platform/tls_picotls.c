@@ -76,6 +76,8 @@ typedef struct CXPLAT_TLS {
     //
     const uint8_t* AlpnBuffer;
 
+    ptls_iovec_t* AlpnVec;
+
     //
     // Pointer to the Server Name Indication (SNI) string.
     //
@@ -262,11 +264,11 @@ CxPlatTlsCollectedExtenionsCallback(
                                 Slots[i].data.len,
                                 Slots[i].data.base)) {
                 TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_ERROR;
-                return 0;
+                return PTLS_ERROR_LIBRARY;
             }
         }
     }
-    return 1;
+    return 0;
 }
 
 int
@@ -291,7 +293,28 @@ CxPlatTlsUpdateTrafficKeyCallback(
         // Tx/Write Secret
         //
         if (TlsState->WriteKeys[KeyType] == NULL) {
+            CxPlatZeroMemory(&Secret, sizeof(Secret));
             CxPlatCopyMemory(Secret.Secret, NewSecret, Cipher->hash->digest_size);
+            switch (Cipher->hash->digest_size) {
+            case CXPLAT_HASH_SHA256_SIZE:
+                Secret.Hash = CXPLAT_HASH_SHA256;
+                break;
+            case CXPLAT_HASH_SHA384_SIZE:
+                Secret.Hash = CXPLAT_HASH_SHA384;
+                break;
+            case CXPLAT_HASH_SHA512_SIZE:
+                Secret.Hash = CXPLAT_HASH_SHA512;
+                break;
+            default:
+                break;
+            }
+            if (memcmp(Cipher->aead->name, "AES128-GCM", 10) == 0) {
+                Secret.Aead = CXPLAT_AEAD_AES_128_GCM;
+            } else if (memcmp(Cipher->aead->name, "AES256-GCM", 10) == 0) {
+                Secret.Aead = CXPLAT_AEAD_AES_256_GCM;
+            } else if (memcmp(Cipher->aead->name, "CHACHA20-POLY1305", 17) == 0) {
+                Secret.Aead = CXPLAT_AEAD_CHACHA20_POLY1305;
+            }
             Status =
                 QuicPacketKeyDerive(
                     KeyType,
@@ -302,7 +325,7 @@ CxPlatTlsUpdateTrafficKeyCallback(
                     &TlsState->WriteKeys[KeyType]);
             if (QUIC_FAILED(Status)) {
                 TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_ERROR;
-                return 0;
+                return PTLS_ERROR_LIBRARY;
             }
             if (TlsContext->IsServer && KeyType == QUIC_PACKET_KEY_0_RTT) {
                 TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_EARLY_DATA_ACCEPT;
@@ -316,7 +339,28 @@ CxPlatTlsUpdateTrafficKeyCallback(
         // Rx/Read Secret
         //
         if (TlsState->ReadKeys[KeyType] == NULL) {
+            CxPlatZeroMemory(&Secret, sizeof(Secret));
             CxPlatCopyMemory(Secret.Secret, NewSecret, Cipher->hash->digest_size);
+            switch (Cipher->hash->digest_size) {
+            case CXPLAT_HASH_SHA256_SIZE:
+                Secret.Hash = CXPLAT_HASH_SHA256;
+                break;
+            case CXPLAT_HASH_SHA384_SIZE:
+                Secret.Hash = CXPLAT_HASH_SHA384;
+                break;
+            case CXPLAT_HASH_SHA512_SIZE:
+                Secret.Hash = CXPLAT_HASH_SHA512;
+                break;
+            default:
+                break;
+            }
+            if (memcmp(Cipher->aead->name, "AES128-GCM", 10) == 0) {
+                Secret.Aead = CXPLAT_AEAD_AES_128_GCM;
+            } else if (memcmp(Cipher->aead->name, "AES256-GCM", 10) == 0) {
+                Secret.Aead = CXPLAT_AEAD_AES_256_GCM;
+            } else if (memcmp(Cipher->aead->name, "CHACHA20-POLY1305", 17) == 0) {
+                Secret.Aead = CXPLAT_AEAD_CHACHA20_POLY1305;
+            }
             Status =
                 QuicPacketKeyDerive(
                     KeyType,
@@ -327,7 +371,7 @@ CxPlatTlsUpdateTrafficKeyCallback(
                     &TlsState->ReadKeys[KeyType]);
             if (QUIC_FAILED(Status)) {
                 TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_ERROR;
-                return 0;
+                return PTLS_ERROR_LIBRARY;
             }
             if (TlsContext->IsServer && KeyType == QUIC_PACKET_KEY_1_RTT) {
                 // The 1-RTT read keys aren't actually allowed to be used until the 
@@ -418,7 +462,7 @@ CxPlatTlsUpdateTrafficKeyCallback(
         }
     }
 
-    return 1;
+    return 0;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -495,6 +539,44 @@ CxPlatTlsInitialize(
 
             memcpy((char*)TlsContext->SNI, Config->ServerName, ServerNameLength + 1);
         }
+
+        uint16_t AlpnListLength = TlsContext->AlpnBufferLength;
+        const uint8_t* AlpnList = TlsContext->AlpnBuffer;
+        size_t AlpnListCount = 0;
+        while (AlpnListLength != 0) {
+            CXPLAT_DBG_ASSERT(AlpnList[0] + 1 <= AlpnListLength);
+            AlpnListLength -= AlpnList[0] + 1;
+            AlpnList += (size_t)AlpnList[0] + (size_t)1;
+            AlpnListCount++;
+        }
+
+        TlsContext->AlpnVec = CXPLAT_ALLOC_NONPAGED(
+            sizeof(ptls_iovec_t) * AlpnListCount,
+            QUIC_POOL_TLS_ALPN_VEC);
+        if (TlsContext->AlpnVec == NULL) {
+            QuicTraceEvent(
+                AllocFailure,
+                "Allocation of '%s' failed. (%llu bytes)",
+                "AlpnVec",
+                sizeof(ptls_iovec_t) * AlpnListCount);
+            Status = QUIC_STATUS_OUT_OF_MEMORY;
+            goto Exit;
+        }
+
+        AlpnListLength = TlsContext->AlpnBufferLength;
+        AlpnList = TlsContext->AlpnBuffer;
+        size_t i = 0;
+        while (AlpnListLength != 0) {
+            CXPLAT_DBG_ASSERT(AlpnList[0] + 1 <= AlpnListLength);
+            TlsContext->AlpnVec[i].base = (uint8_t *)&AlpnList[1];
+            TlsContext->AlpnVec[i].len = AlpnList[0];
+            AlpnListLength -= AlpnList[0] + 1;
+            AlpnList += (size_t)AlpnList[0] + (size_t)1;
+            i++;
+        }
+
+        TlsContext->HandshakeProperties.client.negotiated_protocols.list = TlsContext->AlpnVec;
+        TlsContext->HandshakeProperties.client.negotiated_protocols.count = AlpnListCount;
     }
 
     //
@@ -608,7 +690,6 @@ CxPlatTlsProcessData(
         Buffer,
         *BufferLength,
         &TlsContext->HandshakeProperties);
-    *BufferLength = 0;
     if (Ret == 0 || Ret == PTLS_ERROR_IN_PROGRESS) {
         //
         // Make sure that we don't violate handshake data lengths
@@ -655,8 +736,8 @@ CxPlatTlsProcessData(
 
         if (Sendbuf.off > 0) {
             if (State->BufferOffsetHandshake == 0 && 
-                (EpochOffsets[QUIC_PACKET_KEY_HANDSHAKE] < EpochOffsets[QUIC_PACKET_KEY_HANDSHAKE + 1])) {
-                State->BufferOffsetHandshake = EpochOffsets[QUIC_PACKET_KEY_HANDSHAKE];
+                State->WriteKeys[QUIC_PACKET_KEY_HANDSHAKE] != NULL) {
+                State->BufferOffsetHandshake = State->BufferTotalLength + EpochOffsets[QUIC_PACKET_KEY_HANDSHAKE];
                 QuicTraceLogConnInfo(
                     PicotlsHandshakeDataStart,
                     TlsContext->Connection,
@@ -665,8 +746,8 @@ CxPlatTlsProcessData(
             }
 
             if (State->BufferOffset1Rtt == 0 &&
-                (EpochOffsets[QUIC_PACKET_KEY_1_RTT] < EpochOffsets[QUIC_PACKET_KEY_1_RTT + 1])) {
-                State->BufferOffset1Rtt = EpochOffsets[QUIC_PACKET_KEY_1_RTT];
+                State->WriteKeys[QUIC_PACKET_KEY_1_RTT] != NULL) {
+                State->BufferOffset1Rtt = State->BufferTotalLength + EpochOffsets[QUIC_PACKET_KEY_1_RTT];
                 QuicTraceLogConnInfo(
                     Picotls1RttDataStart,
                     TlsContext->Connection,
@@ -680,11 +761,48 @@ CxPlatTlsProcessData(
                 Sendbuf.off);
             State->BufferLength += (uint16_t)Sendbuf.off;
             State->BufferTotalLength += (uint16_t)Sendbuf.off;
+            TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_DATA;
         }
     }
 
     if (Ret == 0 && !State->HandshakeComplete) {
         if (ptls_handshake_is_complete(TlsContext->Tls)) {
+            if (!TlsContext->IsServer) {
+                const char* NegotiatedAlpn;
+                size_t NegotiatedAlpnLength;
+                NegotiatedAlpn = ptls_get_negotiated_protocol(TlsContext->Tls);
+                NegotiatedAlpnLength = NegotiatedAlpn != NULL ? strlen(NegotiatedAlpn) : 0;
+                if (NegotiatedAlpnLength == 0) {
+                    QuicTraceLogConnError(
+                        PicotlsAlpnNegotiationFailure,
+                        TlsContext->Connection,
+                        "Failed to negotiate ALPN");
+                    TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_ERROR;
+                    goto Exit;
+                }
+                if (NegotiatedAlpnLength > UINT8_MAX) {
+                    QuicTraceLogConnError(
+                        PicotlsInvalidAlpnLength,
+                        TlsContext->Connection,
+                        "Invalid negotiated ALPN length");
+                    TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_ERROR;
+                    goto Exit;
+                }
+                TlsContext->State->NegotiatedAlpn =
+                    CxPlatTlsAlpnFindInList(
+                        TlsContext->AlpnBufferLength,
+                        TlsContext->AlpnBuffer,
+                        (uint8_t)NegotiatedAlpnLength,
+                        (uint8_t*)NegotiatedAlpn);
+                if (TlsContext->State->NegotiatedAlpn == NULL) {
+                    QuicTraceLogConnError(
+                        PicotlsNoMatchingAlpn,
+                        TlsContext->Connection,
+                        "Failed to find a matching ALPN");
+                    TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_ERROR;
+                    goto Exit;
+                }
+            }
             State->HandshakeComplete = TRUE;
             TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_HANDSHAKE_COMPLETE;
 

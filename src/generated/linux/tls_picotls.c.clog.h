@@ -14,6 +14,10 @@
 #include "tls_picotls.c.clog.h.lttng.h"
 #endif
 #include <lttng/tracepoint-event.h>
+#ifndef _clog_MACRO_QuicTraceLogConnError
+#define _clog_MACRO_QuicTraceLogConnError  1
+#define QuicTraceLogConnError(a, ...) _clog_CAT(_clog_ARGN_SELECTOR(__VA_ARGS__), _clog_CAT(_,a(#a, __VA_ARGS__)))
+#endif
 #ifndef _clog_MACRO_QuicTraceLogConnInfo
 #define _clog_MACRO_QuicTraceLogConnInfo  1
 #define QuicTraceLogConnInfo(a, ...) _clog_CAT(_clog_ARGN_SELECTOR(__VA_ARGS__), _clog_CAT(_,a(#a, __VA_ARGS__)))
@@ -29,6 +33,60 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+/*----------------------------------------------------------
+// Decoder Ring for PicotlsAlpnNegotiationFailure
+// [conn][%p] Failed to negotiate ALPN
+// QuicTraceLogConnError(
+                        PicotlsAlpnNegotiationFailure,
+                        TlsContext->Connection,
+                        "Failed to negotiate ALPN");
+// arg1 = arg1 = TlsContext->Connection = arg1
+----------------------------------------------------------*/
+#ifndef _clog_3_ARGS_TRACE_PicotlsAlpnNegotiationFailure
+#define _clog_3_ARGS_TRACE_PicotlsAlpnNegotiationFailure(uniqueId, arg1, encoded_arg_string)\
+tracepoint(CLOG_TLS_PICOTLS_C, PicotlsAlpnNegotiationFailure , arg1);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for PicotlsInvalidAlpnLength
+// [conn][%p] Invalid negotiated ALPN length
+// QuicTraceLogConnError(
+                        PicotlsInvalidAlpnLength,
+                        TlsContext->Connection,
+                        "Invalid negotiated ALPN length");
+// arg1 = arg1 = TlsContext->Connection = arg1
+----------------------------------------------------------*/
+#ifndef _clog_3_ARGS_TRACE_PicotlsInvalidAlpnLength
+#define _clog_3_ARGS_TRACE_PicotlsInvalidAlpnLength(uniqueId, arg1, encoded_arg_string)\
+tracepoint(CLOG_TLS_PICOTLS_C, PicotlsInvalidAlpnLength , arg1);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for PicotlsNoMatchingAlpn
+// [conn][%p] Failed to find a matching ALPN
+// QuicTraceLogConnError(
+                        PicotlsNoMatchingAlpn,
+                        TlsContext->Connection,
+                        "Failed to find a matching ALPN");
+// arg1 = arg1 = TlsContext->Connection = arg1
+----------------------------------------------------------*/
+#ifndef _clog_3_ARGS_TRACE_PicotlsNoMatchingAlpn
+#define _clog_3_ARGS_TRACE_PicotlsNoMatchingAlpn(uniqueId, arg1, encoded_arg_string)\
+tracepoint(CLOG_TLS_PICOTLS_C, PicotlsNoMatchingAlpn , arg1);\
+
+#endif
+
+
+
+
 /*----------------------------------------------------------
 // Decoder Ring for PicotlsHandshakeDataStart
 // [conn][%p] Writing Handshake data starts at %u
