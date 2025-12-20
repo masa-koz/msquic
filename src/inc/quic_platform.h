@@ -49,6 +49,14 @@ extern "C" {
 #define CXPLAT_CONTAINING_RECORD(address, type, field) \
     ((type *)((uint8_t*)(address) - offsetof(type, field)))
 
+#define CXPLAT_FIELD_SIZE(type, field) (sizeof(((type *)0)->field))
+
+#define CXPLAT_STRUCT_SIZE_THRU_FIELD(Type, Field) \
+    (offsetof(Type, Field) + sizeof(((Type*)0)->Field))
+
+#define CXPLAT_STRUCT_HAS_FIELD(Type, Size, Field) \
+    (Size >= CXPLAT_STRUCT_SIZE_THRU_FIELD(Type, Field))
+
 typedef struct CXPLAT_LIST_ENTRY {
     struct CXPLAT_LIST_ENTRY* Flink;
     struct CXPLAT_LIST_ENTRY* Blink;
@@ -62,7 +70,7 @@ typedef struct CXPLAT_SLIST_ENTRY {
 #if (_MSC_VER >= 1200)
 #define FORCEINLINE __forceinline
 #else
-#define FORCEINLINE __inline
+#define FORCEINLINE QUIC_INLINE
 #endif
 #endif
 
@@ -148,6 +156,11 @@ typedef struct CXPLAT_SLIST_ENTRY {
 #define QUIC_POOL_ROUTE_RESOLUTION_WORKER   'A4cQ' // Qc4A - QUIC route resolution worker
 #define QUIC_POOL_ROUTE_RESOLUTION_OPER     'B4cQ' // Qc4B - QUIC route resolution operation
 #define QUIC_POOL_EXECUTION_CONFIG          'C4cQ' // Qc4C - QUIC execution config
+#define QUIC_POOL_APP_BUFFER_CHUNK          'D4cQ' // Qc4D - QUIC receive chunk for app buffers
+#define QUIC_POOL_CONN_POOL_API_TABLE       'E4cQ' // Qc4E - QUIC Connection Pool API table
+#define QUIC_POOL_DATAPATH_RSS_CONFIG       'F4cQ' // Qc4F - QUIC Datapath RSS configuration
+#define QUIC_POOL_TLS_AUX_DATA              '05cQ' // Qc50 - QUIC TLS Backing Aux data
+#define QUIC_POOL_TLS_RECORD_ENTRY          '15cQ' // Qc51 - QUIC TLS Backing Record storage
 
 typedef enum CXPLAT_THREAD_FLAGS {
     CXPLAT_THREAD_FLAG_NONE               = 0x0000,
@@ -257,6 +270,7 @@ CxPlatListIsEmpty(
     _In_ const CXPLAT_LIST_ENTRY* ListHead
     )
 {
+    CXPLAT_DBG_ASSERT(ListHead->Flink != NULL);
     return (BOOLEAN)(ListHead->Flink == ListHead);
 }
 
@@ -301,6 +315,21 @@ CxPlatListInsertTail(
 }
 
 FORCEINLINE
+void
+CxPlatListInsertAfter(
+    _Inout_ CXPLAT_LIST_ENTRY* ListEntry,
+    _Inout_ __drv_aliasesMem CXPLAT_LIST_ENTRY* NewEntry
+    )
+{
+    QuicListEntryValidate(ListEntry);
+    CXPLAT_LIST_ENTRY* Flink = ListEntry->Flink;
+    ListEntry->Flink = NewEntry;
+    NewEntry->Flink = Flink;
+    NewEntry->Blink = ListEntry;
+    Flink->Blink = NewEntry;
+}
+
+FORCEINLINE
 CXPLAT_LIST_ENTRY*
 CxPlatListRemoveHead(
     _Inout_ CXPLAT_LIST_ENTRY* ListHead
@@ -328,7 +357,7 @@ CxPlatListEntryRemove(
     return (BOOLEAN)(Flink == Blink);
 }
 
-inline
+QUIC_INLINE
 void
 CxPlatListMoveItems(
     _Inout_ CXPLAT_LIST_ENTRY* Source,
@@ -422,42 +451,13 @@ CxPlatGetAllocFailDenominator(
 #endif
 
 //
-// Worker pool API used for driving execution contexts
-//
-
-typedef struct CXPLAT_WORKER CXPLAT_WORKER;
-
-typedef struct CXPLAT_WORKER_POOL {
-
-    CXPLAT_WORKER* Workers;
-    CXPLAT_LOCK WorkerLock;
-    CXPLAT_RUNDOWN_REF Rundown;
-    uint32_t WorkerCount;
-
-} CXPLAT_WORKER_POOL;
-
-#ifdef _KERNEL_MODE // Not supported on kernel mode
-#define CxPlatWorkerPoolInit(WorkerPool) UNREFERENCED_PARAMETER(WorkerPool)
-#define CxPlatWorkerPoolUninit(WorkerPool) UNREFERENCED_PARAMETER(WorkerPool)
-#else
-void
-CxPlatWorkerPoolInit(
-    _In_ CXPLAT_WORKER_POOL* WorkerPool
-    );
-
-void
-CxPlatWorkerPoolUninit(
-    _In_ CXPLAT_WORKER_POOL* WorkerPool
-    );
-#endif
-
-//
 // General purpose execution context abstraction layer. Used for driving worker
 // loops.
 //
 
+typedef struct QUIC_EXECUTION QUIC_EXECUTION;
+typedef struct QUIC_GLOBAL_EXECUTION_CONFIG QUIC_GLOBAL_EXECUTION_CONFIG;
 typedef struct QUIC_EXECUTION_CONFIG QUIC_EXECUTION_CONFIG;
-
 typedef struct CXPLAT_EXECUTION_CONTEXT CXPLAT_EXECUTION_CONTEXT;
 
 typedef struct CXPLAT_EXECUTION_STATE {
@@ -469,7 +469,92 @@ typedef struct CXPLAT_EXECUTION_STATE {
     CXPLAT_THREAD_ID ThreadID;
 } CXPLAT_EXECUTION_STATE;
 
-#ifndef _KERNEL_MODE // Not supported on kernel mode
+typedef struct CXPLAT_WORKER_POOL CXPLAT_WORKER_POOL;
+
+#ifndef _KERNEL_MODE
+
+//
+// Worker pool API used for driving execution contexts
+//
+
+//
+// Different references on a worker pool.
+//
+typedef enum CXPLAT_WORKER_POOL_REF {
+
+    CXPLAT_WORKER_POOL_REF_EXTERNAL,    // Created by ExecutionCreate
+    CXPLAT_WORKER_POOL_REF_LIBRARY,     // Created by MsQuic
+    CXPLAT_WORKER_POOL_REF_EPOLL,
+    CXPLAT_WORKER_POOL_REF_IOURING,
+    CXPLAT_WORKER_POOL_REF_KQUEUE,
+    CXPLAT_WORKER_POOL_REF_RAW,
+    CXPLAT_WORKER_POOL_REF_WINSOCK,
+    CXPLAT_WORKER_POOL_REF_TOOL,
+
+    CXPLAT_WORKER_POOL_REF_COUNT
+
+} CXPLAT_WORKER_POOL_REF;
+
+CXPLAT_WORKER_POOL*
+CxPlatWorkerPoolCreate(
+    _In_opt_ QUIC_GLOBAL_EXECUTION_CONFIG* Config,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
+    );
+
+_Success_(return != NULL)
+CXPLAT_WORKER_POOL*
+CxPlatWorkerPoolCreateExternal(
+    _In_ uint32_t Count,
+    _In_reads_(Count) QUIC_EXECUTION_CONFIG* Configs,
+    _Out_writes_(Count) QUIC_EXECUTION** Executions
+    );
+
+void
+CxPlatWorkerPoolDelete(
+    _In_opt_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
+    );
+
+uint32_t
+CxPlatWorkerPoolGetCount(
+    _In_ CXPLAT_WORKER_POOL* WorkerPool
+    );
+
+BOOLEAN
+CxPlatWorkerPoolAddRef(
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
+    );
+
+void
+CxPlatWorkerPoolRelease(
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
+    );
+
+uint32_t
+CxPlatWorkerPoolGetIdealProcessor(
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ uint32_t Index // Into the worker pool
+    );
+
+CXPLAT_EVENTQ*
+CxPlatWorkerPoolGetEventQ(
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ uint16_t Index // Into the worker pool
+    );
+
+void
+CxPlatWorkerPoolAddExecutionContext(
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
+    _Inout_ CXPLAT_EXECUTION_CONTEXT* Context,
+    _In_ uint16_t Index // Into the worker pool
+    );
+
+uint32_t
+CxPlatWorkerPoolWorkerPoll(
+    _In_ QUIC_EXECUTION* Execution
+    );
 
 //
 // Supports more dynamic operations, but must be submitted to the platform worker
@@ -493,7 +578,7 @@ CxPlatRemoveDynamicPoolAllocator(
     _Inout_ CXPLAT_POOL_EX* Pool
     );
 
-#endif
+#endif // !_KERNEL_MODE
 
 //
 // Returns FALSE when it's time to cleanup.
@@ -504,13 +589,6 @@ BOOLEAN
 (*CXPLAT_EXECUTION_FN)(
     _Inout_ void* Context,
     _Inout_ CXPLAT_EXECUTION_STATE* State
-    );
-
-typedef
-_IRQL_requires_max_(PASSIVE_LEVEL)
-BOOLEAN
-(*CXPLAT_EXECUTION_WAKE_FN)(
-    _Inout_ CXPLAT_EXECUTION_CONTEXT* Context
     );
 
 typedef struct CXPLAT_EXECUTION_CONTEXT {
@@ -525,33 +603,23 @@ typedef struct CXPLAT_EXECUTION_CONTEXT {
 } CXPLAT_EXECUTION_CONTEXT;
 
 #ifdef _KERNEL_MODE // Not supported on kernel mode
-#define CxPlatAddExecutionContext(WorkerPool, Context, IdealProcessor) CXPLAT_FRE_ASSERT(FALSE)
 #define CxPlatWakeExecutionContext(Context) CXPLAT_FRE_ASSERT(FALSE)
+#if DEBUG
+#define CxPlatWorkerIsThisThread(Context) TRUE
 #else
-void
-CxPlatAddExecutionContext(
-    _In_ CXPLAT_WORKER_POOL* WorkerPool,
-    _Inout_ CXPLAT_EXECUTION_CONTEXT* Context,
-    _In_ uint16_t Index // Into the execution config processor array
-    );
-
+#define CxPlatWorkerIsThisThread(Context) CXPLAT_FRE_ASSERT(FALSE)
+#endif
+#else // _KERNEL_MODE
 void
 CxPlatWakeExecutionContext(
     _In_ CXPLAT_EXECUTION_CONTEXT* Context
     );
-#endif
 
-//
-// The "type" of the completion queue event is stored as the first uint32_t of
-// the user data. Everything after that in the user data is type-specific.
-//
-#define CxPlatCqeType(cqe) (*(uint32_t*)CxPlatCqeUserData(cqe))
-
-//
-// All QUIC (and lower layer) completion queue events have a type starting with
-// 0x8000.
-//
-#define CXPLAT_CQE_TYPE_QUIC_BASE                 0x8000 // to 0xFFFF
+BOOLEAN
+CxPlatWorkerIsThisThread(
+    _In_ CXPLAT_EXECUTION_CONTEXT* Context
+    );
+#endif // _KERNEL_MODE
 
 //
 // Test Interface for loading a self-signed certificate.

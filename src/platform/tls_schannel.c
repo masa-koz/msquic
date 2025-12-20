@@ -118,6 +118,7 @@ typedef struct _SecPkgCred_ClientCertPolicy
 #define CERT_CHAIN_REVOCATION_CHECK_CHAIN              0x20000000
 #define CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT 0x40000000
 #define CERT_CHAIN_REVOCATION_CHECK_CACHE_ONLY         0x80000000
+#define CERT_CHAIN_DISABLE_AIA                         0x00002000
 
 #define SECPKG_ATTR_REMOTE_CERTIFICATES  0x5F   // returns SecPkgContext_Certificates
 
@@ -753,6 +754,9 @@ CxPlatTlsSetClientCertPolicy(
     }
     if (SecConfig->Flags & QUIC_CREDENTIAL_FLAG_REVOCATION_CHECK_CACHE_ONLY) {
         ClientCertPolicy.dwCertFlags |= CERT_CHAIN_REVOCATION_CHECK_CACHE_ONLY;
+    }
+    if (SecConfig->Flags & QUIC_CREDENTIAL_FLAG_DISABLE_AIA) {
+        ClientCertPolicy.dwCertFlags |= CERT_CHAIN_DISABLE_AIA;
     }
 
     SecStatus =
@@ -3054,7 +3058,7 @@ CxPlatTlsParamGet(
             break;
 
         case QUIC_PARAM_TLS_HANDSHAKE_INFO: {
-            if (*BufferLength < sizeof(QUIC_HANDSHAKE_INFO)) {
+            if (*BufferLength < CXPLAT_STRUCT_SIZE_THRU_FIELD(QUIC_HANDSHAKE_INFO, CipherSuite)) {
                 *BufferLength = sizeof(QUIC_HANDSHAKE_INFO);
                 Status = QUIC_STATUS_BUFFER_TOO_SMALL;
                 break;
@@ -3117,6 +3121,9 @@ CxPlatTlsParamGet(
             HandshakeInfo->KeyExchangeAlgorithm = ConnInfo.aiExch;
             HandshakeInfo->KeyExchangeStrength = ConnInfo.dwExchStrength;
             HandshakeInfo->CipherSuite = CipherInfo.dwCipherSuite;
+            if (CXPLAT_STRUCT_HAS_FIELD(QUIC_HANDSHAKE_INFO, *BufferLength, TlsGroup)) {
+                HandshakeInfo->TlsGroup = CipherInfo.dwKeyType;
+            }
             break;
         }
 

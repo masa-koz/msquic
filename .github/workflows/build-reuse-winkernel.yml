@@ -9,6 +9,10 @@ on:
         required: false
         default: ''
         type: string
+      repo:
+        required: false
+        default: microsoft/msquic
+        type: string
       config:
         required: false
         default: 'Release'
@@ -25,9 +29,8 @@ on:
       os:
         required: false
         type: string
-        default: 'windows-2019'
+        default: 'windows-2022'
         # options:
-        #   - windows-2019
         #   - windows-2022
       arch:
         required: false
@@ -42,15 +45,16 @@ on:
         default: 'schannel'
         type: string
         # options:
+        #   - quictls
         #   - openssl
-        #   - openssl3
         #   - schannel
       build:
         required: false
         default: '' # Empty string means build all
         type: string
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   build-windows-kernel-reuse:
@@ -58,9 +62,9 @@ jobs:
     runs-on: ${{ inputs.os }}
     steps:
     - name: Checkout repository
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       with:
-        repository: microsoft/msquic
+        repository: ${{ inputs.repo}}
         ref: ${{ inputs.ref }}
     - name: Prepare Machine
       shell: pwsh
@@ -88,7 +92,7 @@ jobs:
         Remove-Item artifacts/corenet-ci-main -Recurse -Force -ErrorAction Ignore
         Remove-Item artifacts/xdp -Recurse -Force -ErrorAction Ignore
     - name: Upload build artifacts
-      uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
       with:
         name: ${{ inputs.config }}-${{ inputs.plat }}-${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.tls }}${{ inputs.build }}
         path: artifacts

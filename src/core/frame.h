@@ -103,7 +103,7 @@ extern "C" {
 //
 // Used for determining which errors to count for performance counters.
 //
-inline
+QUIC_INLINE
 BOOLEAN
 QuicErrorIsProtocolError(
     _In_ QUIC_VAR_INT ErrorCode
@@ -156,7 +156,7 @@ typedef enum QUIC_FRAME_TYPE {
     QUIC_FRAME_DATAGRAM_1           = 0x31ULL,
     /* 0x32 to 0xad are unused currently */
     QUIC_FRAME_ACK_FREQUENCY        = 0xafULL,
-    QUIC_FRAME_IMMEDIATE_ACK        = 0xacULL,
+    QUIC_FRAME_IMMEDIATE_ACK        = 0x1fULL,
     /* 0xaf to 0x2f4 are unused currently */
     QUIC_FRAME_TIMESTAMP            = 0x2f5ULL,
     /* 0x2f6 to 0x9f80 are unused currently */
@@ -421,7 +421,7 @@ typedef struct QUIC_STREAM_EX {
 
 } QUIC_STREAM_EX;
 
-inline
+QUIC_INLINE
 uint8_t
 QuicStreamFrameHeaderSize(
     _In_ const QUIC_STREAM_EX * const Frame
@@ -844,11 +844,9 @@ QuicDatagramFrameDecode(
 typedef struct QUIC_ACK_FREQUENCY_EX {
 
     QUIC_VAR_INT SequenceNumber;
-    QUIC_VAR_INT PacketTolerance;
-    QUIC_VAR_INT UpdateMaxAckDelay; // In microseconds (us)
-    BOOLEAN IgnoreOrder;
-    BOOLEAN IgnoreCE;
-
+    QUIC_VAR_INT AckElicitingThreshold;
+    QUIC_VAR_INT RequestedMaxAckDelay; // In microseconds (us)
+    QUIC_VAR_INT ReorderingThreshold;
 } QUIC_ACK_FREQUENCY_EX;
 
 _Success_(return != FALSE)
@@ -940,7 +938,7 @@ QuicObservedAddressFrameDecode(
 //
 // Gets the Stream ID from a Stream related frame.
 //
-inline
+QUIC_INLINE
 _Success_(return != FALSE)
 BOOLEAN
 QuicStreamFramePeekID(
@@ -960,7 +958,7 @@ QuicStreamFramePeekID(
 //
 // Skips over the given Stream related frame.
 //
-inline
+QUIC_INLINE
 _Success_(return != FALSE)
 BOOLEAN
 QuicStreamFrameSkip(

@@ -27,7 +27,6 @@ Abstract:
 #include "datapath_raw_xdp_linux.c.clog.h"
 #endif
 
-
 #define NUM_FRAMES         8192 * 2
 #define CONS_NUM_DESCS     NUM_FRAMES / 2
 #define PROD_NUM_DESCS     NUM_FRAMES / 2
@@ -85,10 +84,10 @@ typedef struct XDP_INTERFACE {
     char IfName[IFNAMSIZ];
 } XDP_INTERFACE;
 
-typedef struct XDP_QUEUE {
+typedef struct CXPLAT_QUEUE {
     XDP_QUEUE_COMMON;
-    DATAPATH_SQE RxIoSqe;
-    DATAPATH_SQE FlushTxSqe;
+    CXPLAT_SQE RxIoSqe;
+    CXPLAT_SQE FlushTxSqe;
 
     CXPLAT_LIST_ENTRY PartitionTxQueue;
     CXPLAT_SLIST_ENTRY PartitionRxPool;
@@ -108,10 +107,10 @@ typedef struct XDP_QUEUE {
     CXPLAT_LOCK CqLock;
 
     struct XskSocketInfo* XskInfo;
-} XDP_QUEUE;
+} CXPLAT_QUEUE;
 
 typedef struct __attribute__((aligned(64))) XDP_RX_PACKET {
-    XDP_QUEUE* Queue;
+    CXPLAT_QUEUE* Queue;
     CXPLAT_ROUTE RouteStorage;
     uint64_t Addr;
     CXPLAT_RECV_DATA RecvData;
@@ -123,14 +122,18 @@ typedef struct __attribute__((aligned(64))) XDP_RX_PACKET {
 typedef struct __attribute__((aligned(64))) XDP_TX_PACKET {
     CXPLAT_SEND_DATA;
     uint64_t UmemRelativeAddr;
-    XDP_QUEUE* Queue;
+    CXPLAT_QUEUE* Queue;
     CXPLAT_LIST_ENTRY Link;
     uint8_t FrameBuffer[MAX_ETH_FRAME_SIZE];
 } XDP_TX_PACKET;
 
+CXPLAT_EVENT_COMPLETION CxPlatPartitionShutdownEventComplete;
+CXPLAT_EVENT_COMPLETION CxPlatQueueRxIoEventComplete;
+CXPLAT_EVENT_COMPLETION CxPlatQueueTxIoEventComplete;
+
 void
 XdpSocketContextSetEvents(
-    _In_ XDP_QUEUE* Queue,
+    _In_ CXPLAT_QUEUE* Queue,
     _In_ int Operation,
     _In_ uint32_t Events
     )
@@ -242,7 +245,7 @@ CxPlatDpRawInterfaceUninitialize(
         "[ xdp][%p] Freeing Interface",
         Interface);
     for (uint32_t i = 0; Interface->Queues != NULL && i < Interface->QueueCount; i++) {
-        XDP_QUEUE *Queue = &Interface->Queues[i];
+        CXPLAT_QUEUE *Queue = &Interface->Queues[i];
 
         QuicTraceLogVerbose(
             QueueFree,
@@ -254,10 +257,10 @@ CxPlatDpRawInterfaceUninitialize(
             if (Queue->XskInfo->Xsk) {
                 if (Queue->Partition && Queue->Partition->EventQ) {
                     epoll_ctl(*Queue->Partition->EventQ, EPOLL_CTL_DEL, xsk_socket__fd(Queue->XskInfo->Xsk), NULL);
-                    CxPlatSqeCleanup(Queue->Partition->EventQ, &Queue->RxIoSqe.Sqe);
-                    CxPlatSqeCleanup(Queue->Partition->EventQ, &Queue->FlushTxSqe.Sqe);
+                    CxPlatSqeCleanup(Queue->Partition->EventQ, &Queue->RxIoSqe);
+                    CxPlatSqeCleanup(Queue->Partition->EventQ, &Queue->FlushTxSqe);
                     if (i == 0) {
-                        CxPlatSqeCleanup(Queue->Partition->EventQ, &Queue->Partition->ShutdownSqe.Sqe);
+                        CxPlatSqeCleanup(Queue->Partition->EventQ, &Queue->Partition->ShutdownSqe);
                     }
                 }
                 xsk_socket__delete(Queue->XskInfo->Xsk);
@@ -526,7 +529,7 @@ CxPlatDpRawInterfaceInitialize(
     CxPlatZeroMemory(Interface->Queues, Interface->QueueCount * sizeof(*Interface->Queues));
 
     for (uint16_t i = 0; i < Interface->QueueCount; i++) {
-        XDP_QUEUE* Queue = &Interface->Queues[i];
+        CXPLAT_QUEUE* Queue = &Interface->Queues[i];
 
         Queue->Interface = Interface;
         CxPlatListInitializeHead(&Queue->TxPool);
@@ -643,11 +646,10 @@ CxPlatDpRawInterfaceUpdateRules(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 size_t
 CxPlatDpRawGetDatapathSize(
-    _In_opt_ const QUIC_EXECUTION_CONFIG* Config
+    _In_ CXPLAT_WORKER_POOL* WorkerPool
     )
 {
-    const uint32_t PartitionCount =
-        (Config && Config->ProcessorCount) ? Config->ProcessorCount : CxPlatProcCount();
+    const uint32_t PartitionCount = CxPlatWorkerPoolGetCount(WorkerPool);
     return sizeof(XDP_DATAPATH) + (PartitionCount * sizeof(XDP_PARTITION));
 }
 
@@ -672,32 +674,20 @@ QUIC_STATUS
 CxPlatDpRawInitialize(
     _Inout_ CXPLAT_DATAPATH_RAW* Datapath,
     _In_ uint32_t ClientRecvContextLength,
-    _In_ CXPLAT_WORKER_POOL* WorkerPool,
-    _In_opt_ const QUIC_EXECUTION_CONFIG* Config
+    _In_ CXPLAT_WORKER_POOL* WorkerPool
     )
 {
     XDP_DATAPATH* Xdp = (XDP_DATAPATH*)Datapath;
-    QUIC_STATUS Status = QUIC_STATUS_SUCCESS;
 
-    if (WorkerPool == NULL) {
-        return QUIC_STATUS_INVALID_PARAMETER;
-    }
-
-    CxPlatXdpReadConfig(Xdp);
     CxPlatListInitializeHead(&Xdp->Interfaces);
-    Xdp->PollingIdleTimeoutUs = Config ? Config->PollingIdleTimeoutUs : 0;
-
-    if (Config && Config->ProcessorCount) {
-        Xdp->PartitionCount = Config->ProcessorCount;
-        for (uint32_t i = 0; i < Xdp->PartitionCount; i++) {
-            Xdp->Partitions[i].Processor = Config->ProcessorList[i];
-        }
-    } else {
-        Xdp->PartitionCount = CxPlatProcCount();
-        for (uint32_t i = 0; i < Xdp->PartitionCount; i++) {
-            Xdp->Partitions[i].Processor = (uint16_t)i;
-        }
+    Xdp->PollingIdleTimeoutUs = 0;
+    Xdp->PartitionCount = CxPlatWorkerPoolGetCount(WorkerPool);
+    for (uint32_t i = 0; i < Xdp->PartitionCount; i++) {
+        Xdp->Partitions[i].Processor = (uint16_t)
+            CxPlatWorkerPoolGetIdealProcessor(WorkerPool, i);
     }
+
+    //CxPlatXdpReadConfig(Xdp); // TODO - Make this more secure
 
     QuicTraceLogVerbose(
         XdpInitialize,
@@ -708,6 +698,7 @@ CxPlatDpRawInitialize(
     struct ifaddrs *ifaddr, *ifa;
     int family;
 
+    QUIC_STATUS Status = QUIC_STATUS_SUCCESS;
     if (getifaddrs(&ifaddr) == -1) {
         return QUIC_STATUS_INTERNAL_ERROR;
     }
@@ -799,40 +790,37 @@ CxPlatDpRawInitialize(
         Partition->Ec.NextTimeUs = UINT64_MAX;
         Partition->Ec.Callback = CxPlatXdpExecute;
         Partition->Ec.Context = &Xdp->Partitions[i];
-        Partition->ShutdownSqe.CqeType = CXPLAT_CQE_TYPE_XDP_SHUTDOWN;
         CxPlatRefIncrement(&Xdp->RefCount);
         CxPlatRundownAcquire(&Xdp->Rundown);
         Partition->EventQ = CxPlatWorkerPoolGetEventQ(WorkerPool, (uint16_t)i);
 
         if (!CxPlatSqeInitialize(
                 Partition->EventQ,
-                &Partition->ShutdownSqe.Sqe,
+                CxPlatPartitionShutdownEventComplete,
                 &Partition->ShutdownSqe)) {
             Status = QUIC_STATUS_INTERNAL_ERROR;
             goto Error;
         }
 
         uint32_t QueueCount = 0;
-        XDP_QUEUE* Queue = Partition->Queues;
+        CXPLAT_QUEUE* Queue = Partition->Queues;
         while (Queue) {
             if (!CxPlatSqeInitialize(
                     Partition->EventQ,
-                    &Queue->RxIoSqe.Sqe,
+                    CxPlatQueueRxIoEventComplete,
                     &Queue->RxIoSqe)) {
                 Status = QUIC_STATUS_INTERNAL_ERROR;
                 goto Error;
             }
-            Queue->RxIoSqe.CqeType = CXPLAT_CQE_TYPE_XDP_IO;
             XdpSocketContextSetEvents(Queue, EPOLL_CTL_ADD, EPOLLIN);
 
             if (!CxPlatSqeInitialize(
                     Partition->EventQ,
-                    &Queue->FlushTxSqe.Sqe,
+                    CxPlatQueueTxIoEventComplete,
                     &Queue->FlushTxSqe)) {
                 Status = QUIC_STATUS_INTERNAL_ERROR;
                 goto Error;
             }
-            Queue->FlushTxSqe.CqeType = CXPLAT_CQE_TYPE_XDP_FLUSH_TX;
 
             ++QueueCount;
             Queue = Queue->Next;
@@ -844,7 +832,8 @@ CxPlatDpRawInitialize(
             Partition,
             QueueCount);
 
-        CxPlatAddExecutionContext(WorkerPool, &Partition->Ec, Partition->PartitionIndex);
+        CxPlatWorkerPoolAddExecutionContext(
+            WorkerPool, &Partition->Ec, Partition->PartitionIndex);
     }
 
 Error:
@@ -911,13 +900,13 @@ CxPlatDpRawUninitialize(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 void
-CxPlatDpRawUpdateConfig(
+CxPlatDpRawUpdatePollingIdleTimeout(
     _In_ CXPLAT_DATAPATH_RAW* Datapath,
-    _In_ QUIC_EXECUTION_CONFIG* Config
+    _In_ uint32_t PollingIdleTimeoutUs
     )
 {
     XDP_DATAPATH* Xdp = (XDP_DATAPATH*)Datapath;
-    Xdp->PollingIdleTimeoutUs = Config->PollingIdleTimeoutUs;
+    Xdp->PollingIdleTimeoutUs = PollingIdleTimeoutUs;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1012,6 +1001,25 @@ CxPlatDpRawPlumbRulesOnSocket(
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+CxPlatDpRawIsL3TxXsumOffloadedOnQueue(
+    _In_ const CXPLAT_QUEUE* Queue
+    )
+{
+    return CxPlatDpRawGetInterfaceFromQueue(Queue)->OffloadStatus.Transmit.NetworkLayerXsum;
+}
+
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+CxPlatDpRawIsL4TxXsumOffloadedOnQueue(
+    _In_ const CXPLAT_QUEUE* Queue
+    )
+{
+    return CxPlatDpRawGetInterfaceFromQueue(Queue)->OffloadStatus.Transmit.TransportLayerXsum;
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
 void
 CxPlatDpRawRxFree(
     _In_opt_ const CXPLAT_RECV_DATA* PacketChain
@@ -1042,15 +1050,12 @@ CxPlatDpRawRxFree(
 _IRQL_requires_max_(DISPATCH_LEVEL)
 CXPLAT_SEND_DATA*
 CxPlatDpRawTxAlloc(
-    _In_ CXPLAT_SOCKET_RAW* Socket,
     _Inout_ CXPLAT_SEND_CONFIG* Config
     )
 {
-    CXPLAT_DBG_ASSERT(Socket != NULL);
     CXPLAT_DBG_ASSERT(Config->MaxPacketSize <= MAX_UDP_PAYLOAD_LENGTH);
-    QUIC_ADDRESS_FAMILY Family = QuicAddrGetFamily(&Config->Route->RemoteAddress);
     XDP_TX_PACKET* Packet = NULL;
-    XDP_QUEUE* Queue = Config->Route->Queue;
+    CXPLAT_QUEUE* Queue = Config->Route->Queue;
     struct XskSocketInfo* XskInfo = Queue->XskInfo;
     CxPlatLockAcquire(&XskInfo->UmemLock);
     uint64_t BaseAddr = XskUmemFrameAlloc(XskInfo);
@@ -1064,12 +1069,13 @@ CxPlatDpRawTxAlloc(
 
     Packet = (XDP_TX_PACKET*)xsk_umem__get_data(XskInfo->UmemInfo->Buffer, BaseAddr);
     if (Packet) {
-        HEADER_BACKFILL HeaderBackfill = CxPlatDpRawCalculateHeaderBackFill(Family, Socket->UseTcp); // TODO - Cache in Route?
+        HEADER_BACKFILL HeaderBackfill = CxPlatDpRawCalculateHeaderBackFill(Config->Route); // TODO - Cache in Route?
         CXPLAT_DBG_ASSERT(Config->MaxPacketSize <= sizeof(Packet->FrameBuffer) - HeaderBackfill.AllLayer);
         Packet->Queue = Queue;
         Packet->Buffer.Length = Config->MaxPacketSize;
         Packet->Buffer.Buffer = &Packet->FrameBuffer[HeaderBackfill.AllLayer];
         Packet->ECN = Config->ECN;
+        Packet->DSCP = Config->DSCP;
         Packet->UmemRelativeAddr = BaseAddr;
         Packet->DatapathType = Config->Route->DatapathType = CXPLAT_DATAPATH_TYPE_RAW;
     }
@@ -1089,7 +1095,7 @@ CxPlatDpRawTxFree(
 
 void
 KickTx(
-    _In_ XDP_QUEUE* Queue,
+    _In_ CXPLAT_QUEUE* Queue,
     _In_ BOOLEAN SendAlreadyPending
     )
 {
@@ -1137,7 +1143,7 @@ CxPlatDpRawTxEnqueue(
     )
 {
     XDP_TX_PACKET* Packet = (XDP_TX_PACKET*)SendData;
-    XDP_QUEUE* Queue = Packet->Queue;
+    CXPLAT_QUEUE* Queue = Packet->Queue;
     XDP_PARTITION* Partition = Queue->Partition;
     struct XskSocketInfo* XskInfo = Queue->XskInfo;
 
@@ -1166,11 +1172,35 @@ CxPlatDpRawTxEnqueue(
     CxPlatWakeExecutionContext(&Partition->Ec);
 }
 
+_IRQL_requires_max_(DISPATCH_LEVEL)
+void
+CxPlatDpRawTxSetL3ChecksumOffload(
+    _In_ CXPLAT_SEND_DATA* SendData
+    )
+{
+    UNREFERENCED_PARAMETER(SendData);
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+void
+CxPlatDpRawTxSetL4ChecksumOffload(
+    _In_ CXPLAT_SEND_DATA* SendData,
+    _In_ BOOLEAN IsIpv6,
+    _In_ BOOLEAN IsTcp,
+    _In_ uint8_t L4HeaderLength
+    )
+{
+    UNREFERENCED_PARAMETER(SendData);
+    UNREFERENCED_PARAMETER(IsIpv6);
+    UNREFERENCED_PARAMETER(IsTcp);
+    UNREFERENCED_PARAMETER(L4HeaderLength);
+}
+
 static
 BOOLEAN // Did work?
 CxPlatXdpTx(
     _In_ const XDP_DATAPATH* Xdp,
-    _In_ XDP_QUEUE* Queue
+    _In_ CXPLAT_QUEUE* Queue
     )
 {
     UNREFERENCED_PARAMETER(Xdp);
@@ -1182,7 +1212,7 @@ static
 BOOLEAN // Did work?
 CxPlatXdpRx(
     _In_ const XDP_DATAPATH* Xdp,
-    _In_ XDP_QUEUE* Queue,
+    _In_ CXPLAT_QUEUE* Queue,
     _In_ uint16_t PartitionIndex
     );
 
@@ -1201,7 +1231,7 @@ CxPlatXdpExecute(
             XdpPartitionShutdown,
             "[ xdp][%p] XDP partition shutdown",
             Partition);
-        CxPlatEventQEnqueue(Partition->EventQ, &Partition->ShutdownSqe.Sqe, &Partition->ShutdownSqe);
+        CxPlatEventQEnqueue(Partition->EventQ, &Partition->ShutdownSqe);
         return FALSE;
     }
 
@@ -1209,7 +1239,7 @@ CxPlatXdpExecute(
         CxPlatTimeDiff64(State->LastWorkTime, State->TimeNow) >= Xdp->PollingIdleTimeoutUs;
 
     BOOLEAN DidWork = FALSE;
-    XDP_QUEUE* Queue = Partition->Queues;
+    CXPLAT_QUEUE* Queue = Partition->Queues;
     while (Queue) {
         DidWork |= CxPlatXdpRx(Xdp, Queue, Partition->PartitionIndex);
         DidWork |= CxPlatXdpTx(Xdp, Queue);
@@ -1235,7 +1265,7 @@ static
 BOOLEAN // Did work?
 CxPlatXdpRx(
     _In_ const XDP_DATAPATH* Xdp,
-    _In_ XDP_QUEUE* Queue,
+    _In_ CXPLAT_QUEUE* Queue,
     _In_ uint16_t PartitionIndex
     )
 {
@@ -1281,6 +1311,7 @@ CxPlatXdpRx(
         // a route lookup.
         //
         Packet->RecvData.Route->State = RouteResolved;
+        CXPLAT_DBG_ASSERT(Packet->RecvData.Route->Queue != NULL);
 
         if (Packet->RecvData.Buffer) {
             Packet->Addr = Addr - (XDP_PACKET_HEADROOM + XskInfo->UmemInfo->RxHeadRoom);
@@ -1334,40 +1365,66 @@ CxPlatXdpRx(
 }
 
 void
-RawDataPathProcessCqe(
+CxPlatPartitionShutdownEventComplete(
     _In_ CXPLAT_CQE* Cqe
     )
 {
-    switch (CxPlatCqeType(Cqe)) {
-    case CXPLAT_CQE_TYPE_XDP_SHUTDOWN: {
-        XDP_PARTITION* Partition =
-            CXPLAT_CONTAINING_RECORD(CxPlatCqeUserData(Cqe), XDP_PARTITION, ShutdownSqe);
-        QuicTraceLogVerbose(
-            XdpPartitionShutdownComplete,
-            "[ xdp][%p] XDP partition shutdown complete",
-            Partition);
-        CxPlatDpRawRelease((XDP_DATAPATH*)Partition->Xdp);
-        break;
-    }
-    case CXPLAT_CQE_TYPE_XDP_IO: {
-        // TODO: use DATAPATH_IO_SQE to distinguish Tx/RX
-        DATAPATH_SQE* Sqe = (DATAPATH_SQE*)CxPlatCqeUserData(Cqe);
-        XDP_QUEUE* Queue;
-        Queue = CXPLAT_CONTAINING_RECORD(Sqe, XDP_QUEUE, RxIoSqe);
-        QuicTraceLogVerbose(
-            XdpQueueAsyncIoRxComplete,
-            "[ xdp][%p] XDP async IO complete (RX)",
-            Queue);
-        if (EPOLLOUT & Cqe->events) {
-            KickTx(Queue, TRUE);
-        } else {
-            Queue->RxQueued = FALSE;
-            Queue->Partition->Ec.Ready = TRUE;
-        }
-        break;
-    }
-    case CXPLAT_CQE_TYPE_XDP_FLUSH_TX: {
+    XDP_PARTITION* Partition =
+        CXPLAT_CONTAINING_RECORD(CxPlatCqeGetSqe(Cqe), XDP_PARTITION, ShutdownSqe);
+    QuicTraceLogVerbose(
+        XdpPartitionShutdownComplete,
+        "[ xdp][%p] XDP partition shutdown complete",
+        Partition);
+    CxPlatDpRawRelease((XDP_DATAPATH*)Partition->Xdp);
+}
 
+void
+CxPlatQueueRxIoEventComplete(
+    _In_ CXPLAT_CQE* Cqe
+    )
+{
+    // TODO: use CQE to distinguish Tx/RX
+    CXPLAT_QUEUE* Queue =
+        CXPLAT_CONTAINING_RECORD(CxPlatCqeGetSqe(Cqe), CXPLAT_QUEUE, RxIoSqe);
+    QuicTraceLogVerbose(
+        XdpQueueAsyncIoRxComplete,
+        "[ xdp][%p] XDP async IO complete (RX)",
+        Queue);
+    if (EPOLLOUT & Cqe->events) {
+        KickTx(Queue, TRUE);
+    } else {
+        Queue->RxQueued = FALSE;
+        Queue->Partition->Ec.Ready = TRUE;
     }
-    }
+}
+
+void
+CxPlatQueueTxIoEventComplete(
+    _In_ CXPLAT_CQE* Cqe
+    )
+{
+    UNREFERENCED_PARAMETER(Cqe); // TODO - Use this?
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatDataPathRssConfigGet(
+    _In_ uint32_t InterfaceIndex,
+    _Outptr_ _At_(*RssConfig, __drv_allocatesMem(Mem))
+        CXPLAT_RSS_CONFIG** RssConfig
+    )
+{
+    UNREFERENCED_PARAMETER(InterfaceIndex);
+    UNREFERENCED_PARAMETER(RssConfig);
+    return QUIC_STATUS_NOT_SUPPORTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+CxPlatDataPathRssConfigFree(
+    _In_ CXPLAT_RSS_CONFIG* RssConfig
+    )
+{
+    UNREFERENCED_PARAMETER(RssConfig);
+    CXPLAT_FRE_ASSERTMSG(FALSE, "CxPlatDataPathRssConfigFree not supported");
 }

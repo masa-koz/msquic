@@ -426,7 +426,7 @@ size_t QUIC_IOCTL_BUFFER_SIZES[] =
     sizeof(uint32_t),
     sizeof(uint32_t),
     sizeof(INT32),
-    sizeof(QUIC_RUN_KEY_UPDATE_PARAMS),
+    sizeof(INT32),
     0,
     sizeof(INT32),
     sizeof(QUIC_RUN_ABORTIVE_SHUTDOWN_PARAMS),
@@ -524,6 +524,19 @@ size_t QUIC_IOCTL_BUFFER_SIZES[] =
     0,
     0,
     sizeof(BOOLEAN),
+    sizeof(INT32),
+    sizeof(INT32),                           // IOCTL_QUIC_RUN_TEST_ADDR_FUNCTIONS
+    0,
+    0,
+    sizeof(INT32),
+    sizeof(INT32),
+    sizeof(QUIC_RUN_CONNECTION_POOL_CREATE_PARAMS),
+    0,
+    0,
+    0,
+    0,
+    0,
+    sizeof(INT32),
 };
 
 CXPLAT_STATIC_ASSERT(
@@ -538,7 +551,6 @@ typedef union {
     INT32 Family;
     QUIC_RUN_CONNECT_PARAMS Params1;
     QUIC_RUN_CONNECT_AND_PING_PARAMS Params2;
-    QUIC_RUN_KEY_UPDATE_PARAMS Params3;
     QUIC_RUN_ABORTIVE_SHUTDOWN_PARAMS Params4;
     QUIC_RUN_CID_UPDATE_PARAMS Params5;
     QUIC_RUN_RECEIVE_RESUME_PARAMS Params6;
@@ -565,6 +577,7 @@ typedef union {
     QUIC_HANDSHAKE_LOSS_PARAMS HandshakeLossParams;
     BOOLEAN ClientShutdown;
     BOOLEAN EnableResumption;
+    QUIC_RUN_CONNECTION_POOL_CREATE_PARAMS ConnPoolCreateParams;
 } QUIC_IOCTL_PARAMS;
 
 #define QuicTestCtlRun(X) \
@@ -690,6 +703,25 @@ QuicTestCtlEvtIoDeviceControl(
                 nullptr,
                 nullptr,
                 STRSAFE_NULL_ON_FAILURE);
+
+#if defined(QUIC_API_ENABLE_PREVIEW_FEATURES)
+        // TODO - XDP stuff, if/when supported
+#endif
+        {
+            //
+            // We don't want to hinge the result of 'Status = ' on this setparam call because
+            // this SetParam will only succeed the first time, before the datapath initializes.
+            // User mode tests already ensure at most 1 setparam call. But in Kernel mode, this IOCTL
+            // can be invoked many times.
+            // If the datapath is already initialized, this setparam call should fail silently.
+            //
+            BOOLEAN EnableDscpRecvOption = TRUE;
+            MsQuic->SetParam(
+                    nullptr,
+                    QUIC_PARAM_GLOBAL_DATAPATH_DSCP_RECV_ENABLED,
+                    sizeof(BOOLEAN),
+                    &EnableDscpRecvOption);
+        }
         break;
 
     case IOCTL_QUIC_SET_CERT_PARAMS:
@@ -759,6 +791,10 @@ QuicTestCtlEvtIoDeviceControl(
         CXPLAT_FRE_ASSERT(Params != nullptr);
         QuicTestCtlRun(QuicTestBindConnectionExplicit(Params->Family));
         break;
+    case IOCTL_QUIC_RUN_TEST_ADDR_FUNCTIONS:
+        CXPLAT_FRE_ASSERT(Params != nullptr);
+        QuicTestCtlRun(QuicTestAddrFunctions(Params->Family));
+        break;
 
     case IOCTL_QUIC_RUN_CONNECT:
         CXPLAT_FRE_ASSERT(Params != nullptr);
@@ -793,7 +829,8 @@ QuicTestCtlEvtIoDeviceControl(
                 Params->Params2.UseSendBuffer != 0,
                 Params->Params2.UnidirectionalStreams != 0,
                 Params->Params2.ServerInitiatedStreams != 0,
-                Params->Params2.FifoScheduling != 0
+                Params->Params2.FifoScheduling != 0,
+                Params->Params2.SendUdpToQtipListener != 0
                 ));
         break;
 
@@ -843,16 +880,14 @@ QuicTestCtlEvtIoDeviceControl(
         break;
 #endif
 
+    case IOCTL_QUIC_RUN_FORCE_KEY_UPDATE:
+        CXPLAT_FRE_ASSERT(Params != nullptr);
+        QuicTestCtlRun(QuicTestForceKeyUpdate(Params->Family));
+        break;
+
     case IOCTL_QUIC_RUN_KEY_UPDATE:
         CXPLAT_FRE_ASSERT(Params != nullptr);
-        QuicTestCtlRun(
-            QuicTestKeyUpdate(
-                Params->Params3.Family,
-                Params->Params3.Iterations,
-                Params->Params3.KeyUpdateBytes,
-                Params->Params3.UseKeyUpdateBytes != 0,
-                Params->Params3.ClientKeyUpdate != 0,
-                Params->Params3.ServerKeyUpdate != 0));
+        QuicTestCtlRun(QuicTestKeyUpdate(Params->Family));
         break;
 
     case IOCTL_QUIC_RUN_VALIDATE_API:
@@ -939,6 +974,13 @@ QuicTestCtlEvtIoDeviceControl(
         CXPLAT_FRE_ASSERT(Params != nullptr);
         QuicTestCtlRun(
             QuicTestDatagramSend(
+                Params->Family));
+        break;
+
+    case IOCTL_QUIC_RUN_DATAGRAM_DROP:
+        CXPLAT_FRE_ASSERT(Params != nullptr);
+        QuicTestCtlRun(
+            QuicTestDatagramDrop(
                 Params->Family));
         break;
 
@@ -1481,6 +1523,56 @@ QuicTestCtlEvtIoDeviceControl(
     case IOCTL_QUIC_RUN_VALIDATE_TLS_HANDSHAKE_INFO:
         CXPLAT_FRE_ASSERT(Params != nullptr);
         QuicTestCtlRun(QuicTestTlsHandshakeInfo(Params->EnableResumption != 0));
+        break;
+
+#ifdef QUIC_API_ENABLE_PREVIEW_FEATURES
+    case IOCTL_QUIC_RUN_STREAM_APP_PROVIDED_BUFFERS:
+        QuicTestCtlRun(QuicTestStreamAppProvidedBuffers());
+        break;
+
+    case IOCTL_QUIC_RUN_STREAM_APP_PROVIDED_BUFFERS_OUT_OF_SPACE:
+        QuicTestCtlRun(QuicTestStreamAppProvidedBuffersOutOfSpace());
+        break;
+
+    case IOCTL_QUIC_RUN_CONNECTION_POOL_CREATE:
+        CXPLAT_FRE_ASSERT(Params != nullptr);
+        QuicTestCtlRun(
+            QuicTestConnectionPoolCreate(
+                Params->ConnPoolCreateParams.Family,
+                Params->ConnPoolCreateParams.NumberOfConnections,
+                Params->ConnPoolCreateParams.XdpSupported,
+                Params->ConnPoolCreateParams.TestCibirSupport));
+        break;
+
+    case IOCTL_QUIC_RUN_VALIDATE_CONNECTION_POOL_CREATE:
+        QuicTestCtlRun(QuicTestValidateConnectionPoolCreate());
+        break;
+
+    case IOCTL_QUIC_RUN_VALIDATE_EXECUTION_CONTEXT:
+        QuicTestCtlRun(QuicTestValidateExecutionContext());
+        break;
+
+    case IOCTL_QUIC_RUN_VALIDATE_PARTITION:
+        QuicTestCtlRun(QuicTestValidatePartition());
+        break;
+
+    case IOCTL_QUIC_RUN_REGISTRATION_OPEN_CLOSE:
+        QuicTestCtlRun(QuicTestRegistrationOpenClose());
+        break;
+#endif
+
+    case IOCTL_QUIC_RUN_TEST_KEY_UPDATE_DURING_HANDSHAKE:
+        CXPLAT_FRE_ASSERT(Params != nullptr);
+        QuicTestCtlRun(QuicDrillTestKeyUpdateDuringHandshake(Params->Family));
+        break;
+
+    case IOCTL_QUIC_RUN_RETRY_MEMORY_LIMIT_CONNECT:
+        CXPLAT_FRE_ASSERT(Params != nullptr);
+        QuicTestCtlRun(QuicTestRetryMemoryLimitConnect(Params->Family));
+        break;
+
+    case IOCTL_QUIC_RUN_RETRY_CONFIG_SETTING:
+        QuicTestCtlRun(QuicTestRetryConfigSetting());
         break;
 
     default:

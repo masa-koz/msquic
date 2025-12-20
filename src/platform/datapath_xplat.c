@@ -22,7 +22,7 @@ CxPlatDataPathInitialize(
     _In_opt_ const CXPLAT_UDP_DATAPATH_CALLBACKS* UdpCallbacks,
     _In_opt_ const CXPLAT_TCP_DATAPATH_CALLBACKS* TcpCallbacks,
     _In_ CXPLAT_WORKER_POOL* WorkerPool,
-    _In_opt_ QUIC_EXECUTION_CONFIG* Config,
+    _In_ CXPLAT_DATAPATH_INIT_CONFIG* InitConfig,
     _Out_ CXPLAT_DATAPATH** NewDataPath
     )
 {
@@ -38,7 +38,7 @@ CxPlatDataPathInitialize(
             UdpCallbacks,
             TcpCallbacks,
             WorkerPool,
-            Config,
+            InitConfig,
             NewDataPath);
     if (QUIC_FAILED(Status)) {
         QuicTraceLogVerbose(
@@ -47,23 +47,14 @@ CxPlatDataPathInitialize(
         goto Error;
     }
 
-    if (Config && Config->Flags & QUIC_EXECUTION_CONFIG_FLAG_XDP) {
-        Status =
-            RawDataPathInitialize(
-                ClientRecvContextLength,
-                Config,
-                (*NewDataPath),
-                WorkerPool,
-                &((*NewDataPath)->RawDataPath));
-        if (QUIC_FAILED(Status)) {
-            QuicTraceLogVerbose(
-                RawDatapathInitFail,
-                "[ raw] Failed to initialize raw datapath, status:%d", Status);
-            (*NewDataPath)->RawDataPath = NULL;
-            CxPlatDataPathUninitialize(*NewDataPath);
-            *NewDataPath = NULL;
-        }
-    }
+    //
+    // Best effort try to initialize the raw datapath.
+    //
+    RawDataPathInitialize(
+        ClientRecvContextLength,
+        *NewDataPath,
+        WorkerPool,
+        &((*NewDataPath)->RawDataPath));
 
 Error:
 
@@ -84,24 +75,26 @@ CxPlatDataPathUninitialize(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 void
-CxPlatDataPathUpdateConfig(
+CxPlatDataPathUpdatePollingIdleTimeout(
     _In_ CXPLAT_DATAPATH* Datapath,
-    _In_ QUIC_EXECUTION_CONFIG* Config
+    _In_ uint32_t PollingIdleTimeoutUs
     )
 {
-    DataPathUpdateConfig(Datapath, Config);
+    DataPathUpdatePollingIdleTimeout(Datapath, PollingIdleTimeoutUs);
     if (Datapath->RawDataPath) {
-        RawDataPathUpdateConfig(Datapath->RawDataPath, Config);
+        RawDataPathUpdatePollingIdleTimeout(
+            Datapath->RawDataPath, PollingIdleTimeoutUs);
     }
 }
 
 _IRQL_requires_max_(DISPATCH_LEVEL)
-uint32_t
+CXPLAT_DATAPATH_FEATURES
 CxPlatDataPathGetSupportedFeatures(
-    _In_ CXPLAT_DATAPATH* Datapath
+    _In_ CXPLAT_DATAPATH* Datapath,
+    _In_ CXPLAT_SOCKET_FLAGS SocketFlags
     )
 {
-    if (Datapath->RawDataPath) {
+    if (Datapath->RawDataPath && (SocketFlags & CXPLAT_SOCKET_FLAG_XDP)) {
         return DataPathGetSupportedFeatures(Datapath) |
                RawDataPathGetSupportedFeatures(Datapath->RawDataPath);
     }
@@ -116,10 +109,10 @@ CxPlatDataPathIsPaddingPreferred(
     )
 {
     CXPLAT_DBG_ASSERT(
-        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ||
+        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ||
         DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_RAW);
     return
-        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ?
+        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ?
             DataPathIsPaddingPreferred(Datapath) : RawDataPathIsPaddingPreferred(Datapath);
 }
 
@@ -132,37 +125,54 @@ CxPlatSocketCreateUdp(
     )
 {
     QUIC_STATUS Status = QUIC_STATUS_SUCCESS;
+    BOOLEAN CreateRaw = Config->Flags & CXPLAT_SOCKET_FLAG_XDP;
 
-    Status =
-        SocketCreateUdp(
-            Datapath,
-            Config,
-            NewSocket);
-    if (QUIC_FAILED(Status)) {
-        QuicTraceLogVerbose(
-            SockCreateFail,
-            "[sock] Failed to create socket, status:%d", Status);
-        goto Error;
-    }
-
-    (*NewSocket)->RawSocketAvailable = 0;
-    if (Datapath->RawDataPath) {
+    //
+    // In a real production (XDP/QTIP+XDP) scenario, we never have to loop more than once
+    // because server admins will ensure whatever port they are binding to is available.
+    // The reason we have this loop is to eliminate test flakiness. The tests treat server
+    // sockets the same as client sockets, in that they bind to some random free UDP port.
+    // However, what's free in UDP may not be free in TCP. So we loop until we find a free port.
+    //
+    for (uint32_t TryCount = 0; TryCount < 1000; TryCount++) {
         Status =
-            RawSocketCreateUdp(
-                Datapath->RawDataPath,
+            SocketCreateUdp(
+                Datapath,
                 Config,
-                CxPlatSocketToRaw(*NewSocket));
-        (*NewSocket)->RawSocketAvailable = QUIC_SUCCEEDED(Status);
+                NewSocket);
         if (QUIC_FAILED(Status)) {
             QuicTraceLogVerbose(
-                RawSockCreateFail,
-                "[sock] Failed to create raw socket, status:%d", Status);
-            if (Datapath->UseTcp) {
-                CxPlatSocketDelete(*NewSocket);
+                SockCreateFail,
+                "[sock] Failed to create socket, status:%d", Status);
+            goto Error;
+        }
+
+        (*NewSocket)->RawSocketAvailable = 0;
+        if (CreateRaw && Datapath->RawDataPath) {
+            Status =
+                RawSocketCreateUdp(
+                    Datapath->RawDataPath,
+                    Config,
+                    CxPlatSocketToRaw(*NewSocket));
+            (*NewSocket)->RawSocketAvailable = QUIC_SUCCEEDED(Status);
+            if (QUIC_FAILED(Status)) {
+                QuicTraceLogVerbose(
+                    RawSockCreateFail,
+                    "[sock] Failed to create raw socket, status:%d", Status);
+                BOOLEAN IsWildcardAddr = Config->LocalAddress == NULL || QuicAddrIsWildCard(Config->LocalAddress);
+                if (IsWildcardAddr && (Config->Flags & CXPLAT_SOCKET_FLAG_QTIP)) {
+                    CxPlatSocketDelete(*NewSocket);
+                    continue;
+                }
+                if (!(Config->Flags & CXPLAT_SOCKET_FLAG_QTIP)) {
+                    Status = QUIC_STATUS_SUCCESS; // Silently fail non-QTIP raw socket creation.
+                } else {
+                    CxPlatSocketDelete(*NewSocket);
+                }
                 goto Error;
             }
-            Status = QUIC_STATUS_SUCCESS;
         }
+        break;
     }
 
 Error:
@@ -218,13 +228,14 @@ CxPlatSocketDelete(
 _IRQL_requires_max_(DISPATCH_LEVEL)
 uint16_t
 CxPlatSocketGetLocalMtu(
-    _In_ CXPLAT_SOCKET* Socket
+    _In_ CXPLAT_SOCKET* Socket,
+    _In_ CXPLAT_ROUTE* Route
     )
 {
     CXPLAT_DBG_ASSERT(Socket != NULL);
-    if (Socket->UseTcp || (Socket->RawSocketAvailable &&
+    if (Route->UseQTIP || (Socket->RawSocketAvailable &&
         !IS_LOOPBACK(Socket->RemoteAddress))) {
-        return RawSocketGetLocalMtu(CxPlatSocketToRaw(Socket));
+        return RawSocketGetLocalMtu(Route);
     }
     return Socket->Mtu;
 }
@@ -270,9 +281,9 @@ CxPlatRecvDataReturn(
         return;
     }
     CXPLAT_DBG_ASSERT(
-        RecvDataChain->DatapathType == CXPLAT_DATAPATH_TYPE_USER ||
+        RecvDataChain->DatapathType == CXPLAT_DATAPATH_TYPE_NORMAL ||
         RecvDataChain->DatapathType == CXPLAT_DATAPATH_TYPE_RAW);
-    RecvDataChain->DatapathType == CXPLAT_DATAPATH_TYPE_USER ?
+    RecvDataChain->DatapathType == CXPLAT_DATAPATH_TYPE_NORMAL ?
         RecvDataReturn(RecvDataChain) : RawRecvDataReturn(RecvDataChain);
 }
 
@@ -286,10 +297,10 @@ CxPlatSendDataAlloc(
 {
     CXPLAT_SEND_DATA* SendData = NULL;
     // TODO: fallback?
-    if (Socket->UseTcp || Config->Route->DatapathType == CXPLAT_DATAPATH_TYPE_RAW ||
+    if (Config->Route->DatapathType == CXPLAT_DATAPATH_TYPE_RAW ||
         (Config->Route->DatapathType == CXPLAT_DATAPATH_TYPE_UNKNOWN &&
         Socket->RawSocketAvailable && !IS_LOOPBACK(Config->Route->RemoteAddress))) {
-        SendData = RawSendDataAlloc(CxPlatSocketToRaw(Socket), Config);
+        SendData = RawSendDataAlloc(Config);
     } else {
         SendData = SendDataAlloc(Socket, Config);
     }
@@ -303,9 +314,9 @@ CxPlatSendDataFree(
     )
 {
     CXPLAT_DBG_ASSERT(
-        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ||
+        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ||
         DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_RAW);
-    DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ?
+    DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ?
     SendDataFree(SendData) : RawSendDataFree(SendData);
 }
 
@@ -318,10 +329,10 @@ CxPlatSendDataAllocBuffer(
     )
 {
     CXPLAT_DBG_ASSERT(
-        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ||
+        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ||
         DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_RAW);
     return
-        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ?
+        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ?
         SendDataAllocBuffer(SendData, MaxBufferLength) : RawSendDataAllocBuffer(SendData, MaxBufferLength);
 }
 
@@ -333,9 +344,9 @@ CxPlatSendDataFreeBuffer(
     )
 {
     CXPLAT_DBG_ASSERT(
-        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ||
+        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ||
         DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_RAW);
-    DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ?
+    DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ?
     SendDataFreeBuffer(SendData, Buffer) : RawSendDataFreeBuffer(SendData, Buffer);
 }
 
@@ -346,9 +357,9 @@ CxPlatSendDataIsFull(
     )
 {
     CXPLAT_DBG_ASSERT(
-        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ||
+        DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ||
         DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_RAW);
-    return DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER ?
+    return DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL ?
         SendDataIsFull(SendData) : RawSendDataIsFull(SendData);
 }
 
@@ -360,7 +371,7 @@ CxPlatSocketSend(
     _In_ CXPLAT_SEND_DATA* SendData
     )
 {
-    if (DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_USER) {
+    if (DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_NORMAL) {
         SocketSend(Socket, Route, SendData);
      } else {
         CXPLAT_DBG_ASSERT(DatapathType(SendData) == CXPLAT_DATAPATH_TYPE_RAW);
@@ -378,7 +389,7 @@ QuicCopyRouteInfo(
     if (SrcRoute->DatapathType == CXPLAT_DATAPATH_TYPE_RAW) {
         CxPlatCopyMemory(DstRoute, SrcRoute, (uint8_t*)&SrcRoute->State - (uint8_t*)SrcRoute);
         CxPlatUpdateRoute(DstRoute, SrcRoute);
-    } else if (SrcRoute->DatapathType == CXPLAT_DATAPATH_TYPE_USER) {
+    } else if (SrcRoute->DatapathType == CXPLAT_DATAPATH_TYPE_NORMAL) {
         *DstRoute = *SrcRoute;
     } else {
         CXPLAT_DBG_ASSERT(FALSE);
@@ -393,7 +404,7 @@ CxPlatResolveRouteComplete(
     _In_ uint8_t PathId
     )
 {
-    CXPLAT_DBG_ASSERT(Route->DatapathType != CXPLAT_DATAPATH_TYPE_USER);
+    CXPLAT_DBG_ASSERT(Route->DatapathType != CXPLAT_DATAPATH_TYPE_NORMAL);
     if (Route->State != RouteResolved) {
         RawResolveRouteComplete(Context, Route, PhysicalAddress, PathId);
     }
@@ -412,7 +423,26 @@ CxPlatResolveRoute(
     _In_ CXPLAT_ROUTE_RESOLUTION_CALLBACK_HANDLER Callback
     )
 {
-    if (Socket->UseTcp || Route->DatapathType == CXPLAT_DATAPATH_TYPE_RAW ||
+    if (Socket->HasFixedRemoteAddress) {
+        //
+        // For clients,
+        // It must be true that Route->UseQTIP == Socket->ReserveAuxTcpSock because client
+        // connections can only send/recv either UDP or TCP traffic.
+        //
+        // For servers,
+        // It could be the case that Route->UseQTIP != Socket->ReserveAuxTcpSock. The state of
+        // Socket->ReserveAuxTcpSock simply determines whether or not we initialize an auxiliary TCP socket
+        // to prevent XDP from hijacking traffic from other processes. Therefore, servers rely
+        // on the receive path to set Route->UseQTIP, depending on the type of XDP traffic it sees.
+        //
+        Route->UseQTIP = Socket->ReserveAuxTcpSock;
+    }
+
+    #if defined(_KERNEL_MODE) || defined(CX_PLATFORM_LINUX) || defined(CX_PLATFORM_DARWIN)
+    CXPLAT_DBG_ASSERT(Route->UseQTIP == FALSE);
+    #endif
+
+    if (Route->UseQTIP || Route->DatapathType == CXPLAT_DATAPATH_TYPE_RAW ||
         (Route->DatapathType == CXPLAT_DATAPATH_TYPE_UNKNOWN &&
         Socket->RawSocketAvailable && !IS_LOOPBACK(Route->RemoteAddress))) {
         return RawResolveRoute(CxPlatSocketToRaw(Socket), Route, PathId, Context, Callback);

@@ -15,7 +15,7 @@ Abstract:
 #include "Tcp.h"
 
 const MsQuicApi* MsQuic;
-CXPLAT_WORKER_POOL WorkerPool;
+CXPLAT_WORKER_POOL* WorkerPool;
 CXPLAT_DATAPATH* Datapath;
 CxPlatWatchdog* Watchdog;
 PerfServer* Server;
@@ -29,10 +29,41 @@ uint8_t PerfDefaultEcnEnabled = false;
 uint8_t PerfDefaultQeoAllowed = false;
 uint8_t PerfDefaultHighPriority = false;
 uint8_t PerfDefaultAffinitizeThreads = false;
+uint8_t PerfDefaultDscpValue = 0;
 
 #ifdef _KERNEL_MODE
 volatile int BufferCurrent;
 char Buffer[BufferLength];
+static inline LONG _strtol(const CHAR* nptr, CHAR** endptr, int base) {
+    UNREFERENCED_PARAMETER(base);
+    ULONG temp;
+    RtlCharToInteger(nptr, base, &temp);
+    if (endptr != NULL) {
+        const CHAR* ptr = nptr;
+        while (*ptr >= '0' && *ptr <= '9') {
+            ptr++;
+        }
+        *endptr = (CHAR*)ptr;
+    }
+    return (LONG)temp;
+}
+
+static inline ULONG _strtoul(const CHAR* nptr, CHAR** endptr, int base) {
+    UNREFERENCED_PARAMETER(base);
+    ULONG temp;
+    RtlCharToInteger(nptr, base, &temp);
+    if (endptr != NULL) {
+        const CHAR* ptr = nptr;
+        while (*ptr >= '0' && *ptr <= '9') {
+            ptr++;
+        }
+        *endptr = (CHAR*)ptr;
+    }
+    return temp;
+}
+#else
+#define _strtol strtol
+#define _strtoul strtoul
 #endif
 
 static
@@ -49,6 +80,10 @@ PrintHelp(
         "  -port:<####>             The UDP port of the server. Ignored if \"bind\" is passed. (def:%u)\n"
         "  -serverid:<####>         The ID of the server (used for load balancing).\n"
         "  -cibir:<hex_bytes>       A CIBIR well-known idenfitier.\n"
+        "  -delay:<####>[unit]      Delay, with an optional unit (def unit is us), to be introduced before the server responds to a request.\n"
+        "  -delayType:<fixed/variable>    Optional delay type can be specified in conjunction with the 'delay' argument.\n"
+        "                                 'fixed' - introduce the specified delay for each request (default).\n"
+        "                                 'variable'- introduce a statistical variability to the specified delay (user mode only).\n"
         "\n"
         "Client: secnetperf -target:<hostname/ip> [options]\n"
         "\n"
@@ -78,6 +113,8 @@ PrintHelp(
         "  -platency<0/1>           Print latency statistics. (def:0)\n"
         "\n"
         "  Scenario options:\n"
+        "  -scenario:<profile>      Scenario profile to use.\n"
+        "                            - {upload, download, hps, rps, rps-multi, latency}.\n"
         "  -conns:<####>            The number of connections to use. (def:1)\n"
         "  -streams:<####>          The number of streams to send on at a time. (def:0)\n"
         "  -upload:<####>[unit]     The length of bytes to send on each stream, with an optional (time or length) unit. (def:0)\n"
@@ -98,11 +135,15 @@ PrintHelp(
         "  -qeo:<0/1>               Allows/disallowes QUIC encryption offload. (def:0)\n"
 #ifndef _KERNEL_MODE
         "  -io:<mode>               Configures a requested network IO model to be used.\n"
-        "                            - {iocp, rio, xdp, qtip, wsk, epoll, kqueue}\n"
+        "                            - {iocp, xdp, qtip, epoll, iouring, kqueue}\n"
+#else
+        "  -io:<mode>               Configures a requested network IO model to be used.\n"
+        "                            - {wsk}\n"
+#endif // _KERNEL_MODE
         "  -cpu:<cpu_index>         Specify the processor(s) to use.\n"
         "  -cipher:<value>          Decimal value of 1 or more QUIC_ALLOWED_CIPHER_SUITE_FLAGS.\n"
         "  -highpri:<0/1>           Configures MsQuic to run threads at high priority. (def:0)\n"
-#endif // _KERNEL_MODE
+        "  -dscp:<0-63>             Specify DSCP value to mark sent packets with. (def:0)\n"
         "\n",
         PERF_DEFAULT_PORT,
         PERF_DEFAULT_PORT
@@ -138,33 +179,27 @@ QuicMainStart(
         return Status;
     }
 
-    uint8_t RawConfig[QUIC_EXECUTION_CONFIG_MIN_SIZE + 256 * sizeof(uint16_t)] = {0};
-    QUIC_EXECUTION_CONFIG* Config = (QUIC_EXECUTION_CONFIG*)RawConfig;
+    uint8_t RawConfig[QUIC_GLOBAL_EXECUTION_CONFIG_MIN_SIZE + 256 * sizeof(uint16_t)] = {0};
+    QUIC_GLOBAL_EXECUTION_CONFIG* Config = (QUIC_GLOBAL_EXECUTION_CONFIG*)RawConfig;
     Config->PollingIdleTimeoutUs = 0; // Default to no polling.
     bool SetConfig = false;
 
-#ifndef _KERNEL_MODE
     const char* IoMode = GetValue(argc, argv, "io");
-
-    if (IoMode && IsValue(IoMode, "qtip")) {
-        Config->Flags |= QUIC_EXECUTION_CONFIG_FLAG_QTIP;
-        SetConfig = true;
-    }
-
-    if (IoMode && IsValue(IoMode, "rio")) {
-        Config->Flags |= QUIC_EXECUTION_CONFIG_FLAG_RIO;
-        SetConfig = true;
-    }
-
-    if (IoMode && IsValue(IoMode, "xdp")) {
-        Config->Flags |= QUIC_EXECUTION_CONFIG_FLAG_XDP;
-        SetConfig = true;
+    if (IoMode) {
+        MsQuicSettings Settings;
+        if (IsValue(IoMode, "xdp")) {
+            Settings.SetXdpEnabled(true);
+        } else if (IsValue(IoMode, "qtip")) {
+            Settings.SetXdpEnabled(true);
+            Settings.SetQtipEnabled(true);
+        }
+        Settings.SetGlobal();
     }
 
     const char* CpuStr;
     if ((CpuStr = GetValue(argc, argv, "cpu")) != nullptr) {
         SetConfig = true;
-        if (strtol(CpuStr, nullptr, 10) == -1) {
+        if (_strtol(CpuStr, nullptr, 10) == -1) {
             for (uint32_t i = 0; i < CxPlatProcCount() && Config->ProcessorCount < 256; ++i) {
                 Config->ProcessorList[Config->ProcessorCount++] = (uint16_t)i;
             }
@@ -172,23 +207,22 @@ QuicMainStart(
             do {
                 if (*CpuStr == ',') CpuStr++;
                 Config->ProcessorList[Config->ProcessorCount++] =
-                    (uint16_t)strtoul(CpuStr, (char**)&CpuStr, 10);
+                    (uint16_t)_strtoul(CpuStr, (char**)&CpuStr, 10);
             } while (*CpuStr && Config->ProcessorCount < 256);
         }
     }
 
     TryGetValue(argc, argv, "highpri", &PerfDefaultHighPriority);
     if (PerfDefaultHighPriority) {
-        Config->Flags |= QUIC_EXECUTION_CONFIG_FLAG_HIGH_PRIORITY;
+        Config->Flags |= QUIC_GLOBAL_EXECUTION_CONFIG_FLAG_HIGH_PRIORITY;
         SetConfig = true;
     }
 
     TryGetValue(argc, argv, "affinitize", &PerfDefaultAffinitizeThreads);
     if (PerfDefaultHighPriority) {
-        Config->Flags |= QUIC_EXECUTION_CONFIG_FLAG_AFFINITIZE;
+        Config->Flags |= QUIC_GLOBAL_EXECUTION_CONFIG_FLAG_AFFINITIZE;
         SetConfig = true;
     }
-#endif // _KERNEL_MODE
 
     if (TryGetValue(argc, argv, "pollidle", &Config->PollingIdleTimeoutUs)) {
         SetConfig = true;
@@ -200,10 +234,29 @@ QuicMainStart(
         MsQuic->SetParam(
             nullptr,
             QUIC_PARAM_GLOBAL_EXECUTION_CONFIG,
-            (uint32_t)QUIC_EXECUTION_CONFIG_MIN_SIZE + Config->ProcessorCount * sizeof(uint16_t),
+            (uint32_t)QUIC_GLOBAL_EXECUTION_CONFIG_MIN_SIZE + Config->ProcessorCount * sizeof(uint16_t),
             Config))) {
         WriteOutput("Failed to set execution config %d\n", Status);
         return Status;
+    }
+
+    const char* ScenarioStr = GetValue(argc, argv, "scenario");
+    if (ScenarioStr != nullptr) {
+        if (IsValue(ScenarioStr, "upload") ||
+            IsValue(ScenarioStr, "download") ||
+            IsValue(ScenarioStr, "hps")) {
+            PerfDefaultExecutionProfile = QUIC_EXECUTION_PROFILE_TYPE_MAX_THROUGHPUT;
+            TcpDefaultExecutionProfile = TCP_EXECUTION_PROFILE_MAX_THROUGHPUT;
+        } else if (
+            IsValue(ScenarioStr, "rps") ||
+            IsValue(ScenarioStr, "rps-multi") ||
+            IsValue(ScenarioStr, "latency")) {
+            PerfDefaultExecutionProfile = QUIC_EXECUTION_PROFILE_LOW_LATENCY;
+            TcpDefaultExecutionProfile = TCP_EXECUTION_PROFILE_LOW_LATENCY;
+        } else {
+            WriteOutput("Failed to parse scenario profile[%s]!\n", ScenarioStr);
+            return QUIC_STATUS_INVALID_PARAMETER;
+        }
     }
 
     const char* ExecStr = GetValue(argc, argv, "exec");
@@ -219,7 +272,8 @@ QuicMainStart(
         } else if (IsValue(ExecStr, "realtime")) {
             PerfDefaultExecutionProfile = QUIC_EXECUTION_PROFILE_TYPE_REAL_TIME;
         } else {
-            WriteOutput("Failed to parse execution profile[%s], use lowlat as default for QUIC, lowlat as default for TCP.\n", ExecStr);
+            WriteOutput("Failed to parse execution profile[%s]!\n", ExecStr);
+            return QUIC_STATUS_INVALID_PARAMETER;
         }
     }
 
@@ -236,21 +290,31 @@ QuicMainStart(
 
     TryGetValue(argc, argv, "ecn", &PerfDefaultEcnEnabled);
     TryGetValue(argc, argv, "qeo", &PerfDefaultQeoAllowed);
+    TryGetValue(argc, argv, "dscp", &PerfDefaultDscpValue);
+    if (PerfDefaultDscpValue > CXPLAT_MAX_DSCP) {
+        WriteOutput("DSCP Value %u is outside the valid range (0-63). Using 0.\n", PerfDefaultDscpValue);
+        PerfDefaultDscpValue = 0;
+    }
 
     uint32_t WatchdogTimeout = 0;
     if (TryGetValue(argc, argv, "watchdog", &WatchdogTimeout) && WatchdogTimeout != 0) {
         Watchdog = new(std::nothrow) CxPlatWatchdog(WatchdogTimeout, "perf_watchdog", true);
     }
 
-    CxPlatWorkerPoolInit(&WorkerPool);
+#ifndef _KERNEL_MODE
+    WorkerPool = CxPlatWorkerPoolCreate(nullptr, CXPLAT_WORKER_POOL_REF_TOOL);
+#endif
 
     const CXPLAT_UDP_DATAPATH_CALLBACKS DatapathCallbacks = {
         PerfServer::DatapathReceive,
         PerfServer::DatapathUnreachable
     };
-    Status = CxPlatDataPathInitialize(0, &DatapathCallbacks, &TcpEngine::TcpCallbacks, &WorkerPool, nullptr, &Datapath);
+    CXPLAT_DATAPATH_INIT_CONFIG InitConfig = {0};
+    Status = CxPlatDataPathInitialize(0, &DatapathCallbacks, &TcpEngine::TcpCallbacks, WorkerPool, &InitConfig, &Datapath);
     if (QUIC_FAILED(Status)) {
-        CxPlatWorkerPoolUninit(&WorkerPool);
+#ifndef _KERNEL_MODE
+        CxPlatWorkerPoolDelete(WorkerPool, CXPLAT_WORKER_POOL_REF_TOOL);
+#endif
         WriteOutput("Datapath for shutdown failed to initialize: %d\n", Status);
         return Status;
     }
@@ -294,7 +358,9 @@ QuicMainFree(
 
     if (Datapath) {
         CxPlatDataPathUninitialize(Datapath);
-        CxPlatWorkerPoolUninit(&WorkerPool);
+#ifndef _KERNEL_MODE
+        CxPlatWorkerPoolDelete(WorkerPool, CXPLAT_WORKER_POOL_REF_TOOL);
+#endif
         Datapath = nullptr;
     }
 
@@ -315,3 +381,109 @@ QuicMainGetExtraData(
     CXPLAT_FRE_ASSERT(Client);
     Client->GetExtraData(Data, Length);
 }
+
+const char* TimeUnits[] = { "m", "ms", "us", "s" };
+const uint64_t TimeMult[] = { 60 * 1000 * 1000, 1000, 1, 1000 * 1000 };
+const char* SizeUnits[] = { "gb", "mb", "kb", "b" };
+const uint64_t SizeMult[] = { 1000 * 1000 * 1000, 1000 * 1000, 1000, 1 };
+const char* CountUnits[] = { "cpu" };
+uint64_t CountMult[] = { 1 };
+
+_Success_(return != false)
+template <typename T>
+bool
+TryGetVariableUnitValue(
+    _In_ int argc,
+    _In_reads_(argc) _Null_terminated_ char* argv[],
+    _In_z_ const char** names,
+    _Out_ T * pValue,
+    _Out_opt_ bool* isTimed
+    )
+{
+    if (isTimed) *isTimed = false; // Default
+
+    // Search for the first matching name.
+    char* value = nullptr;
+    while (*names && (value = (char*)GetValue(argc, argv, *names)) == nullptr) {
+        names++;
+    }
+    if (!value) { return false; }
+
+    // Search to see if the value has a time unit specified at the end.
+    for (uint32_t i = 0; i < ARRAYSIZE(TimeUnits); ++i) {
+        size_t len = strlen(TimeUnits[i]);
+        if (len < strlen(value) &&
+            _strnicmp(value + strlen(value) - len, TimeUnits[i], len) == 0) {
+            if (isTimed) *isTimed = true;
+            value[strlen(value) - len] = '\0';
+            *pValue = (T)(atoi(value) * TimeMult[i]);
+            return true;
+        }
+    }
+
+    // Search to see if the value has a size unit specified at the end.
+    for (uint32_t i = 0; i < ARRAYSIZE(SizeUnits); ++i) {
+        size_t len = strlen(SizeUnits[i]);
+        if (len < strlen(value) &&
+            _strnicmp(value + strlen(value) - len, SizeUnits[i], len) == 0) {
+            value[strlen(value) - len] = '\0';
+            *pValue = (T)(atoi(value) * SizeMult[i]);
+            return true;
+        }
+    }
+
+    // Search to see if the value has a count unit specified at the end.
+    for (uint32_t i = 0; i < ARRAYSIZE(CountUnits); ++i) {
+        size_t len = strlen(CountUnits[i]);
+        if (len < strlen(value) &&
+            _strnicmp(value + strlen(value) - len, CountUnits[i], len) == 0) {
+            value[strlen(value) - len] = '\0';
+            *pValue = (T)(atoi(value) * CountMult[i]);
+            return true;
+        }
+    }
+
+    // Default to bytes if no unit is specified.
+    *pValue = (T)atoi(value);
+    return true;
+}
+
+_Success_(return != false)
+template <typename T>
+bool
+TryGetVariableUnitValue(
+    _In_ int argc,
+    _In_reads_(argc) _Null_terminated_ char* argv[],
+    _In_z_ const char* name,
+    _Out_ T * pValue,
+    _Out_opt_ bool* isTimed
+    )
+{
+    const char* names[] = { name, nullptr };
+    return TryGetVariableUnitValue(argc, argv, names, pValue, isTimed);
+}
+
+/// <summary>
+/// Explicit template instantiation
+/// </summary>
+_Success_(return != false)
+template
+bool
+TryGetVariableUnitValue<uint32_t>(
+    _In_ int argc,
+    _In_reads_(argc) _Null_terminated_ char* argv[],
+    _In_z_ const char* name,
+    _Out_ uint32_t * pValue,
+    _Out_opt_ bool* isTimed
+    );
+
+_Success_(return != false)
+template
+bool
+TryGetVariableUnitValue<uint64_t>(
+    _In_ int argc,
+    _In_reads_(argc) _Null_terminated_ char* argv[],
+    _In_z_ const char** names,
+    _Out_ uint64_t * pValue,
+    _Out_opt_ bool* isTimed
+    );
