@@ -875,6 +875,19 @@ ClientConnectionCallback(
             Event->IDEAL_PROCESSOR_CHANGED.IdealProcessor,
             Event->IDEAL_PROCESSOR_CHANGED.PartitionIndex);
         break;
+    case QUIC_CONNECTION_EVENT_NOTIFY_OBSERVED_ADDRESS: {
+        QUIC_ADDR_STR AddrStr = {0};
+        QUIC_ADDR_STR AddrStr1 = {0};
+        if (QuicAddrToString(Event->NOTIFY_OBSERVED_ADDRESS.LocalAddress, &AddrStr) &&
+            QuicAddrToString(Event->NOTIFY_OBSERVED_ADDRESS.ObservedAddress, &AddrStr1)) {
+            printf(
+                "[conn][%p] Local Address: %s Observed Address: %s\n",
+                Connection,
+                AddrStr.Address,
+                AddrStr1.Address);
+        }
+        break;
+    }
     default:
         break;
     }

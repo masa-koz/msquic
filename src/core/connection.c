@@ -5381,7 +5381,15 @@ QuicConnRecvFrames(
                 return FALSE;
             }
 
-            // TODO - Do something with this.
+            QUIC_CONNECTION_EVENT Event;
+            Event.Type = QUIC_CONNECTION_EVENT_NOTIFY_OBSERVED_ADDRESS;
+            Event.NOTIFY_OBSERVED_ADDRESS.LocalAddress = &Path->Route.LocalAddress;
+            Event.NOTIFY_OBSERVED_ADDRESS.ObservedAddress = &Frame.Address;
+            QuicTraceLogConnVerbose(
+                IndicateNotifyObservedAddress,
+                Connection,
+                "Indicating QUIC_CONNECTION_EVENT_NOTIFY_OBSERVED_ADDRESS");
+            (void)QuicConnIndicateEvent(Connection, &Event);
             break;
         }
 

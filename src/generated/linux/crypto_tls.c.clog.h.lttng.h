@@ -673,6 +673,29 @@ TRACEPOINT_EVENT(CLOG_CRYPTO_TLS_C, EncodeTPTimestamp,
 
 
 /*----------------------------------------------------------
+// Decoder Ring for EncodeTPObservedAddress
+// [conn][%p] TP: Observed Address (%u)
+// QuicTraceLogConnVerbose(
+            EncodeTPObservedAddress,
+            Connection,
+            "TP: Observed Address (%u)",
+            2);
+// arg1 = arg1 = Connection = arg1
+// arg3 = arg3 = 2 = arg3
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CRYPTO_TLS_C, EncodeTPObservedAddress,
+    TP_ARGS(
+        const void *, arg1,
+        unsigned int, arg3), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
+        ctf_integer(unsigned int, arg3, arg3)
+    )
+)
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for EncodeTPTest
 // [conn][%p] TP: TEST TP (Type %hu, Length %hu)
 // QuicTraceLogConnVerbose(
@@ -1296,6 +1319,29 @@ TRACEPOINT_EVENT(CLOG_CRYPTO_TLS_C, DecodeTPReliableReset,
         const void *, arg1), 
     TP_FIELDS(
         ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for DecodeTPObservedAddress
+// [conn][%p] TP: Observed Address (%u)
+// QuicTraceLogConnVerbose(
+                DecodeTPObservedAddress,
+                Connection,
+                "TP: Observed Address (%u)",
+                (uint32_t)value);
+// arg1 = arg1 = Connection = arg1
+// arg3 = arg3 = (uint32_t)value = arg3
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CRYPTO_TLS_C, DecodeTPObservedAddress,
+    TP_ARGS(
+        const void *, arg1,
+        unsigned int, arg3), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
+        ctf_integer(unsigned int, arg3, arg3)
     )
 )
 

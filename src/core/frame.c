@@ -1396,18 +1396,18 @@ QuicObservedAddressFrameDecode(
     }
 
     if (FrameType == QUIC_FRAME_OBSERVED_ADDRESS_V4) {
-        if (BufferLength < *Offset + sizeof(Frame->Address.Ipv4)) {
+        if (BufferLength < *Offset + sizeof(Frame->Address.Ipv4.sin_addr) + sizeof(Frame->Address.Ipv4.sin_port)) {
             return FALSE;
         }
         CxPlatZeroMemory(&Frame->Address.Ipv4, sizeof(Frame->Address.Ipv4));
-        Frame->Address.Ipv4.sin_family = QUIC_ADDRESS_FAMILY_INET6;
+        Frame->Address.Ipv4.sin_family = QUIC_ADDRESS_FAMILY_INET;
         CxPlatCopyMemory(&Frame->Address.Ipv4.sin_addr, Buffer + *Offset, sizeof(Frame->Address.Ipv4.sin_addr));
         *Offset += sizeof(Frame->Address.Ipv4.sin_addr);
         CxPlatCopyMemory(&Frame->Address.Ipv4.sin_port, Buffer + *Offset, sizeof(Frame->Address.Ipv4.sin_port));
         *Offset += sizeof(Frame->Address.Ipv4.sin_port);
 
     } else {
-        if (BufferLength < *Offset + sizeof(Frame->Address.Ipv6)) {
+        if (BufferLength < *Offset + sizeof(Frame->Address.Ipv6.sin6_addr) + sizeof(Frame->Address.Ipv6.sin6_port)) {
             return FALSE;
         }
         CxPlatZeroMemory(&Frame->Address.Ipv6, sizeof(Frame->Address.Ipv6));
@@ -2100,32 +2100,6 @@ QuicFrameLog(
             PktRxPre(Rx),
             PacketNumber,
             Frame.Timestamp);
-        break;
-    }
-
-    case QUIC_FRAME_RELIABLE_RESET_STREAM: {
-        QUIC_RELIABLE_RESET_STREAM_EX Frame;
-        if (!QuicReliableResetFrameDecode(PacketLength, Packet, Offset, &Frame)) {
-        if (!QuicReliableResetFrameDecode(PacketLength, Packet, Offset, &Frame)) {
-            QuicTraceLogVerbose(
-                FrameLogReliableResetStreamInvalid,
-                "[%c][%cX][%llu]   RELIABLE_RESET_STREAM [Invalid]",
-                PtkConnPre(Connection),
-                PktRxPre(Rx),
-                PacketNumber);
-            return FALSE;
-        }
-
-        QuicTraceLogVerbose(
-            FrameLogReliableResetStream,
-            "[%c][%cX][%llu]   RELIABLE_RESET_STREAM ID:%llu ErrorCode:0x%llX FinalSize:%llu ReliableSize:%llu",
-            PtkConnPre(Connection),
-            PktRxPre(Rx),
-            PacketNumber,
-            Frame.StreamID,
-            Frame.ErrorCode,
-            Frame.FinalSize,
-            Frame.ReliableSize);
         break;
     }
 

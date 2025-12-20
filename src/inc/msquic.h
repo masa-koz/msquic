@@ -1337,6 +1337,7 @@ typedef enum QUIC_CONNECTION_EVENT_TYPE {
     QUIC_CONNECTION_EVENT_RELIABLE_RESET_NEGOTIATED         = 16,   // Only indicated if QUIC_SETTINGS.ReliableResetEnabled is TRUE.
     QUIC_CONNECTION_EVENT_ONE_WAY_DELAY_NEGOTIATED          = 17,   // Only indicated if QUIC_SETTINGS.OneWayDelayEnabled is TRUE.
     QUIC_CONNECTION_EVENT_NETWORK_STATISTICS                = 18,   // Only indicated if QUIC_SETTINGS.EnableNetStatsEvent is TRUE.
+    QUIC_CONNECTION_EVENT_NOTIFY_OBSERVED_ADDRESS           = 19,
 #endif
 } QUIC_CONNECTION_EVENT_TYPE;
 
@@ -1420,6 +1421,10 @@ typedef struct QUIC_CONNECTION_EVENT {
             BOOLEAN ReceiveNegotiated;          // TRUE if receiving one-way delay timestamps is negotiated.
         } ONE_WAY_DELAY_NEGOTIATED;
         QUIC_NETWORK_STATISTICS NETWORK_STATISTICS;
+        struct {
+            QUIC_ADDR *LocalAddress;
+            QUIC_ADDR *ObservedAddress;
+        } NOTIFY_OBSERVED_ADDRESS;
 #endif
     };
 } QUIC_CONNECTION_EVENT;

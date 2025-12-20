@@ -620,6 +620,26 @@ tracepoint(CLOG_CRYPTO_TLS_C, EncodeTPTimestamp , arg1, arg3);\
 
 
 /*----------------------------------------------------------
+// Decoder Ring for EncodeTPObservedAddress
+// [conn][%p] TP: Observed Address (%u)
+// QuicTraceLogConnVerbose(
+            EncodeTPObservedAddress,
+            Connection,
+            "TP: Observed Address (%u)",
+            2);
+// arg1 = arg1 = Connection = arg1
+// arg3 = arg3 = 2 = arg3
+----------------------------------------------------------*/
+#ifndef _clog_4_ARGS_TRACE_EncodeTPObservedAddress
+#define _clog_4_ARGS_TRACE_EncodeTPObservedAddress(uniqueId, arg1, encoded_arg_string, arg3)\
+tracepoint(CLOG_CRYPTO_TLS_C, EncodeTPObservedAddress , arg1, arg3);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for EncodeTPTest
 // [conn][%p] TP: TEST TP (Type %hu, Length %hu)
 // QuicTraceLogConnVerbose(
@@ -1165,6 +1185,26 @@ tracepoint(CLOG_CRYPTO_TLS_C, DecodeTPGreaseQuicBit , arg1);\
 #ifndef _clog_3_ARGS_TRACE_DecodeTPReliableReset
 #define _clog_3_ARGS_TRACE_DecodeTPReliableReset(uniqueId, arg1, encoded_arg_string)\
 tracepoint(CLOG_CRYPTO_TLS_C, DecodeTPReliableReset , arg1);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for DecodeTPObservedAddress
+// [conn][%p] TP: Observed Address (%u)
+// QuicTraceLogConnVerbose(
+                DecodeTPObservedAddress,
+                Connection,
+                "TP: Observed Address (%u)",
+                (uint32_t)value);
+// arg1 = arg1 = Connection = arg1
+// arg3 = arg3 = (uint32_t)value = arg3
+----------------------------------------------------------*/
+#ifndef _clog_4_ARGS_TRACE_DecodeTPObservedAddress
+#define _clog_4_ARGS_TRACE_DecodeTPObservedAddress(uniqueId, arg1, encoded_arg_string, arg3)\
+tracepoint(CLOG_CRYPTO_TLS_C, DecodeTPObservedAddress , arg1, arg3);\
 
 #endif
 

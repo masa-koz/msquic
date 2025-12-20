@@ -682,7 +682,7 @@ QuicSendWriteFrames(
                         Connection->ObservedAddressSequenceNumber++;
                 if (QuicPacketBuilderAddFrame(
                         Builder,
-                        QuicAddressGetFamily(&Connection->Paths[0].Route.RemoteAddress) == QUIC_ADDRESS_FAMILY_INET ?
+                        QuicAddrGetFamily(&Connection->Paths[0].Route.RemoteAddress) == QUIC_ADDRESS_FAMILY_INET ?
                             QUIC_FRAME_OBSERVED_ADDRESS_V4 : QUIC_FRAME_OBSERVED_ADDRESS_V6,
                         TRUE)) {
                     return TRUE;
