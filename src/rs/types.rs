@@ -159,6 +159,11 @@ pub enum ConnectionEvent<'a> {
     // ReliableResetNegotiated, // Only indicated if QUIC_SETTINGS.ReliableResetEnabled is TRUE.
     // OneWayDelayNegotiated,   // Only indicated if QUIC_SETTINGS.OneWayDelayEnabled is TRUE.
     // NetworkStatistics,       // Only indicated if QUIC_SETTINGS.EnableNetStatsEvent is TRUE.
+    #[cfg(feature = "preview-api")]
+    NotifyObservedAddress {
+        local_address: &'a crate::Addr,
+        observed_address: &'a crate::Addr,
+    },
 }
 
 impl<'a> From<&'a QUIC_CONNECTION_EVENT> for ConnectionEvent<'a> {
@@ -241,6 +246,13 @@ impl<'a> From<&'a QUIC_CONNECTION_EVENT> for ConnectionEvent<'a> {
                 deferred_status: crate::Status(ev.DeferredStatus),
                 chain: ev.Chain
               }
+            }
+            #[cfg(feature = "preview-api")]
+            crate::ffi::QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_NOTIFY_OBSERVED_ADDRESS => {
+              let ev = unsafe { value.__bindgen_anon_1.NOTIFY_OBSERVED_ADDRESS };
+              let local_addr = ev.LocalAddress as *const crate::Addr;
+              let observed_addr = ev.ObservedAddress as *const crate::Addr;
+              Self::NotifyObservedAddress { local_address: unsafe { local_addr.as_ref().unwrap() }, observed_address: unsafe { observed_addr.as_ref().unwrap() } }
             }
             _ => {
                 todo!("unknown event. maybe preview feature.")
