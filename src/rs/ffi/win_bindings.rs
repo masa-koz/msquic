@@ -5349,6 +5349,8 @@ pub const QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_ONE_WAY_DELAY_NEGOTIA
     QUIC_CONNECTION_EVENT_TYPE = 17;
 pub const QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_NETWORK_STATISTICS:
     QUIC_CONNECTION_EVENT_TYPE = 18;
+pub const QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_NOTIFY_OBSERVED_ADDRESS:
+    QUIC_CONNECTION_EVENT_TYPE = 19;
 pub type QUIC_CONNECTION_EVENT_TYPE = ::std::os::raw::c_int;
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -5378,6 +5380,7 @@ pub union QUIC_CONNECTION_EVENT__bindgen_ty_1 {
     pub RELIABLE_RESET_NEGOTIATED: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_17,
     pub ONE_WAY_DELAY_NEGOTIATED: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_18,
     pub NETWORK_STATISTICS: QUIC_NETWORK_STATISTICS,
+    pub NOTIFY_OBSERVED_ADDRESS: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5881,6 +5884,29 @@ const _: () = {
     )
         - 1usize];
 };
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19 {
+    pub LocalAddress: *mut QUIC_ADDR,
+    pub ObservedAddress: *mut QUIC_ADDR,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19"]
+        [::std::mem::size_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19>() - 16usize];
+    ["Alignment of QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19"]
+        [::std::mem::align_of::<QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19>() - 8usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19::LocalAddress"][::std::mem::offset_of!(
+        QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19,
+        LocalAddress
+    )
+        - 0usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19::ObservedAddress"][::std::mem::offset_of!(
+        QUIC_CONNECTION_EVENT__bindgen_ty_1__bindgen_ty_19,
+        ObservedAddress
+    )
+        - 8usize];
+};
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of QUIC_CONNECTION_EVENT__bindgen_ty_1"]
@@ -5951,6 +5977,10 @@ const _: () = {
     ) - 0usize];
     ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::NETWORK_STATISTICS"]
         [::std::mem::offset_of!(QUIC_CONNECTION_EVENT__bindgen_ty_1, NETWORK_STATISTICS) - 0usize];
+    ["Offset of field: QUIC_CONNECTION_EVENT__bindgen_ty_1::NOTIFY_OBSERVED_ADDRESS"][::std::mem::offset_of!(
+        QUIC_CONNECTION_EVENT__bindgen_ty_1,
+        NOTIFY_OBSERVED_ADDRESS
+    ) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
