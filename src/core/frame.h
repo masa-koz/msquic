@@ -163,6 +163,12 @@ typedef enum QUIC_FRAME_TYPE {
     QUIC_FRAME_OBSERVED_ADDRESS_V4  = 0x9f81ULL, // 0x9f81a6ULL,
     QUIC_FRAME_OBSERVED_ADDRESS_V6  = 0x9f82ULL, // 0x9f81a7ULL,
 
+    QUIC_FRAME_ADD_ADDRESS_V4       = 0x3d7e90LL,
+    QUIC_FRAME_ADD_ADDRESS_V6       = 0x3d7e91LL,
+    QUIC_FRAME_PUNCH_ME_NOW_V4      = 0x3d7e92LL,
+    QUIC_FRAME_PUNCH_ME_NOW_V6      = 0x3d7e93LL,
+    QUIC_FRAME_REMOVE_ADDRESS       = 0x3d7e94LL,
+
     QUIC_FRAME_MAX_SUPPORTED
 
 } QUIC_FRAME_TYPE;
@@ -173,7 +179,8 @@ typedef enum QUIC_FRAME_TYPE {
       X == QUIC_FRAME_ACK_FREQUENCY || X == QUIC_FRAME_IMMEDIATE_ACK || \
       X == QUIC_FRAME_RELIABLE_RESET_STREAM || \
       X == QUIC_FRAME_TIMESTAMP || \
-      X == QUIC_FRAME_OBSERVED_ADDRESS_V4 || X == QUIC_FRAME_OBSERVED_ADDRESS_V6 \
+      X == QUIC_FRAME_OBSERVED_ADDRESS_V4 || X == QUIC_FRAME_OBSERVED_ADDRESS_V6 || \
+     (X >= QUIC_FRAME_ADD_ADDRESS_V4 && X <= QUIC_FRAME_REMOVE_ADDRESS) \
     )
 
 //
@@ -929,6 +936,101 @@ QuicObservedAddressFrameDecode(
         const uint8_t * const Buffer,
     _Inout_ uint16_t* Offset,
     _Out_ QUIC_OBSERVED_ADDRESS_EX* Frame
+    );
+
+//
+// QUIC_FRAME_ADD_ADDRESS Encoding/Decoding
+//
+
+typedef struct QUIC_ADD_ADDRESS_EX {
+
+    QUIC_VAR_INT SequenceNumber;
+    QUIC_ADDR Address;
+
+} QUIC_ADD_ADDRESS_EX;
+
+_Success_(return != FALSE)
+BOOLEAN
+QuicAddAddressFrameEncode(
+    _In_ const QUIC_ADD_ADDRESS_EX * const Frame,
+    _Inout_ uint16_t* Offset,
+    _In_ uint16_t BufferLength,
+    _Out_writes_to_(BufferLength, *Offset)
+        uint8_t* Buffer
+    );
+
+_Success_(return != FALSE)
+BOOLEAN
+QuicAddAddressFrameDecode(
+    _In_ QUIC_FRAME_TYPE FrameType,
+    _In_ uint16_t BufferLength,
+    _In_reads_bytes_(BufferLength)
+        const uint8_t * const Buffer,
+    _Inout_ uint16_t* Offset,
+    _Out_ QUIC_ADD_ADDRESS_EX* Frame
+    );
+
+//
+// QUIC_FRAME_PUNCH_ME_NOW Encoding/Decoding
+//
+
+typedef struct QUIC_PUNCH_ME_NOW_EX {
+
+    QUIC_VAR_INT Round;
+    QUIC_VAR_INT PairedSequenceNumber;
+    QUIC_ADDR Address;
+
+} QUIC_PUNCH_ME_NOW_EX;
+
+_Success_(return != FALSE)
+BOOLEAN
+QuicPunchMeNowFrameEncode(
+    _In_ const QUIC_PUNCH_ME_NOW_EX * const Frame,
+    _Inout_ uint16_t* Offset,
+    _In_ uint16_t BufferLength,
+    _Out_writes_to_(BufferLength, *Offset)
+        uint8_t* Buffer
+    );
+
+_Success_(return != FALSE)
+BOOLEAN
+QuicPunchMeNowFrameDecode(
+    _In_ QUIC_FRAME_TYPE FrameType,
+    _In_ uint16_t BufferLength,
+    _In_reads_bytes_(BufferLength)
+        const uint8_t * const Buffer,
+    _Inout_ uint16_t* Offset,
+    _Out_ QUIC_PUNCH_ME_NOW_EX* Frame
+    );
+
+//
+// QUIC_FRAME_REMOVE_ADDRESS Encoding/Decoding
+//
+
+typedef struct QUIC_REMOVE_ADDRESS_EX {
+
+    QUIC_VAR_INT SequenceNumber;
+
+} QUIC_REMOVE_ADDRESS_EX;
+
+_Success_(return != FALSE)
+BOOLEAN
+QuicRemoveAddressFrameEncode(
+    _In_ const QUIC_REMOVE_ADDRESS_EX * const Frame,
+    _Inout_ uint16_t* Offset,
+    _In_ uint16_t BufferLength,
+    _Out_writes_to_(BufferLength, *Offset)
+        uint8_t* Buffer
+    );
+
+_Success_(return != FALSE)
+BOOLEAN
+QuicRemoveAddressFrameDecode(
+    _In_ uint16_t BufferLength,
+    _In_reads_bytes_(BufferLength)
+        const uint8_t * const Buffer,
+    _Inout_ uint16_t* Offset,
+    _Out_ QUIC_REMOVE_ADDRESS_EX* Frame
     );
 
 //

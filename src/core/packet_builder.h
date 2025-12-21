@@ -247,7 +247,7 @@ QUIC_INLINE
 BOOLEAN
 QuicPacketBuilderAddFrame(
     _Inout_ QUIC_PACKET_BUILDER* Builder,
-    _In_ uint16_t FrameType,
+    _In_ uint32_t FrameType,
     _In_ BOOLEAN IsAckEliciting
     )
 {

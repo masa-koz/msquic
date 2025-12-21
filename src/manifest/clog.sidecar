@@ -4447,6 +4447,54 @@
       ],
       "macroName": "QuicTraceLogVerbose"
     },
+    "FrameLogAddAddress": {
+      "ModuleProperites": {},
+      "TraceString": "[%c][%cX][%llu]   ADD_ADDRESS %llu %!ADDR!",
+      "UniqueId": "FrameLogAddAddress",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg4"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg5"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg6"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
+    },
+    "FrameLogAddAddressInvalid": {
+      "ModuleProperites": {},
+      "TraceString": "[%c][%cX][%llu]   ADD_ADDRESS [Invalid]",
+      "UniqueId": "FrameLogAddAddressInvalid",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg4"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
+    },
     "FrameLogConnectionClose": {
       "ModuleProperites": {},
       "TraceString": "[%c][%cX][%llu]   CONN_CLOSE ErrorCode:0x%llX FrameType:%llu",
@@ -5111,6 +5159,58 @@
       ],
       "macroName": "QuicTraceLogVerbose"
     },
+    "FrameLogPunchMeNow": {
+      "ModuleProperites": {},
+      "TraceString": "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %!ADDR!",
+      "UniqueId": "FrameLogPunchMeNow",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg4"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg5"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg6"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg7"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
+    },
+    "FrameLogPunchMeNowInvalid": {
+      "ModuleProperites": {},
+      "TraceString": "[%c][%cX][%llu]   PUNCH_ME_NOW [Invalid]",
+      "UniqueId": "FrameLogPunchMeNowInvalid",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg4"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
+    },
     "FrameLogReliableResetStream": {
       "ModuleProperites": {},
       "TraceString": "[%c][%cX][%llu]   RELIABLE_RESET_STREAM ID:%llu ErrorCode:0x%llX FinalSize:%llu ReliableSize:%llu",
@@ -5151,6 +5251,50 @@
       "ModuleProperites": {},
       "TraceString": "[%c][%cX][%llu]   RELIABLE_RESET_STREAM [Invalid]",
       "UniqueId": "FrameLogReliableResetStreamInvalid",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg4"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
+    },
+    "FrameLogRemoveAddress": {
+      "ModuleProperites": {},
+      "TraceString": "[%c][%cX][%llu]   REMOVE_ADDRESS %llu",
+      "UniqueId": "FrameLogRemoveAddress",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "c",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg4"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg5"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
+    },
+    "FrameLogRemoveAddressInvalid": {
+      "ModuleProperites": {},
+      "TraceString": "[%c][%cX][%llu]   REMOVE_ADDRESS [Invalid]",
+      "UniqueId": "FrameLogRemoveAddressInvalid",
       "splitArgs": [
         {
           "DefinationEncoding": "c",
@@ -14582,6 +14726,16 @@
         "EncodingString": "[%c][%cX][%llu]     %llu"
       },
       {
+        "UniquenessHash": "2ac5766a-4070-bebd-c25a-5d481b1ceb25",
+        "TraceID": "FrameLogAddAddress",
+        "EncodingString": "[%c][%cX][%llu]   ADD_ADDRESS %llu %!ADDR!"
+      },
+      {
+        "UniquenessHash": "1b80f8cb-e5e7-5753-a786-6e0887adfa1b",
+        "TraceID": "FrameLogAddAddressInvalid",
+        "EncodingString": "[%c][%cX][%llu]   ADD_ADDRESS [Invalid]"
+      },
+      {
         "UniquenessHash": "39592ea2-35f5-d3d5-efb2-d330fb4c400b",
         "TraceID": "FrameLogConnectionClose",
         "EncodingString": "[%c][%cX][%llu]   CONN_CLOSE ErrorCode:0x%llX FrameType:%llu"
@@ -14727,6 +14881,16 @@
         "EncodingString": "[%c][%cX][%llu]   PING"
       },
       {
+        "UniquenessHash": "f6ee354b-d966-c860-a0ea-e18f79bccbae",
+        "TraceID": "FrameLogPunchMeNow",
+        "EncodingString": "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %!ADDR!"
+      },
+      {
+        "UniquenessHash": "56046983-0319-fcfc-22d9-90c484d66a6d",
+        "TraceID": "FrameLogPunchMeNowInvalid",
+        "EncodingString": "[%c][%cX][%llu]   PUNCH_ME_NOW [Invalid]"
+      },
+      {
         "UniquenessHash": "114e293d-3c55-bda4-2768-2c68d7b2e75e",
         "TraceID": "FrameLogReliableResetStream",
         "EncodingString": "[%c][%cX][%llu]   RELIABLE_RESET_STREAM ID:%llu ErrorCode:0x%llX FinalSize:%llu ReliableSize:%llu"
@@ -14735,6 +14899,16 @@
         "UniquenessHash": "45b5711e-3b1c-297d-8352-5cc3ceb82dfd",
         "TraceID": "FrameLogReliableResetStreamInvalid",
         "EncodingString": "[%c][%cX][%llu]   RELIABLE_RESET_STREAM [Invalid]"
+      },
+      {
+        "UniquenessHash": "7d3eb397-7c75-08c1-cd5e-ff3b1927f722",
+        "TraceID": "FrameLogRemoveAddress",
+        "EncodingString": "[%c][%cX][%llu]   REMOVE_ADDRESS %llu"
+      },
+      {
+        "UniquenessHash": "c355d466-5c71-d497-5321-97d4abfe0ea7",
+        "TraceID": "FrameLogRemoveAddressInvalid",
+        "EncodingString": "[%c][%cX][%llu]   REMOVE_ADDRESS [Invalid]"
       },
       {
         "UniquenessHash": "47de738b-e1df-210a-5eff-181b82072815",
