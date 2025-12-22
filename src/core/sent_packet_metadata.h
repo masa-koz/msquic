@@ -67,6 +67,10 @@ typedef struct QUIC_SENT_FRAME_METADATA {
         struct {
             QUIC_VAR_INT Sequence;
         } OBSERVED_ADDRESS;
+        struct {
+            QUIC_VAR_INT Sequence;
+        } ADD_ADDRESS;
+
     };
     //
     // The following to fields are for STREAM. However, if they were in stream

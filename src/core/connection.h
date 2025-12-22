@@ -514,6 +514,11 @@ typedef struct QUIC_CONNECTION {
     QUIC_VAR_INT ObservedAddressSequenceNumber;
 
     //
+    // The sequence number to use for sending an add address.
+    //
+    QUIC_VAR_INT AddAddressSequenceNumber;
+
+    //
     // The most recent Retire Prior To field received in a NEW_CONNECTION_ID
     // frame.
     //
@@ -525,6 +530,8 @@ typedef struct QUIC_CONNECTION {
     // used.
     //
     QUIC_PATH Paths[QUIC_MAX_PATH_COUNT];
+
+    CXPLAT_LIST_ENTRY LocalAddresses;
 
     //
     // The list of connection IDs used for receiving.
@@ -714,6 +721,17 @@ typedef struct QUIC_CONNECTION {
     } BlockedTimings;
 
 } QUIC_CONNECTION;
+
+typedef struct QUIC_LOCAL_ADDRESS_LIST_ENTRY {
+
+    CXPLAT_LIST_ENTRY Link;
+    QUIC_ADDR LocalAddress;
+    QUIC_ADDR ObservedLocalAddress;
+    QUIC_VAR_INT SequenceNumber;
+    BOOLEAN SendAddAddress : 1;
+    BOOLEAN SendRemoveAddress : 1;
+
+} QUIC_LOCAL_ADDRESS_LIST_ENTRY;
 
 typedef struct QUIC_SERIALIZED_RESUMPTION_STATE {
 

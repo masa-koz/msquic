@@ -211,6 +211,8 @@ pub const QUIC_PARAM_CONN_ORIG_DEST_CID: u32 = 83886104;
 pub const QUIC_PARAM_CONN_SEND_DSCP: u32 = 83886105;
 pub const QUIC_PARAM_CONN_NETWORK_STATISTICS: u32 = 83886112;
 pub const QUIC_PARAM_CONN_CLOSE_ASYNC: u32 = 83886106;
+pub const QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS: u32 = 83886107;
+pub const QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS: u32 = 83886108;
 pub const QUIC_PARAM_TLS_HANDSHAKE_INFO: u32 = 100663296;
 pub const QUIC_PARAM_TLS_NEGOTIATED_ALPN: u32 = 100663297;
 pub const QUIC_PARAM_STREAM_ID: u32 = 134217728;
@@ -1606,6 +1608,22 @@ const _: () = {
         [::std::mem::offset_of!(QUIC_NETWORK_STATISTICS, CongestionWindow) - 32usize];
     ["Offset of field: QUIC_NETWORK_STATISTICS::Bandwidth"]
         [::std::mem::offset_of!(QUIC_NETWORK_STATISTICS, Bandwidth) - 40usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct QUIC_ADD_LOCAL_ADDRESS {
+    pub LocalAddress: *mut QUIC_ADDR,
+    pub ObservedAddress: *mut QUIC_ADDR,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of QUIC_ADD_LOCAL_ADDRESS"][::std::mem::size_of::<QUIC_ADD_LOCAL_ADDRESS>() - 16usize];
+    ["Alignment of QUIC_ADD_LOCAL_ADDRESS"]
+        [::std::mem::align_of::<QUIC_ADD_LOCAL_ADDRESS>() - 8usize];
+    ["Offset of field: QUIC_ADD_LOCAL_ADDRESS::LocalAddress"]
+        [::std::mem::offset_of!(QUIC_ADD_LOCAL_ADDRESS, LocalAddress) - 0usize];
+    ["Offset of field: QUIC_ADD_LOCAL_ADDRESS::ObservedAddress"]
+        [::std::mem::offset_of!(QUIC_ADD_LOCAL_ADDRESS, ObservedAddress) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

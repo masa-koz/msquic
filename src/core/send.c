@@ -692,6 +692,58 @@ QuicSendWriteFrames(
             }
         }
 
+        if (Send->SendFlags & QUIC_CONN_SEND_FLAG_ADD_ADDRESS) {
+
+            CXPLAT_LIST_ENTRY* Entry;
+            for (Entry = Connection->LocalAddresses.Flink;
+                    Entry != &Connection->LocalAddresses;
+                    Entry = Entry->Flink) {
+                QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress =
+                    CXPLAT_CONTAINING_RECORD(
+                        Entry,
+                        QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                        Link);
+
+                if (!LocalAddress->SendAddAddress) {
+                    continue;
+                }
+
+                QUIC_ADD_ADDRESS_EX Frame = { 0 };
+                Frame.SequenceNumber = LocalAddress->SequenceNumber;
+                Frame.Address = LocalAddress->ObservedLocalAddress;
+
+                if (QuicAddAddressFrameEncode(
+                        &Frame,
+                        &Builder->DatagramLength,
+                        AvailableBufferLength,
+                        Builder->Datagram->Buffer)) {
+
+                    LocalAddress->SendAddAddress = FALSE;
+                    Builder->Metadata->Frames[
+                        Builder->Metadata->FrameCount].ADD_ADDRESS.Sequence =
+                            LocalAddress->SequenceNumber;
+                    if (QuicPacketBuilderAddFrame(
+                            Builder,
+                            QuicAddrGetFamily(&LocalAddress->ObservedLocalAddress) == QUIC_ADDRESS_FAMILY_INET ?
+                                QUIC_FRAME_ADD_ADDRESS_V4 : QUIC_FRAME_ADD_ADDRESS_V6,
+                            TRUE)) {
+                        return TRUE;
+                    }
+                } else {
+                    RanOutOfRoom = TRUE;
+                    break;
+                }
+            }
+
+            if (Entry == &Connection->LocalAddresses) {
+                Send->SendFlags &= ~QUIC_CONN_SEND_FLAG_ADD_ADDRESS;
+            }
+
+            if (Builder->Metadata->FrameCount == QUIC_MAX_FRAMES_PER_PACKET) {
+                return TRUE;
+            }
+        }
+
         if (Send->SendFlags & QUIC_CONN_SEND_FLAG_DATA_BLOCKED) {
 
             QUIC_DATA_BLOCKED_EX Frame = { Send->OrderedStreamBytesSent };

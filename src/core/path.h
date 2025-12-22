@@ -122,6 +122,11 @@ typedef struct QUIC_PATH {
     BOOLEAN SendObservedAddress : 1;
 
     //
+    // The add address needs to be sent out.
+    //
+    BOOLEAN SendAddAddress : 1;
+
+    //
     // The ending time of ECN validation testing state in microseconds.
     //
     uint64_t EcnTestingEndingTime;

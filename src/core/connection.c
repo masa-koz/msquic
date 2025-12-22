@@ -120,6 +120,7 @@ QuicConnAlloc(
     QuicSettingsCopy(&Connection->Settings, &MsQuicLib.Settings);
     Connection->Settings.IsSetFlags = 0; // Just grab the global values, not IsSet flags.
     CxPlatDispatchLockInitialize(&Connection->ReceiveQueueLock);
+    CxPlatListInitializeHead(&Connection->LocalAddresses);
     CxPlatListInitializeHead(&Connection->DestCids);
     QuicStreamSetInitialize(&Connection->Streams);
     QuicSendBufferInitialize(&Connection->SendBuffer);
@@ -281,6 +282,14 @@ Error:
             Connection->Packets[i] = NULL;
         }
     }
+    while (!CxPlatListIsEmpty(&Connection->LocalAddresses)) {
+        QUIC_LOCAL_ADDRESS_LIST_ENTRY *LocalAddress =
+            CXPLAT_CONTAINING_RECORD(
+                CxPlatListRemoveHead(&Connection->LocalAddresses),
+                QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                Link);
+        CXPLAT_FREE(LocalAddress, QUIC_POOL_LOCAL_ADDRESS_LIST);
+    }
     if (Packet != NULL && Connection->SourceCids.Next != NULL) {
         CXPLAT_FREE(
             CXPLAT_CONTAINING_RECORD(
@@ -342,6 +351,14 @@ QuicConnFree(
         CXPLAT_DBG_ASSERTMSG(Stream != NULL, "Stream was leaked!");
     }
 #endif
+    while (!CxPlatListIsEmpty(&Connection->LocalAddresses)) {
+        QUIC_LOCAL_ADDRESS_LIST_ENTRY *LocalAddress =
+            CXPLAT_CONTAINING_RECORD(
+                CxPlatListRemoveHead(&Connection->LocalAddresses),
+                QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                Link);
+        CXPLAT_FREE(LocalAddress, QUIC_POOL_LOCAL_ADDRESS_LIST);
+    }
     while (!CxPlatListIsEmpty(&Connection->DestCids)) {
         QUIC_CID_LIST_ENTRY *CID =
             CXPLAT_CONTAINING_RECORD(
@@ -6535,15 +6552,28 @@ static
 QUIC_STATUS
 QuicConnAddLocalAddress(
     _In_ QUIC_CONNECTION* Connection,
-    _In_ QUIC_ADDR* LocalAddress
+    _In_ QUIC_ADD_LOCAL_ADDRESS* Param
     )
 {
-    if (QuicConnIsServer(Connection)) {
-        return QUIC_STATUS_NOT_SUPPORTED;
-    }
-
     if (Connection->State.ClosedLocally) {
         return QUIC_STATUS_INVALID_STATE;
+    }
+
+    if (QuicConnIsServer(Connection)) {
+        QUIC_LOCAL_ADDRESS_LIST_ENTRY* Entry =
+            (QUIC_LOCAL_ADDRESS_LIST_ENTRY*)
+            CXPLAT_ALLOC_NONPAGED(
+                sizeof(QUIC_LOCAL_ADDRESS_LIST_ENTRY),
+                QUIC_POOL_LOCAL_ADDRESS_LIST);
+        if (Entry == NULL) {
+            return QUIC_STATUS_OUT_OF_MEMORY;
+        }
+        CxPlatCopyMemory(&Entry->LocalAddress, Param->LocalAddress, sizeof(QUIC_ADDR));
+        CxPlatCopyMemory(&Entry->ObservedLocalAddress, Param->ObservedAddress, sizeof(QUIC_ADDR));
+        Entry->SequenceNumber = Connection->AddAddressSequenceNumber++;
+        Entry->SendAddAddress = TRUE;
+        CxPlatListInsertTail(&Connection->LocalAddresses, &Entry->Link);
+        QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_ADD_ADDRESS);
     }
 
     BOOLEAN AddrInUse = FALSE;
@@ -6551,7 +6581,7 @@ QuicConnAddLocalAddress(
         for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
             if (QuicAddrCompare(
                     &Connection->Paths[i].Route.LocalAddress,
-                    LocalAddress)) {
+                    &Param->LocalAddress)) {
                 AddrInUse = TRUE;
                 break;
             }
@@ -6590,7 +6620,7 @@ QuicConnAddLocalAddress(
         Connection->PathsCount++;
     }
 
-    CxPlatCopyMemory(&Path->Route.LocalAddress, LocalAddress, sizeof(QUIC_ADDR));
+    CxPlatCopyMemory(&Path->Route.LocalAddress, Param->LocalAddress, sizeof(QUIC_ADDR));
 
     if (!(Connection->State.Started && Connection->State.HandshakeConfirmed)) {
         return QUIC_STATUS_SUCCESS;
@@ -7274,12 +7304,11 @@ QuicConnParamSet(
 
     case QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS: {
 
-        if (BufferLength != sizeof(QUIC_ADDR) || Buffer == NULL ||
-            !QuicAddrIsValid((QUIC_ADDR*)Buffer)) {
+        if (BufferLength != sizeof(QUIC_ADD_LOCAL_ADDRESS) || Buffer == NULL) {
             Status = QUIC_STATUS_INVALID_PARAMETER;
             break;
         }
-        Status = QuicConnAddLocalAddress(Connection, (QUIC_ADDR*)Buffer);
+        Status = QuicConnAddLocalAddress(Connection, (QUIC_ADD_LOCAL_ADDRESS*)Buffer);
         break;
     }
 
