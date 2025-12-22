@@ -6535,7 +6535,11 @@ QuicConnOpenNewPath(
 
     CXPLAT_UDP_CONFIG UdpConfig = {0};
     UdpConfig.LocalAddress = &Path->Route.LocalAddress;
-    UdpConfig.RemoteAddress = &Connection->Paths[0].Route.RemoteAddress;
+    if (RemoteAddressSet) {
+        UdpConfig.RemoteAddress = &Path->Route.RemoteAddress;
+    } else {
+        UdpConfig.RemoteAddress = &Connection->Paths[0].Route.RemoteAddress;
+    }
     UdpConfig.Flags = Connection->State.ShareBinding ? CXPLAT_SOCKET_FLAG_SHARE : 0;
     UdpConfig.InterfaceIndex = 0;
     // Open a new binding with the same partition as the connection.
