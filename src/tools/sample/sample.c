@@ -435,8 +435,6 @@ ServerConnectionCallback(
         //
         printf("[conn][%p] Connected\n", Connection);
         MsQuic->ConnectionSendResumptionTicket(Connection, QUIC_SEND_RESUMPTION_FLAG_NONE, 0, NULL);
-
-        QUIC_ADD_LOCAL_ADDRESS AddAddress = {0};
         break;
     }
     case QUIC_CONNECTION_EVENT_SHUTDOWN_INITIATED_BY_TRANSPORT:

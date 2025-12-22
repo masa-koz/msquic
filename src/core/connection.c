@@ -6581,7 +6581,7 @@ QuicConnAddLocalAddress(
         for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
             if (QuicAddrCompare(
                     &Connection->Paths[i].Route.LocalAddress,
-                    &Param->LocalAddress)) {
+                    Param->LocalAddress)) {
                 AddrInUse = TRUE;
                 break;
             }
