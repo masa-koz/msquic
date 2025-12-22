@@ -1358,7 +1358,7 @@ QuicObservedAddressFrameEncode(
 
     } else {
         const uint16_t RequiredLength =
-            QuicVarIntSize(QUIC_FRAME_OBSERVED_ADDRESS_V4) +
+            QuicVarIntSize(QUIC_FRAME_OBSERVED_ADDRESS_V6) +
             QuicVarIntSize(Frame->SequenceNumber) +
             sizeof(Frame->Address.Ipv6.sin6_addr) +
             sizeof(Frame->Address.Ipv6.sin6_port);
@@ -2359,11 +2359,12 @@ QuicFrameLog(
 
         QuicTraceLogVerbose(
             FrameLogObservedAddress,
-            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu", // TODO - Address
+            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!",
             PtkConnPre(Connection),
             PktRxPre(Rx),
             PacketNumber,
-            Frame.SequenceNumber);
+            Frame.SequenceNumber,
+            CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address));
         break;
     }
 

@@ -1704,31 +1704,36 @@ TRACEPOINT_EVENT(CLOG_FRAME_C, FrameLogObservedAddressInvalid,
 
 /*----------------------------------------------------------
 // Decoder Ring for FrameLogObservedAddress
-// [%c][%cX][%llu]   OBSERVED_ADDRESS %llu
+// [%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!
 // QuicTraceLogVerbose(
             FrameLogObservedAddress,
-            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu", // TODO - Address
+            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!",
             PtkConnPre(Connection),
             PktRxPre(Rx),
             PacketNumber,
-            Frame.SequenceNumber);
-// arg2 = arg2 = // TODO - Address
-            PtkConnPre(Connection) = arg2
+            Frame.SequenceNumber,
+            CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address));
+// arg2 = arg2 = PtkConnPre(Connection) = arg2
 // arg3 = arg3 = PktRxPre(Rx) = arg3
 // arg4 = arg4 = PacketNumber = arg4
 // arg5 = arg5 = Frame.SequenceNumber = arg5
+// arg6 = arg6 = CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address) = arg6
 ----------------------------------------------------------*/
 TRACEPOINT_EVENT(CLOG_FRAME_C, FrameLogObservedAddress,
     TP_ARGS(
         unsigned char, arg2,
         unsigned char, arg3,
         unsigned long long, arg4,
-        unsigned long long, arg5), 
+        unsigned long long, arg5,
+        unsigned int, arg6_len,
+        const void *, arg6), 
     TP_FIELDS(
         ctf_integer(unsigned char, arg2, arg2)
         ctf_integer(unsigned char, arg3, arg3)
         ctf_integer(uint64_t, arg4, arg4)
         ctf_integer(uint64_t, arg5, arg5)
+        ctf_integer(unsigned int, arg6_len, arg6_len)
+        ctf_sequence(char, arg6, arg6, unsigned int, arg6_len)
     )
 )
 

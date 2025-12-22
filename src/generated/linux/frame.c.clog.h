@@ -1345,23 +1345,24 @@ tracepoint(CLOG_FRAME_C, FrameLogObservedAddressInvalid , arg2, arg3, arg4);\
 
 /*----------------------------------------------------------
 // Decoder Ring for FrameLogObservedAddress
-// [%c][%cX][%llu]   OBSERVED_ADDRESS %llu
+// [%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!
 // QuicTraceLogVerbose(
             FrameLogObservedAddress,
-            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu", // TODO - Address
+            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!",
             PtkConnPre(Connection),
             PktRxPre(Rx),
             PacketNumber,
-            Frame.SequenceNumber);
-// arg2 = arg2 = // TODO - Address
-            PtkConnPre(Connection) = arg2
+            Frame.SequenceNumber,
+            CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address));
+// arg2 = arg2 = PtkConnPre(Connection) = arg2
 // arg3 = arg3 = PktRxPre(Rx) = arg3
 // arg4 = arg4 = PacketNumber = arg4
 // arg5 = arg5 = Frame.SequenceNumber = arg5
+// arg6 = arg6 = CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address) = arg6
 ----------------------------------------------------------*/
-#ifndef _clog_6_ARGS_TRACE_FrameLogObservedAddress
-#define _clog_6_ARGS_TRACE_FrameLogObservedAddress(uniqueId, encoded_arg_string, arg2, arg3, arg4, arg5)\
-tracepoint(CLOG_FRAME_C, FrameLogObservedAddress , arg2, arg3, arg4, arg5);\
+#ifndef _clog_8_ARGS_TRACE_FrameLogObservedAddress
+#define _clog_8_ARGS_TRACE_FrameLogObservedAddress(uniqueId, encoded_arg_string, arg2, arg3, arg4, arg5, arg6, arg6_len)\
+tracepoint(CLOG_FRAME_C, FrameLogObservedAddress , arg2, arg3, arg4, arg5, arg6_len, arg6);\
 
 #endif
 

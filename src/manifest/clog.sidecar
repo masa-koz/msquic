@@ -4985,7 +4985,7 @@
     },
     "FrameLogObservedAddress": {
       "ModuleProperites": {},
-      "TraceString": "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu",
+      "TraceString": "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!",
       "UniqueId": "FrameLogObservedAddress",
       "splitArgs": [
         {
@@ -5003,6 +5003,10 @@
         {
           "DefinationEncoding": "llu",
           "MacroVariableName": "arg5"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg6"
         }
       ],
       "macroName": "QuicTraceLogVerbose"
@@ -14853,9 +14857,9 @@
         "EncodingString": "[%c][%cX][%llu]   NEW_TOKEN [Invalid]"
       },
       {
-        "UniquenessHash": "6ad0a057-10d9-f0d5-a612-e65a525a9081",
+        "UniquenessHash": "c7b48bcc-a7b0-e30b-7f83-528b64411202",
         "TraceID": "FrameLogObservedAddress",
-        "EncodingString": "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu"
+        "EncodingString": "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!"
       },
       {
         "UniquenessHash": "4466cb8b-c272-75d6-71f3-4bfd8dd953fc",

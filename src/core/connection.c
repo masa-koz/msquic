@@ -5533,6 +5533,30 @@ QuicConnRecvFrames(
             break;
         }
 
+        case QUIC_FRAME_ADD_ADDRESS_V4:
+        case QUIC_FRAME_ADD_ADDRESS_V6: {
+            QUIC_ADD_ADDRESS_EX Frame;
+            if (!QuicAddAddressFrameDecode(FrameType, PayloadLength, Payload, &Offset, &Frame)) {
+                QuicTraceEvent(
+                    ConnError,
+                    "[conn][%p] ERROR, %s.",
+                    Connection,
+                    "Decoding ADD_ADDRESS frame");
+                QuicConnTransportError(Connection, QUIC_ERROR_FRAME_ENCODING_ERROR);
+                return FALSE;
+            }
+            if (QuicConnIsServer(Connection)) {
+                QuicTraceEvent(
+                    ConnError,
+                    "[conn][%p] ERROR, %s.",
+                    Connection,
+                    "Server received ADD_ADDRESS frame");
+                QuicConnTransportError(Connection, QUIC_ERROR_PROTOCOL_VIOLATION);
+                return FALSE;
+            }
+            break;
+        }
+
         default:
             //
             // No default case necessary, as we have already validated the frame
@@ -6574,6 +6598,7 @@ QuicConnAddLocalAddress(
         Entry->SendAddAddress = TRUE;
         CxPlatListInsertTail(&Connection->LocalAddresses, &Entry->Link);
         QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_ADD_ADDRESS);
+        return QUIC_STATUS_SUCCESS;
     }
 
     BOOLEAN AddrInUse = FALSE;
