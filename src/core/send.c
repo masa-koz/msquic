@@ -707,6 +707,7 @@ QuicSendWriteFrames(
                 if (!LocalAddress->SendAddAddress) {
                     continue;
                 }
+                CXPLAT_DBG_ASSERT(LocalAddress->ObservedAddressSet)
 
                 QUIC_ADD_ADDRESS_EX Frame = { 0 };
                 Frame.SequenceNumber = LocalAddress->SequenceNumber;

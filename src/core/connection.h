@@ -734,6 +734,8 @@ typedef struct QUIC_LOCAL_ADDRESS_LIST_ENTRY {
     QUIC_ADDR ObservedLocalAddress;
     QUIC_BINDING* Binding;
     QUIC_VAR_INT SequenceNumber;
+    BOOLEAN SequenceNumberValid : 1;
+    BOOLEAN ObservedAddressSet : 1;
     BOOLEAN SendAddAddress : 1;
     BOOLEAN SendRemoveAddress : 1;
 

@@ -915,6 +915,28 @@ QuicConnGenerateNewSourceCid(
         }
     }
 
+    for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
+            Entry != &Connection->LocalAddresses;
+            Entry = Entry->Flink) {
+        QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress =
+            CXPLAT_CONTAINING_RECORD(
+                Entry,
+                QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                Link);
+        if (LocalAddress->Binding != NULL) {
+            BOOLEAN NewBinding = TRUE;
+            for (uint8_t i = 0; i < BindingsCount; ++i) {
+                if (LocalAddress->Binding == Bindings[i]) {
+                    NewBinding = FALSE;
+                    break;
+                }
+            }
+            if (NewBinding) {
+                Bindings[BindingsCount++] = LocalAddress->Binding;
+            }
+        }
+    }
+
     //
     // Keep randomly generating new source CIDs until we find one that doesn't
     // collide with an existing one.
@@ -5593,7 +5615,8 @@ QuicConnRecvFrames(
                         Entry,
                         QUIC_LOCAL_ADDRESS_LIST_ENTRY,
                         Link);
-                if (LocalAddress->SequenceNumber == Frame.PairedSequenceNumber) {
+                if (LocalAddress->SequenceNumberValid &&
+                    LocalAddress->SequenceNumber == Frame.PairedSequenceNumber) {
                     break;
                 }
             }
@@ -6669,6 +6692,8 @@ QuicConnAddLocalAddress(
 
         CxPlatCopyMemory(&Entry->LocalAddress, Param->LocalAddress, sizeof(QUIC_ADDR));
         CxPlatCopyMemory(&Entry->ObservedLocalAddress, Param->ObservedAddress, sizeof(QUIC_ADDR));
+        Entry->SequenceNumberValid = TRUE;
+        Entry->ObservedAddressSet = TRUE;
         Entry->SequenceNumber = Connection->AddAddressSequenceNumber++;
         Entry->SendAddAddress = TRUE;
         Entry->Binding = NewBinding;

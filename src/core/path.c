@@ -262,7 +262,31 @@ QuicConnGetPathForPacket(
         }
     }
 
-    if (!QuicLibraryTryAddRefBinding(Connection->Paths[0].Binding)) {
+
+    CXPLAT_LIST_ENTRY* Entry;
+    QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
+    for (Entry = Connection->LocalAddresses.Flink;
+            Entry != &Connection->LocalAddresses;
+            Entry = Entry->Flink) {
+        LocalAddress =
+            CXPLAT_CONTAINING_RECORD(
+                Entry,
+                QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                Link);
+        if (QuicAddrCompare(
+                &Packet->Route->LocalAddress,
+                &LocalAddress->LocalAddress)) {
+            break;
+        }
+    }
+    if (Entry == &Connection->LocalAddresses || LocalAddress == NULL) {
+        //
+        // No matching local address found.
+        //
+        return NULL;
+    }
+
+    if (!QuicLibraryTryAddRefBinding(LocalAddress->Binding)) {
         return NULL;
     }
 
@@ -284,7 +308,7 @@ QuicConnGetPathForPacket(
     if (Connection->Paths[0].DestCid->CID.Length == 0) {
         Path->DestCid = Connection->Paths[0].DestCid; // TODO - Copy instead?
     }
-    Path->Binding = Connection->Paths[0].Binding;
+    Path->Binding = LocalAddress->Binding;
     QuicCopyRouteInfo(&Path->Route, Packet->Route);
     QuicPathValidate(Path);
 
