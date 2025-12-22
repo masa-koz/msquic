@@ -6963,7 +6963,7 @@ QuicConnAddRemoteAddress(
         QuicConnTimerSet(
             Connection,
             QUIC_CONN_TIMER_PROBE_AFTER_PUNCH,
-            Connection->Paths[0].SmoothedRtt * 2);
+            Connection->Paths[0].SmoothedRtt);
 
     }
 
