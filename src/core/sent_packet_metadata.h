@@ -70,6 +70,9 @@ typedef struct QUIC_SENT_FRAME_METADATA {
         struct {
             QUIC_VAR_INT Sequence;
         } ADD_ADDRESS;
+        struct {
+            QUIC_VAR_INT Round;
+        } PUNCH_ME_NOW;
 
     };
     //

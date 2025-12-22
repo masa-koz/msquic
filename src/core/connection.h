@@ -519,6 +519,11 @@ typedef struct QUIC_CONNECTION {
     QUIC_VAR_INT AddAddressSequenceNumber;
 
     //
+    // The sequence number to use for sending an punch me now.
+    //
+    QUIC_VAR_INT PunchMeNowSequenceNumber;
+
+    //
     // The most recent Retire Prior To field received in a NEW_CONNECTION_ID
     // frame.
     //
@@ -727,6 +732,7 @@ typedef struct QUIC_LOCAL_ADDRESS_LIST_ENTRY {
     CXPLAT_LIST_ENTRY Link;
     QUIC_ADDR LocalAddress;
     QUIC_ADDR ObservedLocalAddress;
+    QUIC_BINDING* Binding;
     QUIC_VAR_INT SequenceNumber;
     BOOLEAN SendAddAddress : 1;
     BOOLEAN SendRemoveAddress : 1;
@@ -1696,7 +1702,8 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 QUIC_STATUS
 QuicConnOpenNewPath(
     _In_ QUIC_CONNECTION* Connection,
-    _In_ QUIC_PATH* Path
+    _In_ QUIC_PATH* Path,
+    _In_ BOOLEAN RemoteAddressSet
     );
 
 //
@@ -1706,6 +1713,21 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
 QuicConnOpenNewPaths(
     _In_ QUIC_CONNECTION* Connection
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+QuicConnAddRemoteAddress(
+    _In_ QUIC_CONNECTION* Connection,
+    _In_ QUIC_ADD_ADDRESS_EX* Frame
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicConnSendPunchProbe(
+    _In_ QUIC_CONNECTION* Connection,
+    _In_ QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress,
+    _In_ QUIC_ADDR* RemoteAddress
     );
 
 //

@@ -124,7 +124,7 @@ typedef struct QUIC_PATH {
     //
     // The add address needs to be sent out.
     //
-    BOOLEAN SendAddAddress : 1;
+    BOOLEAN SendPunchMeNow : 1;
 
     //
     // The ending time of ECN validation testing state in microseconds.
@@ -155,6 +155,10 @@ typedef struct QUIC_PATH {
     // The network route.
     //
     CXPLAT_ROUTE Route;
+
+    QUIC_VAR_INT RemoteAddressSequenceNumber;
+
+    QUIC_VAR_INT PunchMeNowRound;
 
     //
     // The destination CID used for sending on this path.
@@ -209,7 +213,7 @@ typedef struct QUIC_PATH {
 #endif
 
 CXPLAT_STATIC_ASSERT(
-    sizeof(QUIC_PATH) < 256,
+    sizeof(QUIC_PATH) < 512,
     "Ensure path struct stays small since we prealloc them");
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

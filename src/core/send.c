@@ -744,6 +744,53 @@ QuicSendWriteFrames(
             }
         }
 
+        if (Send->SendFlags & QUIC_CONN_SEND_FLAG_PUNCH_ME_NOW) {
+            uint8_t i;
+            for (i = 0; i < Connection->PathsCount; ++i) {
+                QUIC_PATH* TempPath = &Connection->Paths[i];
+                if (!TempPath->SendPunchMeNow) {
+                    continue;
+                }
+
+                QUIC_PUNCH_ME_NOW_EX Frame = { 0 };
+                Frame.Round = Connection->PunchMeNowSequenceNumber++;
+                Frame.PairedSequenceNumber = TempPath->RemoteAddressSequenceNumber;
+                Frame.Address = TempPath->Route.LocalAddress;
+
+                if (QuicPunchMeNowFrameEncode(
+                        &Frame,
+                        &Builder->DatagramLength,
+                        AvailableBufferLength,
+                        Builder->Datagram->Buffer)) {
+
+                    TempPath->PunchMeNowRound = Frame.Round;
+                    TempPath->SendPunchMeNow = FALSE;
+                    Builder->Metadata->Frames[
+                        Builder->Metadata->FrameCount].PUNCH_ME_NOW.Round =
+                            Frame.Round;
+                    if (QuicPacketBuilderAddFrame(
+                            Builder,
+                            QuicAddrGetFamily(&TempPath->Route.LocalAddress) == QUIC_ADDRESS_FAMILY_INET ?
+                                QUIC_FRAME_PUNCH_ME_NOW_V4 : QUIC_FRAME_PUNCH_ME_NOW_V6,
+                            TRUE)) {
+                        return TRUE;
+                    }
+                } else {
+                    RanOutOfRoom = TRUE;
+                    break;
+                }
+            }
+
+            if (i == Connection->PathsCount) {
+                Send->SendFlags &= ~QUIC_CONN_SEND_FLAG_PUNCH_ME_NOW;
+            }
+
+            if (Builder->Metadata->FrameCount == QUIC_MAX_FRAMES_PER_PACKET) {
+                return TRUE;
+            }
+        }
+
+
         if (Send->SendFlags & QUIC_CONN_SEND_FLAG_DATA_BLOCKED) {
 
             QUIC_DATA_BLOCKED_EX Frame = { Send->OrderedStreamBytesSent };

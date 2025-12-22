@@ -147,6 +147,8 @@ QuicPacketTypeToEncryptLevelV2(
 #define QUIC_CONN_SEND_FLAG_UNI_STREAMS_BLOCKED     0x00020000U
 #define QUIC_CONN_SEND_FLAG_OBSERVED_ADDRESS        0x00040000U
 #define QUIC_CONN_SEND_FLAG_ADD_ADDRESS             0x00080000U
+#define QUIC_CONN_SEND_FLAG_PUNCH_ME_NOW            0x00100000U
+#define QUIC_CONN_SEND_FLAG_PUNCH_YOU_NOW           0x00200000U
 #define QUIC_CONN_SEND_FLAG_DPLPMTUD                0x80000000U
 
 //
@@ -526,3 +528,10 @@ QuicSendClearStreamSendFlag(
     _In_ QUIC_STREAM* Stream,
     _In_ uint32_t SendFlag
     );
+
+BOOLEAN
+CxPlatIsRouteReady(
+    _In_ QUIC_CONNECTION *Connection,
+    _In_ QUIC_PATH* Path
+    );
+
