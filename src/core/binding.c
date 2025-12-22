@@ -1370,7 +1370,10 @@ QuicBindingCreateConnection(
 
     CxPlatCopyMemory(&Entry->LocalAddress, &NewConnection->Paths[0].Route.LocalAddress, sizeof(QUIC_ADDR));
     Entry->SequenceNumber = QUIC_VAR_INT_MAX;
+    Entry->SequenceNumberValid = FALSE;
     Entry->Binding = Binding;
+    Entry->ObservedAddressSet = FALSE;
+    Entry->SendAddAddress = FALSE;
     CxPlatListInsertTail(&NewConnection->LocalAddresses, &Entry->Link);
 
     if (!QuicLookupAddRemoteHash(

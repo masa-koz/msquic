@@ -1890,6 +1890,15 @@ QuicConnProcessShutdownTimerOperation(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 void
+QuicConnProcessProbeAfterPunchOperation(
+    _In_ QUIC_CONNECTION* Connection
+    )
+{
+    QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_PATH_CHALLENGE);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
 QuicConnCloseLocally(
     _In_ QUIC_CONNECTION* Connection,
     _In_ uint32_t Flags,
@@ -8678,6 +8687,9 @@ QuicConnProcessExpiredTimer(
         break;
     case QUIC_CONN_TIMER_SHUTDOWN:
         QuicConnProcessShutdownTimerOperation(Connection);
+        break;
+    case QUIC_CONN_TIMER_PROBE_AFTER_PUNCH:
+        QuicConnProcessProbeAfterPunchOperation(Connection);
         break;
     default:
         CXPLAT_FRE_ASSERT(FALSE);
