@@ -21,10 +21,7 @@ fn cmake_build() {
     use std::env;
     use std::path::Path;
     let path_extra = "lib";
-    let mut logging_enabled = "off";
-    if cfg!(windows) {
-        logging_enabled = "on";
-    }
+    let logging_enabled = "on";
 
     let target = env::var("TARGET").unwrap().replace("\\", "/");
     let out_dir = env::var("OUT_DIR").unwrap().replace("\\", "/");
@@ -37,6 +34,7 @@ fn cmake_build() {
     let mut config = Config::new(".");
     config
         .define("QUIC_ENABLE_LOGGING", logging_enabled)
+        .define("QUIC_LOGGING_TYPE", "stdout")
         .define("QUIC_OUTPUT_DIR", quic_output_dir.to_str().unwrap());
 
     // Disable parallel builds on Windows, as they seems to break manifest builds.
