@@ -6960,6 +6960,11 @@ QuicConnAddRemoteAddress(
     } else {
         Path->SendPunchMeNow = TRUE;
         QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_PUNCH_ME_NOW);
+        QuicConnTimerSet(
+            Connection,
+            QUIC_CONN_TIMER_PROBE_AFTER_PUNCH,
+            Connection->Paths[0].SmoothedRtt * 2);
+
     }
 
     return Status;
