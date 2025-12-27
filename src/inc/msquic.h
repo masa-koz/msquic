@@ -95,6 +95,14 @@ typedef enum QUIC_LOAD_BALANCING_MODE {
                                                 // MUST BE LAST
 } QUIC_LOAD_BALANCING_MODE;
 
+typedef enum QUIC_ADD_ADDRESS_MODE {
+    QUIC_ADD_ADDRESS_INDICATE,                  // Indicate to app that address is being added
+    QUIC_ADD_ADDRESS_AUTO,                      // Automatically create path for the address
+    QUIC_ADD_ADDRESS_NAT_TRAVERSAL,             // Automatically send Punch Me Now for the address 
+    QUIC_ADD_ADDRESS_COUNT,                     // The number of supported handling add adddress modes
+                                                // MUST BE LAST
+} QUIC_ADD_ADDRESS_MODE;
+
 typedef enum QUIC_TLS_ALERT_CODES {
     QUIC_TLS_ALERT_CODE_SUCCESS = 0xFFFF,       // Not a real TlsAlert
     QUIC_TLS_ALERT_CODE_UNEXPECTED_MESSAGE = 10,
@@ -802,7 +810,8 @@ typedef struct QUIC_SETTINGS {
             uint64_t QTIPEnabled                            : 1;
             uint64_t ReservedRioEnabled                     : 1;
             uint64_t ServerMigrationEnabled                 : 1;
-            uint64_t RESERVED                               : 17;
+            uint64_t AddAddressMode                         : 1;
+            uint64_t RESERVED                               : 16;
 #else
             uint64_t RESERVED                               : 26;
 #endif
@@ -857,7 +866,8 @@ typedef struct QUIC_SETTINGS {
             uint64_t QTIPEnabled               : 1;
             uint64_t ReservedRioEnabled        : 1;
             uint64_t ServerMigrationEnabled    : 1;
-            uint64_t ReservedFlags             : 54;
+            uint64_t AddAddressMode            : 2;    // QUIC_ADD_ADDRESS_MODE
+            uint64_t ReservedFlags             : 52;
 #else
             uint64_t ReservedFlags             : 63;
 #endif
@@ -1359,6 +1369,7 @@ typedef enum QUIC_CONNECTION_EVENT_TYPE {
     QUIC_CONNECTION_EVENT_ONE_WAY_DELAY_NEGOTIATED          = 17,   // Only indicated if QUIC_SETTINGS.OneWayDelayEnabled is TRUE.
     QUIC_CONNECTION_EVENT_NETWORK_STATISTICS                = 18,   // Only indicated if QUIC_SETTINGS.EnableNetStatsEvent is TRUE.
     QUIC_CONNECTION_EVENT_NOTIFY_OBSERVED_ADDRESS           = 19,
+    QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_ADDED       = 20,
 #endif
 } QUIC_CONNECTION_EVENT_TYPE;
 
@@ -1446,6 +1457,10 @@ typedef struct QUIC_CONNECTION_EVENT {
             QUIC_ADDR *LocalAddress;
             QUIC_ADDR *ObservedAddress;
         } NOTIFY_OBSERVED_ADDRESS;
+        struct {
+            QUIC_ADDR *Address;
+            QUIC_UINT62 SequenceNumber;
+        } NOTIFY_REMOTE_ADDRESS_ADDED;
 #endif
     };
 } QUIC_CONNECTION_EVENT;

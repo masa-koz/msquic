@@ -1711,7 +1711,7 @@ QuicConnOpenNewPath(
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 QUIC_STATUS
-QuicConnAddRemoteAddress(
+QuicConnProcessAddAddress(
     _In_ QUIC_CONNECTION* Connection,
     _In_ QUIC_ADD_ADDRESS_EX* Frame
     );

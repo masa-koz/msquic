@@ -164,6 +164,11 @@ pub enum ConnectionEvent<'a> {
         local_address: &'a crate::Addr,
         observed_address: &'a crate::Addr,
     },
+    #[cfg(feature = "preview-api")]
+    NotifyRemoteAddressAdded {
+        address: &'a crate::Addr,
+        sequence_number: crate::u62,
+    },
 }
 
 impl<'a> From<&'a QUIC_CONNECTION_EVENT> for ConnectionEvent<'a> {
@@ -253,6 +258,12 @@ impl<'a> From<&'a QUIC_CONNECTION_EVENT> for ConnectionEvent<'a> {
               let local_addr = ev.LocalAddress as *const crate::Addr;
               let observed_addr = ev.ObservedAddress as *const crate::Addr;
               Self::NotifyObservedAddress { local_address: unsafe { local_addr.as_ref().unwrap() }, observed_address: unsafe { observed_addr.as_ref().unwrap() } }
+            }
+            #[cfg(feature = "preview-api")]
+            crate::ffi::QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_ADDED => {
+              let ev = unsafe { value.__bindgen_anon_1.NOTIFY_REMOTE_ADDRESS_ADDED };
+              let addr = ev.Address as *const crate::Addr;
+              Self::NotifyRemoteAddressAdded { address: unsafe { addr.as_ref().unwrap() }, sequence_number: ev.SequenceNumber }
             }
             _ => {
                 todo!("unknown event. maybe preview feature.")

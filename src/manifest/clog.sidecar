@@ -6055,6 +6055,18 @@
       ],
       "macroName": "QuicTraceLogConnVerbose"
     },
+    "IndicateNotifyRemoteAddressAdded": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_ADDED",
+      "UniqueId": "IndicateNotifyRemoteAddressAdded",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
     "IndicateOneWayDelayNegotiated": {
       "ModuleProperites": {},
       "TraceString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_ONE_WAY_DELAY_NEGOTIATED [Send=%hhu,Recv=%hhu]",
@@ -10458,6 +10470,18 @@
         }
       ],
       "macroName": "QuicTraceLogStreamVerbose"
+    },
+    "SettingAddAddress": {
+      "ModuleProperites": {},
+      "TraceString": "[sett] AddAddressMode         = %hhu",
+      "UniqueId": "SettingAddAddress",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "hhu",
+          "MacroVariableName": "arg2"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
     },
     "SettingCongestionControlAlgorithm": {
       "ModuleProperites": {},
@@ -15153,6 +15177,11 @@
         "EncodingString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_NOTIFY_OBSERVED_ADDRESS"
       },
       {
+        "UniquenessHash": "e4cf02f2-f063-2abb-5980-591bc4cd9145",
+        "TraceID": "IndicateNotifyRemoteAddressAdded",
+        "EncodingString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_ADDED"
+      },
+      {
         "UniquenessHash": "f3e73807-c52c-8b02-e3e2-9db446cb267c",
         "TraceID": "IndicateOneWayDelayNegotiated",
         "EncodingString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_ONE_WAY_DELAY_NEGOTIATED [Send=%hhu,Recv=%hhu]"
@@ -16556,6 +16585,11 @@
         "UniquenessHash": "c8982d54-5957-078c-2db7-dcfc5ff92003",
         "TraceID": "SetSendFlag",
         "EncodingString": "[strm][%p] Setting flags 0x%x (existing flags: 0x%x)"
+      },
+      {
+        "UniquenessHash": "3f75ae7e-7a36-39a6-df62-7821aaca5bd5",
+        "TraceID": "SettingAddAddress",
+        "EncodingString": "[sett] AddAddressMode         = %hhu"
       },
       {
         "UniquenessHash": "8a9548eb-5ed9-abe8-6008-94b545f099d7",

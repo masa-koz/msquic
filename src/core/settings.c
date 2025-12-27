@@ -182,6 +182,9 @@ QuicSettingsSetDefault(
     if (!Settings->IsSet.ServerMigrationEnabled) {
         Settings->ServerMigrationEnabled = QUIC_DEFAULT_SERVER_MIGRATION_ENABLED;
     }
+    if (!Settings->IsSet.AddAddressMode) {
+        Settings->AddAddressMode = QUIC_DEFAULT_ADD_ADDRESS_MODE;
+    }
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -363,6 +366,9 @@ QuicSettingsCopy(
 #endif
     if (!Destination->IsSet.ServerMigrationEnabled) {
         Destination->ServerMigrationEnabled = Source->ServerMigrationEnabled;
+    }
+    if (!Destination->IsSet.AddAddressMode) {
+        Destination->AddAddressMode = Source->AddAddressMode;
     }
 }
 
@@ -765,6 +771,12 @@ QuicSettingApply(
         Destination->ServerMigrationEnabled = Source->ServerMigrationEnabled;
         Destination->IsSet.ServerMigrationEnabled = TRUE;
     }
+
+    if (Source->IsSet.AddAddressMode && (!Destination->IsSet.AddAddressMode || OverWrite)) {
+        Destination->AddAddressMode = Source->AddAddressMode;
+        Destination->IsSet.AddAddressMode = TRUE;
+    }
+
     return TRUE;
 }
 
@@ -1475,6 +1487,16 @@ VersionSettingsFail:
             &ValueLen);
         Settings->ServerMigrationEnabled = !!Value;
     }
+    if (!Settings->IsSet.AddAddressMode) {
+        Value = QUIC_DEFAULT_ADD_ADDRESS_MODE;
+        ValueLen = sizeof(Value);
+        CxPlatStorageReadValue(
+            Storage,
+            QUIC_SETTING_ADD_ADDRESS_MODE,
+            (uint8_t*)&Value,
+            &ValueLen);
+        Settings->AddAddressMode = (uint8_t)Value;
+    }
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1546,6 +1568,7 @@ QuicSettingsDump(
     QuicTraceLogVerbose(SettingOneWayDelayEnabled,          "[sett] OneWayDelayEnabled     = %hhu", Settings->OneWayDelayEnabled);
     QuicTraceLogVerbose(SettingNetStatsEventEnabled,        "[sett] NetStatsEventEnabled   = %hhu", Settings->NetStatsEventEnabled);
     QuicTraceLogVerbose(SettingServerMigrationEnabled,      "[sett] ServerMigrationEnabled = %hhu", Settings->ServerMigrationEnabled);
+    QuicTraceLogVerbose(SettingAddAddress,                  "[sett] AddAddressMode         = %hhu", Settings->AddAddressMode);
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1723,6 +1746,9 @@ QuicSettingsDumpNew(
 #endif
     if (Settings->IsSet.ServerMigrationEnabled) {
         QuicTraceLogVerbose(SettingServerMigrationEnabled,          "[sett] ServerMigrationEnabled = %hhu", Settings->ServerMigrationEnabled);
+    }
+    if (Settings->IsSet.AddAddressMode) {
+        QuicTraceLogVerbose(SettingAddAddress,                      "[sett] AddAddressMode         = %hhu", Settings->AddAddressMode);
     }
 }
 
@@ -2001,6 +2027,14 @@ QuicSettingsSettingsToInternal(
    SETTING_COPY_FLAG_TO_INTERNAL_SIZED(
         Flags,
         ServerMigrationEnabled,
+        QUIC_SETTINGS,
+        Settings,
+        SettingsSize,
+        InternalSettings);
+
+   SETTING_COPY_FLAG_TO_INTERNAL_SIZED(
+        Flags,
+        AddAddressMode,
         QUIC_SETTINGS,
         Settings,
         SettingsSize,

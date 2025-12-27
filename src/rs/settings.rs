@@ -25,6 +25,25 @@ impl From<ServerResumptionLevel> for crate::ffi::QUIC_SERVER_RESUMPTION_LEVEL {
     }
 }
 
+/// Type of resumption behavior on the server side.
+pub enum AddAddressMode {
+    Indicate,
+    Auto,
+    NatTraversal,
+}
+
+impl From<AddAddressMode> for crate::ffi::QUIC_ADD_ADDRESS_MODE {
+    fn from(value: AddAddressMode) -> Self {
+        match value {
+            AddAddressMode::Indicate => crate::ffi::QUIC_ADD_ADDRESS_MODE_QUIC_ADD_ADDRESS_INDICATE,
+            AddAddressMode::Auto => crate::ffi::QUIC_ADD_ADDRESS_MODE_QUIC_ADD_ADDRESS_AUTO,
+            AddAddressMode::NatTraversal => {
+                crate::ffi::QUIC_ADD_ADDRESS_MODE_QUIC_ADD_ADDRESS_NAT_TRAVERSAL
+            }
+        }
+    }
+}
+
 /// Settings for MsQuic
 /// Wrapping QUIC_SETTINGS ffi type.
 pub struct Settings {
@@ -177,6 +196,18 @@ impl Settings {
     define_settings_entry_bitflag2!(set_StreamMultiReceiveEnabled);
     #[cfg(feature = "preview-api")]
     define_settings_entry_bitflag2!(set_ServerMigrationEnabled);
+
+    pub fn set_AddAddressMode(mut self, value: AddAddressMode) -> Self {
+        unsafe { self.inner.__bindgen_anon_1.IsSet.set_AddAddressMode(1) };
+
+        unsafe {
+            self.inner
+                .__bindgen_anon_2
+                .__bindgen_anon_1
+                .set_AddAddressMode(crate::ffi::QUIC_ADD_ADDRESS_MODE::from(value) as u64)
+        };
+        self
+    }
 
     define_settings_entry!(
         set_StreamRecvWindowBidiLocalDefault,

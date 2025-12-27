@@ -576,6 +576,16 @@ CXPLAT_STATIC_ASSERT(
 #define QUIC_DEFAULT_SERVER_MIGRATION_ENABLED        FALSE
 
 //
+// The default settings for permitting server migration.
+//
+#define QUIC_DEFAULT_SERVER_MIGRATION_ENABLED        FALSE
+
+//
+// The default settings for mode of processing added addresses.
+//
+#define QUIC_DEFAULT_ADD_ADDRESS_MODE                QUIC_ADD_ADDRESS_INDICATE
+
+//
 // The number of rounds in Cubic Slow Start to sample RTT.
 //
 #define QUIC_HYSTART_DEFAULT_N_SAMPLING             8
@@ -687,6 +697,7 @@ CXPLAT_STATIC_ASSERT(
 #define QUIC_SETTING_NET_STATS_EVENT_ENABLED        "NetStatsEventEnabled"
 #define QUIC_SETTING_STREAM_MULTI_RECEIVE_ENABLED   "StreamMultiReceiveEnabled"
 #define QUIC_SETTING_SERVER_MIGRATION_ENABLED       "ServerMigrationEnabled"
+#define QUIC_SETTING_ADD_ADDRESS_MODE               "AddAddressMode"
 
 #define QUIC_SETTING_INITIAL_WINDOW_PACKETS         "InitialWindowPackets"
 #define QUIC_SETTING_SEND_IDLE_TIMEOUT_MS           "SendIdleTimeoutMs"

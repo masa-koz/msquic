@@ -828,6 +828,21 @@ tracepoint(CLOG_SETTINGS_C, SettingServerMigrationEnabled , arg2);\
 
 
 /*----------------------------------------------------------
+// Decoder Ring for SettingAddAddress
+// [sett] AddAddressMode         = %hhu
+// QuicTraceLogVerbose(SettingAddAddress,                  "[sett] AddAddressMode         = %hhu", Settings->AddAddressMode);
+// arg2 = arg2 = Settings->AddAddressMode = arg2
+----------------------------------------------------------*/
+#ifndef _clog_3_ARGS_TRACE_SettingAddAddress
+#define _clog_3_ARGS_TRACE_SettingAddAddress(uniqueId, encoded_arg_string, arg2)\
+tracepoint(CLOG_SETTINGS_C, SettingAddAddress , arg2);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for SettingDumpLFixedServerID
 // [sett] FixedServerID          = %u
 // QuicTraceLogVerbose(SettingDumpLFixedServerID,              "[sett] FixedServerID          = %u", Settings->FixedServerID);
