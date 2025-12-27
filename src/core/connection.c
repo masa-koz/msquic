@@ -6746,7 +6746,9 @@ QuicConnAddLocalAddress(
         } else if (!LocalAddress->ObservedAddressSet) {
             CxPlatCopyMemory(&LocalAddress->ObservedLocalAddress, Param->ObservedAddress, sizeof(QUIC_ADDR));
             LocalAddress->ObservedAddressSet = TRUE;
-            if (LocalAddress->Binding != NULL) {
+            if (((QuicConnIsClient(Connection) && Connection->State.ServerMigrationNegotiated) ||
+                 (QuicConnIsServer(Connection) && !Connection->State.ServerMigrationNegotiated)) &&
+                LocalAddress->Binding != NULL) {
                 LocalAddress->SequenceNumber = Connection->AddAddressSequenceNumber++;
                 LocalAddress->SequenceNumberValid = TRUE;
                 LocalAddress->SendAddAddress = TRUE;
