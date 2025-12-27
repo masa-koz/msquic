@@ -486,6 +486,10 @@ QuicCryptoHandshakeConfirmed(
     )
 {
     QUIC_CONNECTION* Connection = QuicCryptoGetConnection(Crypto);
+
+    if (Connection->State.HandshakeConfirmed) {
+        return;
+    }
     Connection->State.HandshakeConfirmed = TRUE;
 
     if (SignalBinding) {

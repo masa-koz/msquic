@@ -5891,7 +5891,8 @@ QuicConnRecvPostProcessing(
         }
     }
 
-    if (QuicConnIsServer(Connection) &&
+    if (((QuicConnIsServer(Connection) && !Connection->State.ServerMigrationNegotiated) ||
+         (QuicConnIsClient(Connection) && Connection->State.ServerMigrationNegotiated)) &&
         Packet->HasNonProbingFrame &&
         Packet->NewLargestPacketNumber &&
         !(*Path)->IsActive) {
@@ -6889,6 +6890,32 @@ QuicConnCreatePath(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 QUIC_STATUS
+QuicConnActivatePath(
+    _In_ QUIC_CONNECTION* Connection,
+    _In_ QUIC_ACTIVATE_PATH* Param
+    )
+{
+    if (Connection->State.ClosedLocally || !Connection->State.HandshakeConfirmed) {
+        return QUIC_STATUS_INVALID_STATE;
+    }
+
+    fprintf(stderr, "ActivatePath");
+
+    QUIC_PATH* Path = QuicConnGetPathByAddress(
+        Connection,
+        Param->LocalAddress,
+        Param->RemoteAddress);
+    if (Path == NULL) {
+        return QUIC_STATUS_NOT_FOUND;
+    }
+
+    QuicPathSetActive(Connection, Path);
+    return QUIC_STATUS_SUCCESS;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+QUIC_STATUS
 QuicConnRemoveLocalAddress(
     _In_ QUIC_CONNECTION* Connection,
     _In_ QUIC_ADDR* LocalAddress
@@ -7714,6 +7741,16 @@ QuicConnParamSet(
             break;
         }
         Status = QuicConnCreatePath(Connection, (QUIC_CREATE_PATH*)Buffer);
+        break;
+    }
+
+    case QUIC_PARAM_CONN_ACTIVATE_PATH: {
+
+        if (BufferLength != sizeof(QUIC_ACTIVATE_PATH) || Buffer == NULL) {
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            break;
+        }
+        Status = QuicConnActivatePath(Connection, (QUIC_ACTIVATE_PATH*)Buffer);
         break;
     }
 

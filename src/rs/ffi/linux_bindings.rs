@@ -214,6 +214,7 @@ pub const QUIC_PARAM_CONN_CLOSE_ASYNC: u32 = 83886106;
 pub const QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS: u32 = 83886107;
 pub const QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS: u32 = 83886108;
 pub const QUIC_PARAM_CONN_CREATE_PATH: u32 = 83886109;
+pub const QUIC_PARAM_CONN_ACTIVATE_PATH: u32 = 83886110;
 pub const QUIC_PARAM_TLS_HANDSHAKE_INFO: u32 = 100663296;
 pub const QUIC_PARAM_TLS_NEGOTIATED_ALPN: u32 = 100663297;
 pub const QUIC_PARAM_STREAM_ID: u32 = 134217728;
@@ -1640,6 +1641,21 @@ const _: () = {
         [::std::mem::offset_of!(QUIC_CREATE_PATH, LocalAddress) - 0usize];
     ["Offset of field: QUIC_CREATE_PATH::RemoteAddress"]
         [::std::mem::offset_of!(QUIC_CREATE_PATH, RemoteAddress) - 8usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct QUIC_ACTIVATE_PATH {
+    pub LocalAddress: *mut QUIC_ADDR,
+    pub RemoteAddress: *mut QUIC_ADDR,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of QUIC_ACTIVATE_PATH"][::std::mem::size_of::<QUIC_ACTIVATE_PATH>() - 16usize];
+    ["Alignment of QUIC_ACTIVATE_PATH"][::std::mem::align_of::<QUIC_ACTIVATE_PATH>() - 8usize];
+    ["Offset of field: QUIC_ACTIVATE_PATH::LocalAddress"]
+        [::std::mem::offset_of!(QUIC_ACTIVATE_PATH, LocalAddress) - 0usize];
+    ["Offset of field: QUIC_ACTIVATE_PATH::RemoteAddress"]
+        [::std::mem::offset_of!(QUIC_ACTIVATE_PATH, RemoteAddress) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

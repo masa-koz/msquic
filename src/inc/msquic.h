@@ -670,6 +670,11 @@ typedef struct QUIC_CREATE_PATH {
     QUIC_ADDR* RemoteAddress;
 } QUIC_CREATE_PATH;
 
+typedef struct QUIC_ACTIVATE_PATH {
+    QUIC_ADDR* LocalAddress;
+    QUIC_ADDR* RemoteAddress;
+} QUIC_ACTIVATE_PATH;
+
 typedef struct QUIC_LISTENER_STATISTICS {
 
     uint64_t TotalAcceptedConnections;
@@ -1056,6 +1061,7 @@ typedef struct QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W {
 #define QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS               0x0500001B  // QUIC_ADD_LOCAL_ADDRESS
 #define QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS            0x0500001C  // QUIC_ADDR
 #define QUIC_PARAM_CONN_CREATE_PATH                     0x0500001D  // QUIC_CREATE_PATH
+#define QUIC_PARAM_CONN_ACTIVATE_PATH                   0x0500001E  // QUIC_ACTIVATE_PATH
 #endif
 
 //
