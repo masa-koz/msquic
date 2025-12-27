@@ -571,6 +571,11 @@ CXPLAT_STATIC_ASSERT(
 #define QUIC_DEFAULT_CONN_ID_GENERATION_DISABLED     FALSE
 
 //
+// The default settings for permitting server migration.
+//
+#define QUIC_DEFAULT_SERVER_MIGRATION_ENABLED        FALSE
+
+//
 // The number of rounds in Cubic Slow Start to sample RTT.
 //
 #define QUIC_HYSTART_DEFAULT_N_SAMPLING             8
@@ -628,6 +633,7 @@ CXPLAT_STATIC_ASSERT(
 #define QUIC_TP_FLAG_TIMESTAMP_SEND_ENABLED                 0x02000000
 #define QUIC_TP_FLAG_TIMESTAMP_SHIFT                        24
 #define QUIC_TP_FLAG_OBSERVED_ADDRESS                       0x04000000
+#define QUIC_TP_FLAG_SERVER_MIGRATION                       0x08000000
 
 #define QUIC_TP_MAX_PACKET_SIZE_DEFAULT                     65527
 #define QUIC_TP_MAX_UDP_PAYLOAD_SIZE_MIN                    1200
@@ -680,6 +686,7 @@ CXPLAT_STATIC_ASSERT(
 #define QUIC_SETTING_ONE_WAY_DELAY_ENABLED          "OneWayDelayEnabled"
 #define QUIC_SETTING_NET_STATS_EVENT_ENABLED        "NetStatsEventEnabled"
 #define QUIC_SETTING_STREAM_MULTI_RECEIVE_ENABLED   "StreamMultiReceiveEnabled"
+#define QUIC_SETTING_SERVER_MIGRATION_ENABLED       "ServerMigrationEnabled"
 
 #define QUIC_SETTING_INITIAL_WINDOW_PACKETS         "InitialWindowPackets"
 #define QUIC_SETTING_SEND_IDLE_TIMEOUT_MS           "SendIdleTimeoutMs"

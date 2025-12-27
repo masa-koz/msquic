@@ -696,6 +696,25 @@ TRACEPOINT_EVENT(CLOG_CRYPTO_TLS_C, EncodeTPObservedAddress,
 
 
 /*----------------------------------------------------------
+// Decoder Ring for EncodeTPServerMigration
+// [conn][%p] TP: Server Migration
+// QuicTraceLogConnVerbose(
+            EncodeTPServerMigration,
+            Connection,
+            "TP: Server Migration");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CRYPTO_TLS_C, EncodeTPServerMigration,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
+    )
+)
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for EncodeTPTest
 // [conn][%p] TP: TEST TP (Type %hu, Length %hu)
 // QuicTraceLogConnVerbose(
@@ -1342,6 +1361,25 @@ TRACEPOINT_EVENT(CLOG_CRYPTO_TLS_C, DecodeTPObservedAddress,
     TP_FIELDS(
         ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
         ctf_integer(unsigned int, arg3, arg3)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for DecodeTPServerMigration
+// [conn][%p] TP: Server Migration
+// QuicTraceLogConnVerbose(
+                DecodeTPServerMigration,
+                Connection,
+                "TP: Server Migration");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CRYPTO_TLS_C, DecodeTPServerMigration,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
     )
 )
 

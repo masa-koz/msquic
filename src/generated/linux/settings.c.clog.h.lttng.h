@@ -843,12 +843,12 @@ TRACEPOINT_EVENT(CLOG_SETTINGS_C, SettingNetStatsEventEnabled,
 
 
 /*----------------------------------------------------------
-// Decoder Ring for SettingsStreamMultiReceiveEnabled
-// [sett] StreamMultiReceiveEnabled= %hhu
-// QuicTraceLogVerbose(SettingsStreamMultiReceiveEnabled,  "[sett] StreamMultiReceiveEnabled= %hhu", Settings->StreamMultiReceiveEnabled);
-// arg2 = arg2 = Settings->StreamMultiReceiveEnabled = arg2
+// Decoder Ring for SettingServerMigrationEnabled
+// [sett] ServerMigrationEnabled = %hhu
+// QuicTraceLogVerbose(SettingServerMigrationEnabled,      "[sett] ServerMigrationEnabled = %hhu", Settings->ServerMigrationEnabled);
+// arg2 = arg2 = Settings->ServerMigrationEnabled = arg2
 ----------------------------------------------------------*/
-TRACEPOINT_EVENT(CLOG_SETTINGS_C, SettingsStreamMultiReceiveEnabled,
+TRACEPOINT_EVENT(CLOG_SETTINGS_C, SettingServerMigrationEnabled,
     TP_ARGS(
         unsigned char, arg2), 
     TP_FIELDS(

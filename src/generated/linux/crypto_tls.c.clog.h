@@ -640,6 +640,24 @@ tracepoint(CLOG_CRYPTO_TLS_C, EncodeTPObservedAddress , arg1, arg3);\
 
 
 /*----------------------------------------------------------
+// Decoder Ring for EncodeTPServerMigration
+// [conn][%p] TP: Server Migration
+// QuicTraceLogConnVerbose(
+            EncodeTPServerMigration,
+            Connection,
+            "TP: Server Migration");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+#ifndef _clog_3_ARGS_TRACE_EncodeTPServerMigration
+#define _clog_3_ARGS_TRACE_EncodeTPServerMigration(uniqueId, arg1, encoded_arg_string)\
+tracepoint(CLOG_CRYPTO_TLS_C, EncodeTPServerMigration , arg1);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for EncodeTPTest
 // [conn][%p] TP: TEST TP (Type %hu, Length %hu)
 // QuicTraceLogConnVerbose(
@@ -1205,6 +1223,24 @@ tracepoint(CLOG_CRYPTO_TLS_C, DecodeTPReliableReset , arg1);\
 #ifndef _clog_4_ARGS_TRACE_DecodeTPObservedAddress
 #define _clog_4_ARGS_TRACE_DecodeTPObservedAddress(uniqueId, arg1, encoded_arg_string, arg3)\
 tracepoint(CLOG_CRYPTO_TLS_C, DecodeTPObservedAddress , arg1, arg3);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for DecodeTPServerMigration
+// [conn][%p] TP: Server Migration
+// QuicTraceLogConnVerbose(
+                DecodeTPServerMigration,
+                Connection,
+                "TP: Server Migration");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+#ifndef _clog_3_ARGS_TRACE_DecodeTPServerMigration
+#define _clog_3_ARGS_TRACE_DecodeTPServerMigration(uniqueId, arg1, encoded_arg_string)\
+tracepoint(CLOG_CRYPTO_TLS_C, DecodeTPServerMigration , arg1);\
 
 #endif
 

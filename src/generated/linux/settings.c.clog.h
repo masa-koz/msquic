@@ -813,14 +813,14 @@ tracepoint(CLOG_SETTINGS_C, SettingNetStatsEventEnabled , arg2);\
 
 
 /*----------------------------------------------------------
-// Decoder Ring for SettingsStreamMultiReceiveEnabled
-// [sett] StreamMultiReceiveEnabled= %hhu
-// QuicTraceLogVerbose(SettingsStreamMultiReceiveEnabled,  "[sett] StreamMultiReceiveEnabled= %hhu", Settings->StreamMultiReceiveEnabled);
-// arg2 = arg2 = Settings->StreamMultiReceiveEnabled = arg2
+// Decoder Ring for SettingServerMigrationEnabled
+// [sett] ServerMigrationEnabled = %hhu
+// QuicTraceLogVerbose(SettingServerMigrationEnabled,      "[sett] ServerMigrationEnabled = %hhu", Settings->ServerMigrationEnabled);
+// arg2 = arg2 = Settings->ServerMigrationEnabled = arg2
 ----------------------------------------------------------*/
-#ifndef _clog_3_ARGS_TRACE_SettingsStreamMultiReceiveEnabled
-#define _clog_3_ARGS_TRACE_SettingsStreamMultiReceiveEnabled(uniqueId, encoded_arg_string, arg2)\
-tracepoint(CLOG_SETTINGS_C, SettingsStreamMultiReceiveEnabled , arg2);\
+#ifndef _clog_3_ARGS_TRACE_SettingServerMigrationEnabled
+#define _clog_3_ARGS_TRACE_SettingServerMigrationEnabled(uniqueId, encoded_arg_string, arg2)\
+tracepoint(CLOG_SETTINGS_C, SettingServerMigrationEnabled , arg2);\
 
 #endif
 

@@ -65,7 +65,8 @@ typedef struct QUIC_SETTINGS_INTERNAL {
             uint64_t XdpEnabled                             : 1;
             uint64_t QTIPEnabled                            : 1;
             uint64_t ConnIDGenDisabled                      : 1;
-            uint64_t RESERVED                               : 13;
+            uint64_t ServerMigrationEnabled                 : 1;
+            uint64_t RESERVED                               : 12;
         } IsSet;
     };
 
@@ -119,6 +120,7 @@ typedef struct QUIC_SETTINGS_INTERNAL {
     uint8_t XdpEnabled                      : 1;
     uint8_t QTIPEnabled                     : 1;
     uint8_t ConnIDGenDisabled               : 1;
+    uint8_t ServerMigrationEnabled          : 1;
     uint8_t MtuDiscoveryMissingProbeCount;
 } QUIC_SETTINGS_INTERNAL;
 

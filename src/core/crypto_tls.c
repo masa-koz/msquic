@@ -69,6 +69,7 @@ typedef enum eSniNameType {
 #define QUIC_TP_ID_RELIABLE_RESET_ENABLED                   0x17f7586d2cb570   // varint
 #define QUIC_TP_ID_ENABLE_TIMESTAMP                         0x7158          // varint
 #define QUIC_TP_ID_OBSERVED_ADDRESS                         0x9f81a176      // varint
+#define QUIC_TP_ID_SERVER_MIGRATION                         0x3e764478      // N/A
 
 BOOLEAN
 QuicTpIdIsReserved(
@@ -911,6 +912,12 @@ QuicCryptoTlsEncodeTransportParameters(
                 QUIC_TP_ID_OBSERVED_ADDRESS,
                 QuicVarIntSize(2)); // Hardcode for now
     }
+    if (TransportParams->Flags & QUIC_TP_FLAG_SERVER_MIGRATION) {
+        RequiredTPLen +=
+            TlsTransportParamLength(
+                QUIC_TP_ID_SERVER_MIGRATION,
+                0);
+    }
     if (TestParam != NULL) {
         RequiredTPLen +=
             TlsTransportParamLength(
@@ -1264,6 +1271,18 @@ QuicCryptoTlsEncodeTransportParameters(
             Connection,
             "TP: Observed Address (%u)",
             2);
+    }
+    if (TransportParams->Flags & QUIC_TP_FLAG_SERVER_MIGRATION) {
+        TPBuf =
+            TlsWriteTransportParam(
+                QUIC_TP_ID_SERVER_MIGRATION,
+                0,
+                NULL,
+                TPBuf);
+        QuicTraceLogConnVerbose(
+            EncodeTPServerMigration,
+            Connection,
+            "TP: Server Migration");
     }
     if (TestParam != NULL) {
         TPBuf =
@@ -1999,6 +2018,23 @@ QuicCryptoTlsDecodeTransportParameters( // NOLINT(readability-function-size, goo
             TransportParams->Flags |= QUIC_TP_FLAG_OBSERVED_ADDRESS; // TODO - Pass value?
             break;
         }
+
+        case QUIC_TP_ID_SERVER_MIGRATION:
+            if (Length != 0) {
+                QuicTraceEvent(
+                    ConnErrorStatus,
+                    "[conn][%p] ERROR, %u, %s.",
+                    Connection,
+                    Length,
+                    "Invalid length of QUIC_TP_ID_SERVER_MIGRATION");
+                goto Exit;
+            }
+            TransportParams->Flags |= QUIC_TP_FLAG_SERVER_MIGRATION;
+            QuicTraceLogConnVerbose(
+                DecodeTPServerMigration,
+                Connection,
+                "TP: Server Migration");
+            break;
 
         default:
             if (QuicTpIdIsReserved(Id)) {

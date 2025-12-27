@@ -1358,23 +1358,17 @@ QuicBindingCreateConnection(
         goto Exit;
     }
 
-    QUIC_LOCAL_ADDRESS_LIST_ENTRY* Entry =
-        (QUIC_LOCAL_ADDRESS_LIST_ENTRY*)
-        CXPLAT_ALLOC_NONPAGED(
-            sizeof(QUIC_LOCAL_ADDRESS_LIST_ENTRY),
-            QUIC_POOL_LOCAL_ADDRESS_LIST);
-    if (Entry == NULL) {
-        QuicPacketLogDrop(Binding, Packet, "memory allocation failure");
-        goto Exit;
-    }
-
-    CxPlatCopyMemory(&Entry->LocalAddress, &NewConnection->Paths[0].Route.LocalAddress, sizeof(QUIC_ADDR));
-    Entry->SequenceNumber = QUIC_VAR_INT_MAX;
-    Entry->SequenceNumberValid = FALSE;
-    Entry->Binding = Binding;
-    Entry->ObservedAddressSet = FALSE;
-    Entry->SendAddAddress = FALSE;
-    CxPlatListInsertTail(&NewConnection->LocalAddresses, &Entry->Link);
+    CXPLAT_FRE_ASSERT(NewConnection->LocalAddresses.Flink != NULL);
+    QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress =
+        CXPLAT_CONTAINING_RECORD(
+            NewConnection->LocalAddresses.Flink,
+            QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+            Link);
+    CXPLAT_FRE_ASSERT(
+        QuicAddrCompare(
+            &LocalAddress->LocalAddress,
+            &Packet->Route->LocalAddress));
+    LocalAddress->Binding = Binding;
 
     if (!QuicLookupAddRemoteHash(
             &Binding->Lookup,

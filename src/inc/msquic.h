@@ -665,6 +665,11 @@ typedef struct QUIC_ADD_LOCAL_ADDRESS {
     QUIC_ADDR* ObservedAddress;
 } QUIC_ADD_LOCAL_ADDRESS;
 
+typedef struct QUIC_CREATE_PATH {
+    QUIC_ADDR* LocalAddress;
+    QUIC_ADDR* RemoteAddress;
+} QUIC_CREATE_PATH;
+
 typedef struct QUIC_LISTENER_STATISTICS {
 
     uint64_t TotalAcceptedConnections;
@@ -791,7 +796,8 @@ typedef struct QUIC_SETTINGS {
             uint64_t XdpEnabled                             : 1;
             uint64_t QTIPEnabled                            : 1;
             uint64_t ReservedRioEnabled                     : 1;
-            uint64_t RESERVED                               : 18;
+            uint64_t ServerMigrationEnabled                 : 1;
+            uint64_t RESERVED                               : 17;
 #else
             uint64_t RESERVED                               : 26;
 #endif
@@ -845,7 +851,8 @@ typedef struct QUIC_SETTINGS {
             uint64_t XdpEnabled                : 1;
             uint64_t QTIPEnabled               : 1;
             uint64_t ReservedRioEnabled        : 1;
-            uint64_t ReservedFlags             : 55;
+            uint64_t ServerMigrationEnabled    : 1;
+            uint64_t ReservedFlags             : 54;
 #else
             uint64_t ReservedFlags             : 63;
 #endif
@@ -1048,6 +1055,7 @@ typedef struct QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W {
 #define QUIC_PARAM_CONN_CLOSE_ASYNC                     0x0500001A  // uint8_t
 #define QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS               0x0500001B  // QUIC_ADD_LOCAL_ADDRESS
 #define QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS            0x0500001C  // QUIC_ADDR
+#define QUIC_PARAM_CONN_CREATE_PATH                     0x0500001D  // QUIC_CREATE_PATH
 #endif
 
 //

@@ -213,6 +213,7 @@ pub const QUIC_PARAM_CONN_NETWORK_STATISTICS: u32 = 83886112;
 pub const QUIC_PARAM_CONN_CLOSE_ASYNC: u32 = 83886106;
 pub const QUIC_PARAM_CONN_ADD_LOCAL_ADDRESS: u32 = 83886107;
 pub const QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS: u32 = 83886108;
+pub const QUIC_PARAM_CONN_CREATE_PATH: u32 = 83886109;
 pub const QUIC_PARAM_TLS_HANDSHAKE_INFO: u32 = 100663296;
 pub const QUIC_PARAM_TLS_NEGOTIATED_ALPN: u32 = 100663297;
 pub const QUIC_PARAM_STREAM_ID: u32 = 134217728;
@@ -1624,6 +1625,21 @@ const _: () = {
         [::std::mem::offset_of!(QUIC_ADD_LOCAL_ADDRESS, LocalAddress) - 0usize];
     ["Offset of field: QUIC_ADD_LOCAL_ADDRESS::ObservedAddress"]
         [::std::mem::offset_of!(QUIC_ADD_LOCAL_ADDRESS, ObservedAddress) - 8usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct QUIC_CREATE_PATH {
+    pub LocalAddress: *mut QUIC_ADDR,
+    pub RemoteAddress: *mut QUIC_ADDR,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of QUIC_CREATE_PATH"][::std::mem::size_of::<QUIC_CREATE_PATH>() - 16usize];
+    ["Alignment of QUIC_CREATE_PATH"][::std::mem::align_of::<QUIC_CREATE_PATH>() - 8usize];
+    ["Offset of field: QUIC_CREATE_PATH::LocalAddress"]
+        [::std::mem::offset_of!(QUIC_CREATE_PATH, LocalAddress) - 0usize];
+    ["Offset of field: QUIC_CREATE_PATH::RemoteAddress"]
+        [::std::mem::offset_of!(QUIC_CREATE_PATH, RemoteAddress) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -3518,14 +3534,47 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
         }
     }
     #[inline]
+    pub fn ServerMigrationEnabled(&self) -> u64 {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(46usize, 1u8) as u64) }
+    }
+    #[inline]
+    pub fn set_ServerMigrationEnabled(&mut self, val: u64) {
+        unsafe {
+            let val: u64 = ::std::mem::transmute(val);
+            self._bitfield_1.set(46usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub unsafe fn ServerMigrationEnabled_raw(this: *const Self) -> u64 {
+        unsafe {
+            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::std::ptr::addr_of!((*this)._bitfield_1),
+                46usize,
+                1u8,
+            ) as u64)
+        }
+    }
+    #[inline]
+    pub unsafe fn set_ServerMigrationEnabled_raw(this: *mut Self, val: u64) {
+        unsafe {
+            let val: u64 = ::std::mem::transmute(val);
+            <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
+                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                46usize,
+                1u8,
+                val as u64,
+            )
+        }
+    }
+    #[inline]
     pub fn RESERVED(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(46usize, 18u8) as u64) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(47usize, 17u8) as u64) }
     }
     #[inline]
     pub fn set_RESERVED(&mut self, val: u64) {
         unsafe {
             let val: u64 = ::std::mem::transmute(val);
-            self._bitfield_1.set(46usize, 18u8, val as u64)
+            self._bitfield_1.set(47usize, 17u8, val as u64)
         }
     }
     #[inline]
@@ -3533,8 +3582,8 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
         unsafe {
             ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
                 ::std::ptr::addr_of!((*this)._bitfield_1),
-                46usize,
-                18u8,
+                47usize,
+                17u8,
             ) as u64)
         }
     }
@@ -3544,8 +3593,8 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
             let val: u64 = ::std::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
                 ::std::ptr::addr_of_mut!((*this)._bitfield_1),
-                46usize,
-                18u8,
+                47usize,
+                17u8,
                 val as u64,
             )
         }
@@ -3598,6 +3647,7 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
         XdpEnabled: u64,
         QTIPEnabled: u64,
         ReservedRioEnabled: u64,
+        ServerMigrationEnabled: u64,
         RESERVED: u64,
     ) -> __BindgenBitfieldUnit<[u8; 8usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 8usize]> = Default::default();
@@ -3807,7 +3857,12 @@ impl QUIC_SETTINGS__bindgen_ty_1__bindgen_ty_1 {
             let ReservedRioEnabled: u64 = unsafe { ::std::mem::transmute(ReservedRioEnabled) };
             ReservedRioEnabled as u64
         });
-        __bindgen_bitfield_unit.set(46usize, 18u8, {
+        __bindgen_bitfield_unit.set(46usize, 1u8, {
+            let ServerMigrationEnabled: u64 =
+                unsafe { ::std::mem::transmute(ServerMigrationEnabled) };
+            ServerMigrationEnabled as u64
+        });
+        __bindgen_bitfield_unit.set(47usize, 17u8, {
             let RESERVED: u64 = unsafe { ::std::mem::transmute(RESERVED) };
             RESERVED as u64
         });
@@ -4143,14 +4198,47 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
         }
     }
     #[inline]
+    pub fn ServerMigrationEnabled(&self) -> u64 {
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(9usize, 1u8) as u64) }
+    }
+    #[inline]
+    pub fn set_ServerMigrationEnabled(&mut self, val: u64) {
+        unsafe {
+            let val: u64 = ::std::mem::transmute(val);
+            self._bitfield_1.set(9usize, 1u8, val as u64)
+        }
+    }
+    #[inline]
+    pub unsafe fn ServerMigrationEnabled_raw(this: *const Self) -> u64 {
+        unsafe {
+            ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
+                ::std::ptr::addr_of!((*this)._bitfield_1),
+                9usize,
+                1u8,
+            ) as u64)
+        }
+    }
+    #[inline]
+    pub unsafe fn set_ServerMigrationEnabled_raw(this: *mut Self, val: u64) {
+        unsafe {
+            let val: u64 = ::std::mem::transmute(val);
+            <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
+                ::std::ptr::addr_of_mut!((*this)._bitfield_1),
+                9usize,
+                1u8,
+                val as u64,
+            )
+        }
+    }
+    #[inline]
     pub fn ReservedFlags(&self) -> u64 {
-        unsafe { ::std::mem::transmute(self._bitfield_1.get(9usize, 55u8) as u64) }
+        unsafe { ::std::mem::transmute(self._bitfield_1.get(10usize, 54u8) as u64) }
     }
     #[inline]
     pub fn set_ReservedFlags(&mut self, val: u64) {
         unsafe {
             let val: u64 = ::std::mem::transmute(val);
-            self._bitfield_1.set(9usize, 55u8, val as u64)
+            self._bitfield_1.set(10usize, 54u8, val as u64)
         }
     }
     #[inline]
@@ -4158,8 +4246,8 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
         unsafe {
             ::std::mem::transmute(<__BindgenBitfieldUnit<[u8; 8usize]>>::raw_get(
                 ::std::ptr::addr_of!((*this)._bitfield_1),
-                9usize,
-                55u8,
+                10usize,
+                54u8,
             ) as u64)
         }
     }
@@ -4169,8 +4257,8 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
             let val: u64 = ::std::mem::transmute(val);
             <__BindgenBitfieldUnit<[u8; 8usize]>>::raw_set(
                 ::std::ptr::addr_of_mut!((*this)._bitfield_1),
-                9usize,
-                55u8,
+                10usize,
+                54u8,
                 val as u64,
             )
         }
@@ -4186,6 +4274,7 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
         XdpEnabled: u64,
         QTIPEnabled: u64,
         ReservedRioEnabled: u64,
+        ServerMigrationEnabled: u64,
         ReservedFlags: u64,
     ) -> __BindgenBitfieldUnit<[u8; 8usize]> {
         let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 8usize]> = Default::default();
@@ -4227,7 +4316,12 @@ impl QUIC_SETTINGS__bindgen_ty_2__bindgen_ty_1 {
             let ReservedRioEnabled: u64 = unsafe { ::std::mem::transmute(ReservedRioEnabled) };
             ReservedRioEnabled as u64
         });
-        __bindgen_bitfield_unit.set(9usize, 55u8, {
+        __bindgen_bitfield_unit.set(9usize, 1u8, {
+            let ServerMigrationEnabled: u64 =
+                unsafe { ::std::mem::transmute(ServerMigrationEnabled) };
+            ServerMigrationEnabled as u64
+        });
+        __bindgen_bitfield_unit.set(10usize, 54u8, {
             let ReservedFlags: u64 = unsafe { ::std::mem::transmute(ReservedFlags) };
             ReservedFlags as u64
         });

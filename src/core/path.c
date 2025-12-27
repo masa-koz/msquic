@@ -231,7 +231,8 @@ QuicConnGetPathForPacket(
         return &Connection->Paths[i];
     }
 
-    if (!QuicConnIsServer(Connection)) {
+    if (!((QuicConnIsClient(Connection) && Connection->State.ServerMigrationNegotiated) ||
+          (QuicConnIsServer(Connection) && !Connection->State.ServerMigrationNegotiated))) {
         // Client doesn't create a new path.
         return NULL;
     }

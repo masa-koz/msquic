@@ -3451,6 +3451,18 @@
       ],
       "macroName": "QuicTraceLogConnVerbose"
     },
+    "DecodeTPServerMigration": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] TP: Server Migration",
+      "UniqueId": "DecodeTPServerMigration",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
     "DecodeTPStart": {
       "ModuleProperites": {},
       "TraceString": "[conn][%p] Decoding Transport Parameters (Server = %hhu) (%hu bytes)",
@@ -3994,6 +4006,18 @@
         {
           "DefinationEncoding": "s",
           "MacroVariableName": "arg3"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
+    "EncodeTPServerMigration": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] TP: Server Migration",
+      "UniqueId": "EncodeTPServerMigration",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
         }
       ],
       "macroName": "QuicTraceLogConnVerbose"
@@ -11095,6 +11119,18 @@
       ],
       "macroName": "QuicTraceLogVerbose"
     },
+    "SettingServerMigrationEnabled": {
+      "ModuleProperites": {},
+      "TraceString": "[sett] ServerMigrationEnabled = %hhu",
+      "UniqueId": "SettingServerMigrationEnabled",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "hhu",
+          "MacroVariableName": "arg2"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
+    },
     "SettingsInvalidAcceptableVersion": {
       "ModuleProperites": {},
       "TraceString": "Invalid AcceptableVersion supplied to settings! 0x%x at position %d",
@@ -14437,6 +14473,11 @@
         "EncodingString": "[conn][%p] TP: Retry Source Connection ID (%s)"
       },
       {
+        "UniquenessHash": "1eaccc9d-a323-5231-fae2-08d49a235937",
+        "TraceID": "DecodeTPServerMigration",
+        "EncodingString": "[conn][%p] TP: Server Migration"
+      },
+      {
         "UniquenessHash": "822613a7-cc7e-334a-8e53-483b30217cea",
         "TraceID": "DecodeTPStart",
         "EncodingString": "[conn][%p] Decoding Transport Parameters (Server = %hhu) (%hu bytes)"
@@ -14615,6 +14656,11 @@
         "UniquenessHash": "214be45a-42ba-44e1-05c2-f82f3200e671",
         "TraceID": "EncodeTPRetrySourceCID",
         "EncodingString": "[conn][%p] TP: Retry Source Connection ID (%s)"
+      },
+      {
+        "UniquenessHash": "074ad871-9212-a391-d497-b5e8d6b85828",
+        "TraceID": "EncodeTPServerMigration",
+        "EncodingString": "[conn][%p] TP: Server Migration"
       },
       {
         "UniquenessHash": "0e57e530-870c-7ba0-5b7b-5da31f55dc03",
@@ -16780,6 +16826,11 @@
         "UniquenessHash": "f5c7d703-ecd1-8dd0-c16d-11857945bfcf",
         "TraceID": "SettingReliableResetEnabled",
         "EncodingString": "[sett] ReliableResetEnabled   = %hhu"
+      },
+      {
+        "UniquenessHash": "efb76d23-a243-d5cb-a1cc-2dc5dba5454b",
+        "TraceID": "SettingServerMigrationEnabled",
+        "EncodingString": "[sett] ServerMigrationEnabled = %hhu"
       },
       {
         "UniquenessHash": "e7d29156-fb54-8f96-f3e2-1aa999886c12",

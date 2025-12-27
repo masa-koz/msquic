@@ -224,6 +224,7 @@ typedef union QUIC_CONNECTION_STATE {
         //
         BOOLEAN DisableConnIDGen : 1;
 #endif
+        BOOLEAN ServerMigrationNegotiated : 1;
     };
 } QUIC_CONNECTION_STATE;
 
@@ -1705,16 +1706,7 @@ QUIC_STATUS
 QuicConnOpenNewPath(
     _In_ QUIC_CONNECTION* Connection,
     _In_ QUIC_PATH* Path,
-    _In_ BOOLEAN RemoteAddressSet
-    );
-
-//
-// Open new paths for the connection.
-//
-_IRQL_requires_max_(PASSIVE_LEVEL)
-BOOLEAN
-QuicConnOpenNewPaths(
-    _In_ QUIC_CONNECTION* Connection
+    _In_ QUIC_BINDING* NewBinding
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
