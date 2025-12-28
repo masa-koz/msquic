@@ -7110,10 +7110,11 @@ QuicConnRemoveRemoteAddress(
    // NB: Traversing the array backwards is simpler and more efficient here due
     // to the array shifting that happens in QuicPathRemove.
     //
-    for (uint8_t i = Connection->PathsCount - 1; i >= 0; --i) {
+    for (uint8_t i = Connection->PathsCount - 1; i != (uint8_t)-1; --i) {
         if (QuicAddrCompare(
                 &Connection->Paths[i].Route.RemoteAddress,
                 Param)) {
+            fprintf(stderr, "Removing remote address: i=%d\n", i);
             QUIC_PATH* Path = &Connection->Paths[i];
             uint8_t RemovingPathIndex = i;
 
@@ -7265,6 +7266,7 @@ QuicConnProcessAddAddress(
     CxPlatCopyMemory(&Path->Route.RemoteAddress, &Frame->Address, sizeof(QUIC_ADDR));
 
     Path->RemoteAddressSequenceNumber = Frame->SequenceNumber;
+    Path->RemoteAddressSequenceNumberValid = TRUE;
 
     QUIC_STATUS Status = QuicConnOpenNewPath(Connection, Path, LocalAddress->Binding);
     if (QUIC_FAILED(Status)) {
@@ -7320,7 +7322,8 @@ QuicConnProcessRemoveAddress(
 
     uint8_t RemovingPathIndex = Connection->PathsCount;
     for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-        if (Connection->Paths[i].RemoteAddressSequenceNumber == Frame->SequenceNumber) {
+        if (Connection->Paths[i].RemoteAddressSequenceNumberValid &&
+            Connection->Paths[i].RemoteAddressSequenceNumber == Frame->SequenceNumber) {
             RemovingPathIndex = i;
             break;
         }

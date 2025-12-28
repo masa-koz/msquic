@@ -122,6 +122,11 @@ typedef struct QUIC_PATH {
     BOOLEAN SendObservedAddress : 1;
 
     //
+    // Indicates whether the remote address sequence number is valid.
+    //
+    BOOLEAN RemoteAddressSequenceNumberValid : 1;
+
+    //
     // The add address needs to be sent out.
     //
     BOOLEAN SendPunchMeNow : 1;

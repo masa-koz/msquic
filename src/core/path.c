@@ -28,6 +28,8 @@ QuicPathInitialize(
     CxPlatZeroMemory(Path, sizeof(QUIC_PATH));
     Path->ID = Connection->NextPathId++; // TODO - Check for duplicates after wrap around?
     Path->InUse = TRUE;
+    Path->RemoteAddressSequenceNumberValid = FALSE;
+    Path->RemoteAddressSequenceNumber = QUIC_VAR_INT_MAX;
     Path->SendObservedAddress = TRUE;
     Path->MinRtt = UINT32_MAX;
     Path->Mtu = Connection->Settings.MinimumMtu;
