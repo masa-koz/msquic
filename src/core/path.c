@@ -151,6 +151,16 @@ QuicPathSetValid(
         Path->ID,
         ReasonStrings[Reason]);
 
+    QUIC_CONNECTION_EVENT Event;
+    Event.Type = QUIC_CONNECTION_EVENT_PATH_VALIDATED;
+    Event.PATH_VALIDATED.LocalAddress = &Path->Route.LocalAddress;
+    Event.PATH_VALIDATED.RemoteAddress = &Path->Route.RemoteAddress;
+    QuicTraceLogConnVerbose(
+        IndicatePathValidated,
+        Connection,
+        "Indicating QUIC_CONNECTION_EVENT_PATH_VALIDATED");
+    (void)QuicConnIndicateEvent(Connection, &Event);
+
     Path->IsPeerValidated = TRUE;
     QuicPathSetAllowance(Connection, Path, UINT32_MAX);
 

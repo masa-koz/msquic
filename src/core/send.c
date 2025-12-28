@@ -707,8 +707,14 @@ QuicSendWriteFrames(
                 if (!LocalAddress->SendAddAddress) {
                     continue;
                 }
-                CXPLAT_DBG_ASSERT(LocalAddress->ObservedAddressSet)
-
+                CXPLAT_DBG_ASSERT(LocalAddress->ObservedAddressSet);
+                if (IS_LOOPBACK(LocalAddress->ObservedLocalAddress)) {
+                    //
+                    // Don't send ADD_ADDRESS frames for loopback addresses.
+                    //
+                    LocalAddress->SendAddAddress = FALSE;
+                    continue;
+                }
                 QUIC_ADD_ADDRESS_EX Frame = { 0 };
                 Frame.SequenceNumber = LocalAddress->SequenceNumber;
                 Frame.Address = LocalAddress->ObservedLocalAddress;

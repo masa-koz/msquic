@@ -6915,8 +6915,6 @@ QuicConnActivatePath(
         return QUIC_STATUS_INVALID_STATE;
     }
 
-    fprintf(stderr, "ActivatePath");
-
     QUIC_PATH* Path = QuicConnGetPathByAddress(
         Connection,
         Param->LocalAddress,
@@ -7088,6 +7086,25 @@ QuicConnProcessAddAddress(
             return QUIC_STATUS_OUT_OF_MEMORY;
         }
 
+        QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
+        for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
+                Entry != &Connection->LocalAddresses;
+                Entry = Entry->Flink) {
+            LocalAddress =
+                CXPLAT_CONTAINING_RECORD(
+                    Entry,
+                    QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                    Link);
+            if (!IS_LOOPBACK(LocalAddress->LocalAddress)) {
+                break;
+            } else {
+                LocalAddress = NULL;
+            }
+        }
+        if (LocalAddress == NULL) {
+            return QUIC_STATUS_NOT_FOUND;
+        }
+
         QUIC_PATH* Path = NULL;
         if (Connection->PathsCount > 1) {
             //
@@ -7102,12 +7119,6 @@ QuicConnProcessAddAddress(
         QuicPathInitialize(Connection, Path);
         Path->Allowance = UINT32_MAX;
         Connection->PathsCount++;
-
-        QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress =
-            CXPLAT_CONTAINING_RECORD(
-                Connection->LocalAddresses.Flink,
-                QUIC_LOCAL_ADDRESS_LIST_ENTRY,
-                Link);
 
         CxPlatCopyMemory(&Path->Route.LocalAddress, &LocalAddress->LocalAddress, sizeof(QUIC_ADDR));
         CxPlatCopyMemory(&Path->Route.RemoteAddress, &Frame->Address, sizeof(QUIC_ADDR));

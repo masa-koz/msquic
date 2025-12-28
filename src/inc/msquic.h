@@ -1370,6 +1370,7 @@ typedef enum QUIC_CONNECTION_EVENT_TYPE {
     QUIC_CONNECTION_EVENT_NETWORK_STATISTICS                = 18,   // Only indicated if QUIC_SETTINGS.EnableNetStatsEvent is TRUE.
     QUIC_CONNECTION_EVENT_NOTIFY_OBSERVED_ADDRESS           = 19,
     QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_ADDED       = 20,
+    QUIC_CONNECTION_EVENT_PATH_VALIDATED                    = 21,
 #endif
 } QUIC_CONNECTION_EVENT_TYPE;
 
@@ -1461,6 +1462,10 @@ typedef struct QUIC_CONNECTION_EVENT {
             QUIC_ADDR *Address;
             QUIC_UINT62 SequenceNumber;
         } NOTIFY_REMOTE_ADDRESS_ADDED;
+        struct {
+            QUIC_ADDR *LocalAddress;
+            QUIC_ADDR *RemoteAddress;
+        } PATH_VALIDATED;
 #endif
     };
 } QUIC_CONNECTION_EVENT;

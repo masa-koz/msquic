@@ -6087,6 +6087,18 @@
       ],
       "macroName": "QuicTraceLogConnVerbose"
     },
+    "IndicatePathValidated": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_PATH_VALIDATED",
+      "UniqueId": "IndicatePathValidated",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
     "IndicatePeerAccepted": {
       "ModuleProperites": {},
       "TraceString": "[strm][%p] Indicating QUIC_STREAM_EVENT_PEER_ACCEPTED",
@@ -15185,6 +15197,11 @@
         "UniquenessHash": "f3e73807-c52c-8b02-e3e2-9db446cb267c",
         "TraceID": "IndicateOneWayDelayNegotiated",
         "EncodingString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_ONE_WAY_DELAY_NEGOTIATED [Send=%hhu,Recv=%hhu]"
+      },
+      {
+        "UniquenessHash": "b7f5143d-068d-377b-034b-2277f9f6604b",
+        "TraceID": "IndicatePathValidated",
+        "EncodingString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_PATH_VALIDATED"
       },
       {
         "UniquenessHash": "446a0073-26fb-eed7-4ed4-fa9838fbd654",
