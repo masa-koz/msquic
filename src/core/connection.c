@@ -6805,6 +6805,7 @@ QuicConnAddLocalAddress(
     LocalAddress->SequenceNumberValid = FALSE;
     LocalAddress->SequenceNumber = QUIC_VAR_INT_MAX;
     LocalAddress->SendAddAddress = FALSE;
+    LocalAddress->Binding = NULL;
 
     QuicTraceLogConnInfo(
         LocalAddressAdded,
