@@ -5687,7 +5687,14 @@ QuicConnRecvFrames(
                 QuicConnTransportError(Connection, QUIC_ERROR_PROTOCOL_VIOLATION);
                 return FALSE;
             }
-            QuicConnProcessAddAddress(Connection, &Frame);
+            QUIC_STATUS Status = QuicConnProcessAddAddress(Connection, &Frame);
+            QuicTraceEvent(
+                ConnErrorStatus,
+                "[conn][%p] ERROR, %u, %s.",
+                Connection,
+                Status,
+                "Process ADD_ADDRESS frame");
+
             break;
         }
 
@@ -7002,7 +7009,7 @@ QuicConnRemoveLocalAddress(
         }
     }
 
-    if (LocalAddress != NULL && LocalAddress->Removing) {
+    if (LocalAddress != NULL && !LocalAddress->Removing) {
         if (LocalAddress->Binding != NULL) {
             QuicLibraryReleaseBinding(LocalAddress->Binding);
             LocalAddress->Binding = NULL;
@@ -7025,7 +7032,7 @@ QuicConnRemoveLocalAddress(
     // to the array shifting that happens in QuicPathRemove.
     //
     BOOLEAN PathRemoved = FALSE;
-    for (uint8_t i = Connection->PathsCount - 1; i >= 0; --i) {
+    for (uint8_t i = Connection->PathsCount - 1; i != (uint8_t)-1; --i) {
         if (QuicAddrCompare(
                 &Connection->Paths[i].Route.LocalAddress,
                 Param)) {
