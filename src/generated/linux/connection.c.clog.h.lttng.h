@@ -843,6 +843,37 @@ TRACEPOINT_EVENT(CLOG_CONNECTION_C, UpdatePeerPacketTolerance,
 
 
 /*----------------------------------------------------------
+// Decoder Ring for LocalAddressAdded
+// [conn][%p] Local address %!ADDR! (observed %!ADDR!) added
+// QuicTraceLogConnInfo(
+                LocalAddressAdded,
+                Connection,
+                "Local address %!ADDR! (observed %!ADDR!) added",
+                CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress),
+                CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress));
+// arg1 = arg1 = Connection = arg1
+// arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress) = arg3
+// arg4 = arg4 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress) = arg4
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CONNECTION_C, LocalAddressAdded,
+    TP_ARGS(
+        const void *, arg1,
+        unsigned int, arg3_len,
+        const void *, arg3,
+        unsigned int, arg4_len,
+        const void *, arg4), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
+        ctf_integer(unsigned int, arg3_len, arg3_len)
+        ctf_sequence(char, arg3, arg3, unsigned int, arg3_len)
+        ctf_integer(unsigned int, arg4_len, arg4_len)
+        ctf_sequence(char, arg4, arg4, unsigned int, arg4_len)
+    )
+)
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for UpdateShareBinding
 // [conn][%p] Updated ShareBinding = %hhu
 // QuicTraceLogConnInfo(
@@ -1613,6 +1644,25 @@ TRACEPOINT_EVENT(CLOG_CONNECTION_C, UdpRecvDeferred,
 // arg1 = arg1 = Connection = arg1
 ----------------------------------------------------------*/
 TRACEPOINT_EVENT(CLOG_CONNECTION_C, IndicateNotifyRemoteAddressAdded,
+    TP_ARGS(
+        const void *, arg1), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for IndicateNotifyRemoteAddressRemoved
+// [conn][%p] Indicating QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_REMOVED
+// QuicTraceLogConnVerbose(
+            IndicateNotifyRemoteAddressRemoved,
+            Connection,
+            "Indicating QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_REMOVED");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_CONNECTION_C, IndicateNotifyRemoteAddressRemoved,
     TP_ARGS(
         const void *, arg1), 
     TP_FIELDS(

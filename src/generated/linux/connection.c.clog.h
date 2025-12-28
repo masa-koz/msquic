@@ -793,6 +793,28 @@ tracepoint(CLOG_CONNECTION_C, UpdatePeerPacketTolerance , arg1, arg3);\
 
 
 /*----------------------------------------------------------
+// Decoder Ring for LocalAddressAdded
+// [conn][%p] Local address %!ADDR! (observed %!ADDR!) added
+// QuicTraceLogConnInfo(
+                LocalAddressAdded,
+                Connection,
+                "Local address %!ADDR! (observed %!ADDR!) added",
+                CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress),
+                CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress));
+// arg1 = arg1 = Connection = arg1
+// arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress) = arg3
+// arg4 = arg4 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress) = arg4
+----------------------------------------------------------*/
+#ifndef _clog_7_ARGS_TRACE_LocalAddressAdded
+#define _clog_7_ARGS_TRACE_LocalAddressAdded(uniqueId, arg1, encoded_arg_string, arg3, arg3_len, arg4, arg4_len)\
+tracepoint(CLOG_CONNECTION_C, LocalAddressAdded , arg1, arg3_len, arg3, arg4_len, arg4);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for UpdateShareBinding
 // [conn][%p] Updated ShareBinding = %hhu
 // QuicTraceLogConnInfo(
@@ -1464,6 +1486,24 @@ tracepoint(CLOG_CONNECTION_C, UdpRecvDeferred , arg1, arg3);\
 #ifndef _clog_3_ARGS_TRACE_IndicateNotifyRemoteAddressAdded
 #define _clog_3_ARGS_TRACE_IndicateNotifyRemoteAddressAdded(uniqueId, arg1, encoded_arg_string)\
 tracepoint(CLOG_CONNECTION_C, IndicateNotifyRemoteAddressAdded , arg1);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for IndicateNotifyRemoteAddressRemoved
+// [conn][%p] Indicating QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_REMOVED
+// QuicTraceLogConnVerbose(
+            IndicateNotifyRemoteAddressRemoved,
+            Connection,
+            "Indicating QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_REMOVED");
+// arg1 = arg1 = Connection = arg1
+----------------------------------------------------------*/
+#ifndef _clog_3_ARGS_TRACE_IndicateNotifyRemoteAddressRemoved
+#define _clog_3_ARGS_TRACE_IndicateNotifyRemoteAddressRemoved(uniqueId, arg1, encoded_arg_string)\
+tracepoint(CLOG_CONNECTION_C, IndicateNotifyRemoteAddressRemoved , arg1);\
 
 #endif
 

@@ -739,6 +739,7 @@ typedef struct QUIC_LOCAL_ADDRESS_LIST_ENTRY {
     BOOLEAN ObservedAddressSet : 1;
     BOOLEAN SendAddAddress : 1;
     BOOLEAN SendRemoveAddress : 1;
+    BOOLEAN Removing : 1;
 
 } QUIC_LOCAL_ADDRESS_LIST_ENTRY;
 
@@ -1714,6 +1715,13 @@ QUIC_STATUS
 QuicConnProcessAddAddress(
     _In_ QUIC_CONNECTION* Connection,
     _In_ QUIC_ADD_ADDRESS_EX* Frame
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+QuicConnProcessRemoveAddress(
+    _In_ QUIC_CONNECTION* Connection,
+    _In_ QUIC_REMOVE_ADDRESS_EX* Frame
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)

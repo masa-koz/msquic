@@ -627,6 +627,38 @@ QuicLossDetectionOnPacketAcknowledged(
             Packet->Frames[i].DATAGRAM.ClientContext = NULL;
             break;
 
+        case QUIC_FRAME_REMOVE_ADDRESS: {
+            QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
+            for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
+                    Entry != &Connection->LocalAddresses;
+                    Entry = Entry->Flink) {
+                 LocalAddress =
+                    CXPLAT_CONTAINING_RECORD(
+                        Entry,
+                        QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                        Link);
+
+                if (LocalAddress->SequenceNumberValid && LocalAddress->SequenceNumber ==
+                    Packet->Frames[i].REMOVE_ADDRESS.Sequence) {
+                    break;
+                } else {
+                    LocalAddress = NULL;
+                }
+            }
+            if (LocalAddress != NULL) {
+                QuicTraceLogConnInfo(
+                    LocalAddressRemoved,
+                    Connection,
+                    "Local address %!ADDR! (observed %!ADDR!) removed",
+                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress),
+                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress));
+
+                CxPlatListEntryRemove(&LocalAddress->Link);
+                CXPLAT_FREE(LocalAddress, QUIC_POOL_LOCAL_ADDRESS_LIST);
+            }
+            break;
+        }
+
         case QUIC_FRAME_HANDSHAKE_DONE:
             QuicCryptoHandshakeConfirmed(&Connection->Crypto, TRUE);
             break;

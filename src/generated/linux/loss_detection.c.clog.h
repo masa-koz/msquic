@@ -288,6 +288,28 @@ tracepoint(CLOG_LOSS_DETECTION_C, HandshakeConfirmedAck , arg1);\
 
 
 /*----------------------------------------------------------
+// Decoder Ring for LocalAddressRemoved
+// [conn][%p] Local address %!ADDR! (observed %!ADDR!) removed
+// QuicTraceLogConnInfo(
+                    LocalAddressRemoved,
+                    Connection,
+                    "Local address %!ADDR! (observed %!ADDR!) removed",
+                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress),
+                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress));
+// arg1 = arg1 = Connection = arg1
+// arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress) = arg3
+// arg4 = arg4 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress) = arg4
+----------------------------------------------------------*/
+#ifndef _clog_7_ARGS_TRACE_LocalAddressRemoved
+#define _clog_7_ARGS_TRACE_LocalAddressRemoved(uniqueId, arg1, encoded_arg_string, arg3, arg3_len, arg4, arg4_len)\
+tracepoint(CLOG_LOSS_DETECTION_C, LocalAddressRemoved , arg1, arg3_len, arg3, arg4_len, arg4);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for PathMinMtuValidated
 // [conn][%p] Path[%hhu] Minimum MTU validated
 // QuicTraceLogConnInfo(

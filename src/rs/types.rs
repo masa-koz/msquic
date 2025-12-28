@@ -174,6 +174,10 @@ pub enum ConnectionEvent<'a> {
         local_address: &'a crate::Addr,
         remote_address: &'a crate::Addr,
     },
+    #[cfg(feature = "preview-api")]
+    NotifyRemoteAddressRemoved {
+        sequence_number: crate::u62,
+    },
 }
 
 impl<'a> From<&'a QUIC_CONNECTION_EVENT> for ConnectionEvent<'a> {
@@ -277,6 +281,11 @@ impl<'a> From<&'a QUIC_CONNECTION_EVENT> for ConnectionEvent<'a> {
               let remote_addr = ev.RemoteAddress as *const crate::Addr;
               Self::PathValidated { local_address: unsafe { local_addr.as_ref().unwrap() }, remote_address: unsafe { remote_addr.as_ref().unwrap() } }
             }
+            #[cfg(feature = "preview-api")]
+            crate::ffi::QUIC_CONNECTION_EVENT_TYPE_QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_REMOVED => {
+              let ev = unsafe { value.__bindgen_anon_1.NOTIFY_REMOTE_ADDRESS_REMOVED };
+              Self::NotifyRemoteAddressRemoved { sequence_number: ev.SequenceNumber }
+            }            
             _ => {
                 todo!("unknown event. maybe preview feature.")
             }

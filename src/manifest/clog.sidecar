@@ -6067,6 +6067,18 @@
       ],
       "macroName": "QuicTraceLogConnVerbose"
     },
+    "IndicateNotifyRemoteAddressRemoved": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_REMOVED",
+      "UniqueId": "IndicateNotifyRemoteAddressRemoved",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
     "IndicateOneWayDelayNegotiated": {
       "ModuleProperites": {},
       "TraceString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_ONE_WAY_DELAY_NEGOTIATED [Send=%hhu,Recv=%hhu]",
@@ -7033,6 +7045,46 @@
         }
       ],
       "macroName": "QuicTraceEvent"
+    },
+    "LocalAddressAdded": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Local address %!ADDR! (observed %!ADDR!) added",
+      "UniqueId": "LocalAddressAdded",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg4"
+        }
+      ],
+      "macroName": "QuicTraceLogConnInfo"
+    },
+    "LocalAddressRemoved": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Local address %!ADDR! (observed %!ADDR!) removed",
+      "UniqueId": "LocalAddressRemoved",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg4"
+        }
+      ],
+      "macroName": "QuicTraceLogConnInfo"
     },
     "LocalCloseStopSending": {
       "ModuleProperites": {},
@@ -15194,6 +15246,11 @@
         "EncodingString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_ADDED"
       },
       {
+        "UniquenessHash": "bdbec039-5ae3-5e4c-78a1-a9ccb45482fe",
+        "TraceID": "IndicateNotifyRemoteAddressRemoved",
+        "EncodingString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_REMOVED"
+      },
+      {
         "UniquenessHash": "f3e73807-c52c-8b02-e3e2-9db446cb267c",
         "TraceID": "IndicateOneWayDelayNegotiated",
         "EncodingString": "[conn][%p] Indicating QUIC_CONNECTION_EVENT_ONE_WAY_DELAY_NEGOTIATED [Send=%hhu,Recv=%hhu]"
@@ -15547,6 +15604,16 @@
         "UniquenessHash": "da94a1b4-7135-7fd3-9216-36a5faf1ed7a",
         "TraceID": "ListenerStopped",
         "EncodingString": "[list][%p] Stopped"
+      },
+      {
+        "UniquenessHash": "0efccb2a-093c-2af5-40e1-4d0328322fb4",
+        "TraceID": "LocalAddressAdded",
+        "EncodingString": "[conn][%p] Local address %!ADDR! (observed %!ADDR!) added"
+      },
+      {
+        "UniquenessHash": "cbc6e749-fe1b-7e87-2ced-3debaf4401cd",
+        "TraceID": "LocalAddressRemoved",
+        "EncodingString": "[conn][%p] Local address %!ADDR! (observed %!ADDR!) removed"
       },
       {
         "UniquenessHash": "3d930671-e549-968b-fcba-6e7691ee9678",

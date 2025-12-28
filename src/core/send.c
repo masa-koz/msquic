@@ -751,6 +751,53 @@ QuicSendWriteFrames(
             }
         }
 
+        if (Send->SendFlags & QUIC_CONN_SEND_FLAG_REMOVE_ADDRESS) {
+
+            CXPLAT_LIST_ENTRY* Entry;
+            for (Entry = Connection->LocalAddresses.Flink;
+                    Entry != &Connection->LocalAddresses;
+                    Entry = Entry->Flink) {
+                QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress =
+                    CXPLAT_CONTAINING_RECORD(
+                        Entry,
+                        QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                        Link);
+
+                if (!LocalAddress->SendRemoveAddress) {
+                    continue;
+                }
+                CXPLAT_DBG_ASSERT(LocalAddress->SequenceNumberValid);
+                QUIC_REMOVE_ADDRESS_EX Frame = { 0 };
+                Frame.SequenceNumber = LocalAddress->SequenceNumber;
+
+                if (QuicRemoveAddressFrameEncode(
+                        &Frame,
+                        &Builder->DatagramLength,
+                        AvailableBufferLength,
+                        Builder->Datagram->Buffer)) {
+
+                    LocalAddress->SendRemoveAddress = FALSE;
+                    Builder->Metadata->Frames[
+                        Builder->Metadata->FrameCount].REMOVE_ADDRESS.Sequence =
+                            LocalAddress->SequenceNumber;
+                    if (QuicPacketBuilderAddFrame(Builder, QUIC_FRAME_REMOVE_ADDRESS, TRUE)) {
+                        return TRUE;
+                    }
+                } else {
+                    RanOutOfRoom = TRUE;
+                    break;
+                }
+            }
+
+            if (Entry == &Connection->LocalAddresses) {
+                Send->SendFlags &= ~QUIC_CONN_SEND_FLAG_REMOVE_ADDRESS;
+            }
+
+            if (Builder->Metadata->FrameCount == QUIC_MAX_FRAMES_PER_PACKET) {
+                return TRUE;
+            }
+        }
+
         if (Send->SendFlags & QUIC_CONN_SEND_FLAG_PUNCH_ME_NOW) {
             uint8_t i;
             for (i = 0; i < Connection->PathsCount; ++i) {
@@ -759,10 +806,40 @@ QuicSendWriteFrames(
                     continue;
                 }
 
+                QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
+                for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
+                        Entry != &Connection->LocalAddresses;
+                        Entry = Entry->Flink) {
+                    LocalAddress = CXPLAT_CONTAINING_RECORD(
+                        Entry,
+                        QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                        Link);
+                    if (QuicAddrCompare(
+                            &LocalAddress->LocalAddress,
+                            &TempPath->Route.LocalAddress)) {
+                        break;
+                    }
+                    LocalAddress = NULL;
+                }
+
+                if (LocalAddress == NULL) {
+                    TempPath->SendPunchMeNow = FALSE;
+                    continue;
+                }
+
+                CXPLAT_DBG_ASSERT(LocalAddress->ObservedAddressSet);
+                if (IS_LOOPBACK(LocalAddress->ObservedLocalAddress)) {
+                    //
+                    // Don't send PUNCH_ME_NOW frames for loopback addresses.
+                    //
+                    TempPath->SendPunchMeNow = FALSE;
+                    continue;
+                }
+
                 QUIC_PUNCH_ME_NOW_EX Frame = { 0 };
                 Frame.Round = Connection->PunchMeNowSequenceNumber++;
                 Frame.PairedSequenceNumber = TempPath->RemoteAddressSequenceNumber;
-                Frame.Address = TempPath->Route.LocalAddress;
+                Frame.Address = LocalAddress->ObservedLocalAddress;
 
                 if (QuicPunchMeNowFrameEncode(
                         &Frame,
