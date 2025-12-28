@@ -27,16 +27,16 @@ impl From<ServerResumptionLevel> for crate::ffi::QUIC_SERVER_RESUMPTION_LEVEL {
 
 /// Type of resumption behavior on the server side.
 pub enum AddAddressMode {
-    Indicate,
     Auto,
+    Manual,
     NatTraversal,
 }
 
 impl From<AddAddressMode> for crate::ffi::QUIC_ADD_ADDRESS_MODE {
     fn from(value: AddAddressMode) -> Self {
         match value {
-            AddAddressMode::Indicate => crate::ffi::QUIC_ADD_ADDRESS_MODE_QUIC_ADD_ADDRESS_INDICATE,
             AddAddressMode::Auto => crate::ffi::QUIC_ADD_ADDRESS_MODE_QUIC_ADD_ADDRESS_AUTO,
+            AddAddressMode::Manual => crate::ffi::QUIC_ADD_ADDRESS_MODE_QUIC_ADD_ADDRESS_MANUAL,
             AddAddressMode::NatTraversal => {
                 crate::ffi::QUIC_ADD_ADDRESS_MODE_QUIC_ADD_ADDRESS_NAT_TRAVERSAL
             }

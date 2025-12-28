@@ -7207,7 +7207,7 @@ QuicConnProcessAddAddress(
         return QUIC_STATUS_INVALID_STATE;
     }
 
-    if (Connection->Settings.AddAddressMode == QUIC_ADD_ADDRESS_INDICATE) {
+    if (Connection->Settings.AddAddressMode == QUIC_ADD_ADDRESS_MANUAL) {
         QUIC_CONNECTION_EVENT Event;
         Event.Type = QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_ADDED;
         Event.NOTIFY_REMOTE_ADDRESS_ADDED.Address = &Frame->Address;
@@ -7328,7 +7328,7 @@ QuicConnProcessRemoveAddress(
         return QUIC_STATUS_INVALID_STATE;
     }
 
-    if (Connection->Settings.AddAddressMode == QUIC_ADD_ADDRESS_INDICATE) {
+    if (Connection->Settings.AddAddressMode == QUIC_ADD_ADDRESS_MANUAL) {
         QUIC_CONNECTION_EVENT Event;
         Event.Type = QUIC_CONNECTION_EVENT_NOTIFY_REMOTE_ADDRESS_REMOVED;
         Event.NOTIFY_REMOTE_ADDRESS_REMOVED.SequenceNumber = Frame->SequenceNumber;
@@ -8041,6 +8041,18 @@ QuicConnParamSet(
             break;
         }
         Status = QuicConnActivatePath(Connection, (QUIC_ACTIVATE_PATH*)Buffer);
+        break;
+    }
+
+    case QUIC_PARAM_CONN_REMOVE_REMOTE_ADDRESS: {
+
+        if (BufferLength != sizeof(QUIC_ADDR) || Buffer == NULL ||
+            !QuicAddrIsValid((QUIC_ADDR*)Buffer)) {
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        Status = QuicConnRemoveRemoteAddress(Connection, (QUIC_ADDR*)Buffer);
         break;
     }
 

@@ -583,7 +583,7 @@ CXPLAT_STATIC_ASSERT(
 //
 // The default settings for mode of processing added addresses.
 //
-#define QUIC_DEFAULT_ADD_ADDRESS_MODE                QUIC_ADD_ADDRESS_INDICATE
+#define QUIC_DEFAULT_ADD_ADDRESS_MODE                QUIC_ADD_ADDRESS_AUTO
 
 //
 // The number of rounds in Cubic Slow Start to sample RTT.

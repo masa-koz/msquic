@@ -96,8 +96,8 @@ typedef enum QUIC_LOAD_BALANCING_MODE {
 } QUIC_LOAD_BALANCING_MODE;
 
 typedef enum QUIC_ADD_ADDRESS_MODE {
-    QUIC_ADD_ADDRESS_INDICATE,                  // Indicate to app that address is being added
     QUIC_ADD_ADDRESS_AUTO,                      // Automatically create path for the address
+    QUIC_ADD_ADDRESS_MANUAL,                    // Indicate to app that address is being added
     QUIC_ADD_ADDRESS_NAT_TRAVERSAL,             // Automatically send Punch Me Now for the address 
     QUIC_ADD_ADDRESS_COUNT,                     // The number of supported handling add adddress modes
                                                 // MUST BE LAST
@@ -1072,6 +1072,7 @@ typedef struct QUIC_SCHANNEL_CREDENTIAL_ATTRIBUTE_W {
 #define QUIC_PARAM_CONN_REMOVE_LOCAL_ADDRESS            0x0500001C  // QUIC_ADDR
 #define QUIC_PARAM_CONN_CREATE_PATH                     0x0500001D  // QUIC_CREATE_PATH
 #define QUIC_PARAM_CONN_ACTIVATE_PATH                   0x0500001E  // QUIC_ACTIVATE_PATH
+#define QUIC_PARAM_CONN_REMOVE_REMOTE_ADDRESS           0x0500001F  // QUIC_ADDR
 #endif
 
 //
