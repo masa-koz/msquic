@@ -274,9 +274,8 @@ QuicConnGetPathForPacket(
     }
 
 
-    CXPLAT_LIST_ENTRY* Entry;
     QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
-    for (Entry = Connection->LocalAddresses.Flink;
+    for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
             Entry != &Connection->LocalAddresses;
             Entry = Entry->Flink) {
         LocalAddress =
@@ -289,14 +288,16 @@ QuicConnGetPathForPacket(
                 &LocalAddress->LocalAddress)) {
             break;
         }
+        LocalAddress = NULL;
     }
-    if (Entry == &Connection->LocalAddresses || LocalAddress == NULL) {
+    if (LocalAddress == NULL || LocalAddress->Removing) {
         //
         // No matching local address found.
         //
         return NULL;
     }
 
+    CXPLAT_ASSERT(LocalAddress->Binding != NULL);
     if (!QuicLibraryTryAddRefBinding(LocalAddress->Binding)) {
         return NULL;
     }
