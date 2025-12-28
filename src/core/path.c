@@ -297,7 +297,7 @@ QuicConnGetPathForPacket(
         return NULL;
     }
 
-    CXPLAT_ASSERT(LocalAddress->Binding != NULL);
+    CXPLAT_DBG_ASSERT(LocalAddress->Binding != NULL);
     if (!QuicLibraryTryAddRefBinding(LocalAddress->Binding)) {
         return NULL;
     }
