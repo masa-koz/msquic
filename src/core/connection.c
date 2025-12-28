@@ -6892,6 +6892,11 @@ QuicConnCreatePath(
         return QUIC_STATUS_INVALID_STATE;
     }
 
+    if ((QuicConnIsClient(Connection) && Connection->State.ServerMigrationNegotiated) ||
+        (QuicConnIsServer(Connection) && !Connection->State.ServerMigrationNegotiated)) {
+        return QUIC_STATUS_INVALID_STATE;
+    }
+
     for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
         if (QuicAddrCompare(
                 &Connection->Paths[i].Route.LocalAddress,
@@ -6977,6 +6982,11 @@ QuicConnActivatePath(
         return QUIC_STATUS_INVALID_STATE;
     }
 
+    if ((QuicConnIsClient(Connection) && Connection->State.ServerMigrationNegotiated) ||
+        (QuicConnIsServer(Connection) && !Connection->State.ServerMigrationNegotiated)) {
+        return QUIC_STATUS_INVALID_STATE;
+    }
+
     QUIC_PATH* Path = QuicConnGetPathByAddress(
         Connection,
         Param->LocalAddress,
@@ -7020,6 +7030,7 @@ QuicConnRemoveLocalAddress(
 
     if (LocalAddress != NULL && !LocalAddress->Removing) {
         if (LocalAddress->Binding != NULL) {
+            QuicBindingRemoveAllSourceConnectionIDs(LocalAddress->Binding, Connection);
             QuicLibraryReleaseBinding(LocalAddress->Binding);
             LocalAddress->Binding = NULL;
         }
