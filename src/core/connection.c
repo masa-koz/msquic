@@ -5688,13 +5688,14 @@ QuicConnRecvFrames(
                 return FALSE;
             }
             QUIC_STATUS Status = QuicConnProcessAddAddress(Connection, &Frame);
-            QuicTraceEvent(
-                ConnErrorStatus,
-                "[conn][%p] ERROR, %u, %s.",
-                Connection,
-                Status,
-                "Process ADD_ADDRESS frame");
-
+            if (QUIC_FAILED(Status)) {
+                QuicTraceEvent(
+                    ConnErrorStatus,
+                    "[conn][%p] ERROR, %u, %s.",
+                    Connection,
+                    Status,
+                    "Process ADD_ADDRESS frame");
+            }
             break;
         }
 
@@ -5755,7 +5756,15 @@ QuicConnRecvFrames(
                 QuicConnTransportError(Connection, QUIC_ERROR_FRAME_ENCODING_ERROR);
                 return FALSE;
             }
-            QuicConnProcessRemoveAddress(Connection, &Frame);
+            QUIC_STATUS Status = QuicConnProcessRemoveAddress(Connection, &Frame);
+            if (QUIC_FAILED(Status)) {
+                QuicTraceEvent(
+                    ConnErrorStatus,
+                    "[conn][%p] ERROR, %u, %s.",
+                    Connection,
+                    Status,
+                    "Process REMOVE_ADDRESS frame");
+            }
             break;
         }
 
@@ -7114,7 +7123,6 @@ QuicConnRemoveRemoteAddress(
         if (QuicAddrCompare(
                 &Connection->Paths[i].Route.RemoteAddress,
                 Param)) {
-            fprintf(stderr, "Removing remote address: i=%d\n", i);
             QUIC_PATH* Path = &Connection->Paths[i];
             uint8_t RemovingPathIndex = i;
 
@@ -7169,6 +7177,7 @@ QuicConnRemoveRemoteAddress(
             }
         }
     }
+    return QUIC_STATUS_SUCCESS;
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -7320,24 +7329,55 @@ QuicConnProcessRemoveAddress(
         return QUIC_STATUS_SUCCESS;
     }
 
+    QUIC_OPERATION* Oper;
+    if ((Oper = QuicConnAllocOperation(Connection, QUIC_OPER_TYPE_REMOVE_ADDRESS)) != NULL) {
+        Oper->REMOVE_ADDRESS.SequenceNumber = Frame->SequenceNumber;
+        QuicConnQueueOper(Connection, Oper);
+    } else {
+        QuicTraceEvent(
+            AllocFailure,
+            "Allocation of '%s' failed. (%llu bytes)",
+            "remove address operation",
+            0);
+        return QUIC_STATUS_OUT_OF_MEMORY;
+    }
+
+    return QUIC_STATUS_SUCCESS;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicConnProcessRemoveAddressOper(
+    _In_ QUIC_CONNECTION* Connection,
+    _In_ QUIC_VAR_INT SequenceNumber
+    )
+{
     uint8_t RemovingPathIndex = Connection->PathsCount;
     for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
         if (Connection->Paths[i].RemoteAddressSequenceNumberValid &&
-            Connection->Paths[i].RemoteAddressSequenceNumber == Frame->SequenceNumber) {
+            Connection->Paths[i].RemoteAddressSequenceNumber == SequenceNumber) {
             RemovingPathIndex = i;
             break;
         }
     }
 
     if (RemovingPathIndex == Connection->PathsCount) {
-        return QUIC_STATUS_NOT_FOUND;
+        return;
     }
     QUIC_STATUS Status = QuicConnRemoveRemoteAddress(
         Connection,
         &Connection->Paths[RemovingPathIndex].Route.RemoteAddress);
-    return Status;
+    if (QUIC_FAILED(Status)) {
+        QuicTraceEvent(
+            ConnErrorStatus,
+            "[conn][%p] ERROR, %u, %s.",
+            Connection,
+            Status,
+            "Process REMOVE_ADDRESS frame");
+    }
+    return;
 }
- 
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 void
 QuicConnSendPunchProbe(
@@ -9222,6 +9262,10 @@ QuicConnDrainOperations(
             }
             QuicConnProcessRouteCompletion(
                 Connection, Oper->ROUTE.PhysicalAddress, Oper->ROUTE.PathId, Oper->ROUTE.Succeeded);
+            break;
+
+        case QUIC_OPER_TYPE_REMOVE_ADDRESS:
+            QuicConnProcessRemoveAddressOper(Connection, Oper->REMOVE_ADDRESS.SequenceNumber);
             break;
 
         default:
