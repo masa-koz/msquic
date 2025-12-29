@@ -132,6 +132,11 @@ typedef struct QUIC_PATH {
     BOOLEAN SendPunchMeNow : 1;
 
     //
+    // Indicates whether the punch me now round number is valid.
+    //
+    BOOLEAN PunchMeNowRoundValid : 1;
+
+    //
     // The ending time of ECN validation testing state in microseconds.
     //
     uint64_t EcnTestingEndingTime;

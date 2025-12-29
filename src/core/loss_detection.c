@@ -924,6 +924,81 @@ QuicLossDetectionRetransmitFrames(
                         QUIC_CONN_SEND_FLAG_ACK_FREQUENCY);
             }
             break;
+
+        case QUIC_FRAME_ADD_ADDRESS_V4:
+        case QUIC_FRAME_ADD_ADDRESS_V6: {
+            QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
+            for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
+                    Entry != &Connection->LocalAddresses;
+                    Entry = Entry->Flink) {
+                LocalAddress =
+                    CXPLAT_CONTAINING_RECORD(
+                        Entry,
+                        QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                        Link);
+                if (LocalAddress->SequenceNumberValid &&
+                    LocalAddress->SequenceNumber == Packet->Frames[i].ADD_ADDRESS.Sequence) {
+                    break;
+                }
+                LocalAddress = NULL;
+            }
+            if (LocalAddress != NULL) {
+                LocalAddress->SendAddAddress = TRUE;
+                NewDataQueued |=
+                    QuicSendSetSendFlag(
+                        &Connection->Send,
+                        QUIC_CONN_SEND_FLAG_ADD_ADDRESS);
+            }
+            break;
+        }
+
+        case QUIC_FRAME_REMOVE_ADDRESS: {
+            QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
+            for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
+                    Entry != &Connection->LocalAddresses;
+                    Entry = Entry->Flink) {
+                LocalAddress =
+                    CXPLAT_CONTAINING_RECORD(
+                        Entry,
+                        QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                        Link);
+                if (LocalAddress->SequenceNumberValid &&
+                    LocalAddress->SequenceNumber == Packet->Frames[i].REMOVE_ADDRESS.Sequence) {
+                    break;
+                }
+                LocalAddress = NULL;
+            }
+            if (LocalAddress != NULL) {
+                CXPLAT_DBG_ASSERT(LocalAddress->Removing);
+                LocalAddress->SendRemoveAddress = TRUE;
+                NewDataQueued |=
+                    QuicSendSetSendFlag(
+                        &Connection->Send,
+                        QUIC_CONN_SEND_FLAG_REMOVE_ADDRESS);
+            }
+            break;
+        }
+
+        case QUIC_FRAME_PUNCH_ME_NOW_V4:
+        case QUIC_FRAME_PUNCH_ME_NOW_V6: {
+            QUIC_PATH* TempPath = NULL;
+            for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+                TempPath = &Connection->Paths[i];
+                if (TempPath->PunchMeNowRoundValid &&
+                    TempPath->PunchMeNowRound == Packet->Frames[i].PUNCH_ME_NOW.Round) {
+                    break;
+                }
+                TempPath = NULL;
+            }
+            if (TempPath != NULL) {
+                TempPath->SendPunchMeNow = TRUE;
+                NewDataQueued |=
+                    QuicSendSetSendFlag(
+                        &Connection->Send,
+                        QUIC_CONN_SEND_FLAG_PUNCH_ME_NOW);
+            }
+            break;
+        }
         }
     }
 

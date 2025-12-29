@@ -850,6 +850,7 @@ QuicSendWriteFrames(
                         Builder->Datagram->Buffer)) {
 
                     TempPath->PunchMeNowRound = Frame.Round;
+                    TempPath->PunchMeNowRoundValid = TRUE;
                     TempPath->SendPunchMeNow = FALSE;
                     Builder->Metadata->Frames[
                         Builder->Metadata->FrameCount].PUNCH_ME_NOW.Round =
