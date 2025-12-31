@@ -628,33 +628,33 @@ QuicLossDetectionOnPacketAcknowledged(
             break;
 
         case QUIC_FRAME_REMOVE_ADDRESS: {
-            QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
-            for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
-                    Entry != &Connection->LocalAddresses;
+            QUIC_BOUND_ADDRESS_LIST_ENTRY* Bound = NULL;
+            for (CXPLAT_LIST_ENTRY* Entry = Connection->BoundAddresses.Flink;
+                    Entry != &Connection->BoundAddresses;
                     Entry = Entry->Flink) {
-                 LocalAddress =
+                QUIC_BOUND_ADDRESS_LIST_ENTRY* Current =
                     CXPLAT_CONTAINING_RECORD(
                         Entry,
-                        QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                        QUIC_BOUND_ADDRESS_LIST_ENTRY,
                         Link);
 
-                if (LocalAddress->SequenceNumberValid && LocalAddress->SequenceNumber ==
-                    Packet->Frames[i].REMOVE_ADDRESS.Sequence) {
+                if (Current->SequenceNumberValid &&
+                    Current->SequenceNumber == Packet->Frames[i].REMOVE_ADDRESS.Sequence) {
+                    Bound = Current;
                     break;
-                } else {
-                    LocalAddress = NULL;
                 }
             }
-            if (LocalAddress != NULL) {
-                QuicTraceLogConnInfo(
-                    LocalAddressRemoved,
+            if (Bound != NULL) {
+                QuicTraceEvent(
+                    ConnObservedAddrRemoved,
+                    "[conn][%p] Removed Observed IP: %!ADDR! for Bound IP: %!ADDR!",
                     Connection,
-                    "Local address %!ADDR! (observed %!ADDR!) removed",
-                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress),
-                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress));
+                    CASTED_CLOG_BYTEARRAY(sizeof(Bound->ObservedAddress), &Bound->ObservedAddress),
+                    CASTED_CLOG_BYTEARRAY(sizeof(Bound->Address), &Bound->Address));
 
-                CxPlatListEntryRemove(&LocalAddress->Link);
-                CXPLAT_FREE(LocalAddress, QUIC_POOL_LOCAL_ADDRESS_LIST);
+                CxPlatListEntryRemove(&Bound->Link);
+                Connection->BoundAddressesCount--;
+                CXPLAT_FREE(Bound, QUIC_POOL_BOUND_ADDRESS_LIST);
             }
             break;
         }
@@ -876,6 +876,11 @@ QuicLossDetectionRetransmitFrames(
                     QuicPerfCounterIncrement(
                         Connection->Partition, QUIC_PERF_COUNTER_PATH_FAILURE);
                     CXPLAT_DBG_ASSERT(Connection->Paths[PathIndex].Binding != NULL);
+                    if (Connection->Paths[PathIndex].Binding->Connected) {
+                        QuicBindingRemoveAllSourceConnectionIDs(
+                            Connection->Paths[PathIndex].Binding,
+                            Connection);
+                    }
                     QuicLibraryReleaseBinding(Connection->Paths[PathIndex].Binding);
                     Connection->Paths[PathIndex].Binding = NULL;
                     QuicPathRemove(Connection, PathIndex);
@@ -927,23 +932,23 @@ QuicLossDetectionRetransmitFrames(
 
         case QUIC_FRAME_ADD_ADDRESS_V4:
         case QUIC_FRAME_ADD_ADDRESS_V6: {
-            QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
-            for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
-                    Entry != &Connection->LocalAddresses;
+            QUIC_BOUND_ADDRESS_LIST_ENTRY* Bound = NULL;
+            for (CXPLAT_LIST_ENTRY* Entry = Connection->BoundAddresses.Flink;
+                    Entry != &Connection->BoundAddresses;
                     Entry = Entry->Flink) {
-                LocalAddress =
+                Bound =
                     CXPLAT_CONTAINING_RECORD(
                         Entry,
-                        QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                        QUIC_BOUND_ADDRESS_LIST_ENTRY,
                         Link);
-                if (LocalAddress->SequenceNumberValid &&
-                    LocalAddress->SequenceNumber == Packet->Frames[i].ADD_ADDRESS.Sequence) {
+                if (Bound->SequenceNumberValid &&
+                    Bound->SequenceNumber == Packet->Frames[i].ADD_ADDRESS.Sequence) {
                     break;
                 }
-                LocalAddress = NULL;
+                Bound = NULL;
             }
-            if (LocalAddress != NULL) {
-                LocalAddress->SendAddAddress = TRUE;
+            if (Bound != NULL) {
+                Bound->SendAddAddress = TRUE;
                 NewDataQueued |=
                     QuicSendSetSendFlag(
                         &Connection->Send,
@@ -953,24 +958,24 @@ QuicLossDetectionRetransmitFrames(
         }
 
         case QUIC_FRAME_REMOVE_ADDRESS: {
-            QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress = NULL;
-            for (CXPLAT_LIST_ENTRY* Entry = Connection->LocalAddresses.Flink;
-                    Entry != &Connection->LocalAddresses;
+            QUIC_BOUND_ADDRESS_LIST_ENTRY* Bound = NULL;
+            for (CXPLAT_LIST_ENTRY* Entry = Connection->BoundAddresses.Flink;
+                    Entry != &Connection->BoundAddresses;
                     Entry = Entry->Flink) {
-                LocalAddress =
+                Bound =
                     CXPLAT_CONTAINING_RECORD(
                         Entry,
-                        QUIC_LOCAL_ADDRESS_LIST_ENTRY,
+                        QUIC_BOUND_ADDRESS_LIST_ENTRY,
                         Link);
-                if (LocalAddress->SequenceNumberValid &&
-                    LocalAddress->SequenceNumber == Packet->Frames[i].REMOVE_ADDRESS.Sequence) {
+                if (Bound->SequenceNumberValid &&
+                    Bound->SequenceNumber == Packet->Frames[i].REMOVE_ADDRESS.Sequence) {
                     break;
                 }
-                LocalAddress = NULL;
+                Bound = NULL;
             }
-            if (LocalAddress != NULL) {
-                CXPLAT_DBG_ASSERT(LocalAddress->Removing);
-                LocalAddress->SendRemoveAddress = TRUE;
+            if (Bound != NULL) {
+                CXPLAT_DBG_ASSERT(Bound->Removing);
+                Bound->SendRemoveAddress = TRUE;
                 NewDataQueued |=
                     QuicSendSetSendFlag(
                         &Connection->Send,
@@ -982,8 +987,8 @@ QuicLossDetectionRetransmitFrames(
         case QUIC_FRAME_PUNCH_ME_NOW_V4:
         case QUIC_FRAME_PUNCH_ME_NOW_V6: {
             QUIC_PATH* TempPath = NULL;
-            for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-                TempPath = &Connection->Paths[i];
+            for (uint8_t j = 0; j < Connection->PathsCount; ++j) {
+                TempPath = &Connection->Paths[j];
                 if (TempPath->PunchMeNowRoundValid &&
                     TempPath->PunchMeNowRound == Packet->Frames[i].PUNCH_ME_NOW.Round) {
                     break;

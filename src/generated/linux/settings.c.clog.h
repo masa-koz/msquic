@@ -843,6 +843,21 @@ tracepoint(CLOG_SETTINGS_C, SettingAddAddress , arg2);\
 
 
 /*----------------------------------------------------------
+// Decoder Ring for SettingIgnoreUnreachable
+// [sett] IgnoreUnreachable      = %hhu
+// QuicTraceLogVerbose(SettingIgnoreUnreachable,           "[sett] IgnoreUnreachable      = %hhu", Settings->IgnoreUnreachable);
+// arg2 = arg2 = Settings->IgnoreUnreachable = arg2
+----------------------------------------------------------*/
+#ifndef _clog_3_ARGS_TRACE_SettingIgnoreUnreachable
+#define _clog_3_ARGS_TRACE_SettingIgnoreUnreachable(uniqueId, encoded_arg_string, arg2)\
+tracepoint(CLOG_SETTINGS_C, SettingIgnoreUnreachable , arg2);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for SettingDumpLFixedServerID
 // [sett] FixedServerID          = %u
 // QuicTraceLogVerbose(SettingDumpLFixedServerID,              "[sett] FixedServerID          = %u", Settings->FixedServerID);

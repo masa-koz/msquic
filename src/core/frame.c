@@ -2357,14 +2357,16 @@ QuicFrameLog(
             return FALSE;
         }
 
+        QUIC_ADDR_STR ObservedAddrStr;
+        QuicAddrToString(&Frame.Address, &ObservedAddrStr);
         QuicTraceLogVerbose(
             FrameLogObservedAddress,
-            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!",
+            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %s",
             PtkConnPre(Connection),
             PktRxPre(Rx),
             PacketNumber,
             Frame.SequenceNumber,
-            CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address));
+            ObservedAddrStr.Address);
         break;
     }
 
@@ -2381,14 +2383,16 @@ QuicFrameLog(
             return FALSE;
         }
 
+        QUIC_ADDR_STR AddedAddrStr;
+        QuicAddrToString(&Frame.Address, &AddedAddrStr);
         QuicTraceLogVerbose(
             FrameLogAddAddress,
-            "[%c][%cX][%llu]   ADD_ADDRESS %llu %!ADDR!",
+            "[%c][%cX][%llu]   ADD_ADDRESS %llu %s",
             PtkConnPre(Connection),
             PktRxPre(Rx),
             PacketNumber,
             Frame.SequenceNumber,
-            CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address));
+            AddedAddrStr.Address);
         break;
     }
 
@@ -2405,15 +2409,17 @@ QuicFrameLog(
             return FALSE;
         }
 
+        QUIC_ADDR_STR PunchedAddrStr;
+        QuicAddrToString(&Frame.Address, &PunchedAddrStr);
         QuicTraceLogVerbose(
             FrameLogPunchMeNow,
-            "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %!ADDR!",
+            "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %s",
             PtkConnPre(Connection),
             PktRxPre(Rx),
             PacketNumber,
             Frame.Round,
             Frame.PairedSequenceNumber,
-            CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address));
+            PunchedAddrStr.Address);
         break;
     }
 

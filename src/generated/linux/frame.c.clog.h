@@ -1345,24 +1345,24 @@ tracepoint(CLOG_FRAME_C, FrameLogObservedAddressInvalid , arg2, arg3, arg4);\
 
 /*----------------------------------------------------------
 // Decoder Ring for FrameLogObservedAddress
-// [%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!
+// [%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %s
 // QuicTraceLogVerbose(
             FrameLogObservedAddress,
-            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!",
+            "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %s",
             PtkConnPre(Connection),
             PktRxPre(Rx),
             PacketNumber,
             Frame.SequenceNumber,
-            CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address));
+            ObservedAddrStr.Address);
 // arg2 = arg2 = PtkConnPre(Connection) = arg2
 // arg3 = arg3 = PktRxPre(Rx) = arg3
 // arg4 = arg4 = PacketNumber = arg4
 // arg5 = arg5 = Frame.SequenceNumber = arg5
-// arg6 = arg6 = CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address) = arg6
+// arg6 = arg6 = ObservedAddrStr.Address = arg6
 ----------------------------------------------------------*/
-#ifndef _clog_8_ARGS_TRACE_FrameLogObservedAddress
-#define _clog_8_ARGS_TRACE_FrameLogObservedAddress(uniqueId, encoded_arg_string, arg2, arg3, arg4, arg5, arg6, arg6_len)\
-tracepoint(CLOG_FRAME_C, FrameLogObservedAddress , arg2, arg3, arg4, arg5, arg6_len, arg6);\
+#ifndef _clog_7_ARGS_TRACE_FrameLogObservedAddress
+#define _clog_7_ARGS_TRACE_FrameLogObservedAddress(uniqueId, encoded_arg_string, arg2, arg3, arg4, arg5, arg6)\
+tracepoint(CLOG_FRAME_C, FrameLogObservedAddress , arg2, arg3, arg4, arg5, arg6);\
 
 #endif
 
@@ -1393,24 +1393,24 @@ tracepoint(CLOG_FRAME_C, FrameLogAddAddressInvalid , arg2, arg3, arg4);\
 
 /*----------------------------------------------------------
 // Decoder Ring for FrameLogAddAddress
-// [%c][%cX][%llu]   ADD_ADDRESS %llu %!ADDR!
+// [%c][%cX][%llu]   ADD_ADDRESS %llu %s
 // QuicTraceLogVerbose(
             FrameLogAddAddress,
-            "[%c][%cX][%llu]   ADD_ADDRESS %llu %!ADDR!",
+            "[%c][%cX][%llu]   ADD_ADDRESS %llu %s",
             PtkConnPre(Connection),
             PktRxPre(Rx),
             PacketNumber,
             Frame.SequenceNumber,
-            CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address));
+            AddedAddrStr.Address);
 // arg2 = arg2 = PtkConnPre(Connection) = arg2
 // arg3 = arg3 = PktRxPre(Rx) = arg3
 // arg4 = arg4 = PacketNumber = arg4
 // arg5 = arg5 = Frame.SequenceNumber = arg5
-// arg6 = arg6 = CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address) = arg6
+// arg6 = arg6 = AddedAddrStr.Address = arg6
 ----------------------------------------------------------*/
-#ifndef _clog_8_ARGS_TRACE_FrameLogAddAddress
-#define _clog_8_ARGS_TRACE_FrameLogAddAddress(uniqueId, encoded_arg_string, arg2, arg3, arg4, arg5, arg6, arg6_len)\
-tracepoint(CLOG_FRAME_C, FrameLogAddAddress , arg2, arg3, arg4, arg5, arg6_len, arg6);\
+#ifndef _clog_7_ARGS_TRACE_FrameLogAddAddress
+#define _clog_7_ARGS_TRACE_FrameLogAddAddress(uniqueId, encoded_arg_string, arg2, arg3, arg4, arg5, arg6)\
+tracepoint(CLOG_FRAME_C, FrameLogAddAddress , arg2, arg3, arg4, arg5, arg6);\
 
 #endif
 
@@ -1441,26 +1441,26 @@ tracepoint(CLOG_FRAME_C, FrameLogPunchMeNowInvalid , arg2, arg3, arg4);\
 
 /*----------------------------------------------------------
 // Decoder Ring for FrameLogPunchMeNow
-// [%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %!ADDR!
+// [%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %s
 // QuicTraceLogVerbose(
             FrameLogPunchMeNow,
-            "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %!ADDR!",
+            "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %s",
             PtkConnPre(Connection),
             PktRxPre(Rx),
             PacketNumber,
             Frame.Round,
             Frame.PairedSequenceNumber,
-            CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address));
+            PunchedAddrStr.Address);
 // arg2 = arg2 = PtkConnPre(Connection) = arg2
 // arg3 = arg3 = PktRxPre(Rx) = arg3
 // arg4 = arg4 = PacketNumber = arg4
 // arg5 = arg5 = Frame.Round = arg5
 // arg6 = arg6 = Frame.PairedSequenceNumber = arg6
-// arg7 = arg7 = CASTED_CLOG_BYTEARRAY(sizeof(Frame.Address), &Frame.Address) = arg7
+// arg7 = arg7 = PunchedAddrStr.Address = arg7
 ----------------------------------------------------------*/
-#ifndef _clog_9_ARGS_TRACE_FrameLogPunchMeNow
-#define _clog_9_ARGS_TRACE_FrameLogPunchMeNow(uniqueId, encoded_arg_string, arg2, arg3, arg4, arg5, arg6, arg7, arg7_len)\
-tracepoint(CLOG_FRAME_C, FrameLogPunchMeNow , arg2, arg3, arg4, arg5, arg6, arg7_len, arg7);\
+#ifndef _clog_8_ARGS_TRACE_FrameLogPunchMeNow
+#define _clog_8_ARGS_TRACE_FrameLogPunchMeNow(uniqueId, encoded_arg_string, arg2, arg3, arg4, arg5, arg6, arg7)\
+tracepoint(CLOG_FRAME_C, FrameLogPunchMeNow , arg2, arg3, arg4, arg5, arg6, arg7);\
 
 #endif
 

@@ -25,6 +25,7 @@ impl From<ServerResumptionLevel> for crate::ffi::QUIC_SERVER_RESUMPTION_LEVEL {
     }
 }
 
+#[derive(Clone, Copy)]
 /// Type of resumption behavior on the server side.
 pub enum AddAddressMode {
     Auto,
@@ -199,15 +200,12 @@ impl Settings {
 
     pub fn set_AddAddressMode(mut self, value: AddAddressMode) -> Self {
         unsafe { self.inner.__bindgen_anon_1.IsSet.set_AddAddressMode(1) };
-
-        unsafe {
-            self.inner
-                .__bindgen_anon_2
-                .__bindgen_anon_1
-                .set_AddAddressMode(crate::ffi::QUIC_ADD_ADDRESS_MODE::from(value) as u64)
-        };
+        self.inner.AddAddressMode = crate::ffi::QUIC_ADD_ADDRESS_MODE::from(value) as u8;
         self
     }
+
+    #[cfg(feature = "preview-api")]
+    define_settings_entry_bitflag2!(set_IgnoreUnreachable);
 
     define_settings_entry!(
         set_StreamRecvWindowBidiLocalDefault,

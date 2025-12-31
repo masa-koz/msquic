@@ -185,6 +185,9 @@ QuicSettingsSetDefault(
     if (!Settings->IsSet.AddAddressMode) {
         Settings->AddAddressMode = QUIC_DEFAULT_ADD_ADDRESS_MODE;
     }
+    if (!Settings->IsSet.IgnoreUnreachable) {
+        Settings->IgnoreUnreachable = QUIC_DEFAULT_IGNORE_UNREACHABLE;
+    }
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -369,6 +372,9 @@ QuicSettingsCopy(
     }
     if (!Destination->IsSet.AddAddressMode) {
         Destination->AddAddressMode = Source->AddAddressMode;
+    }
+    if (!Destination->IsSet.IgnoreUnreachable) {
+        Destination->IgnoreUnreachable = Source->IgnoreUnreachable;
     }
 }
 
@@ -775,6 +781,11 @@ QuicSettingApply(
     if (Source->IsSet.AddAddressMode && (!Destination->IsSet.AddAddressMode || OverWrite)) {
         Destination->AddAddressMode = Source->AddAddressMode;
         Destination->IsSet.AddAddressMode = TRUE;
+    }
+
+    if (Source->IsSet.IgnoreUnreachable && (!Destination->IsSet.IgnoreUnreachable || OverWrite)) {
+        Destination->IgnoreUnreachable = Source->IgnoreUnreachable;
+        Destination->IsSet.IgnoreUnreachable = TRUE;
     }
 
     return TRUE;
@@ -1497,6 +1508,16 @@ VersionSettingsFail:
             &ValueLen);
         Settings->AddAddressMode = (uint8_t)Value;
     }
+    if (!Settings->IsSet.IgnoreUnreachable) {
+        Value = QUIC_DEFAULT_IGNORE_UNREACHABLE;
+        ValueLen = sizeof(Value);
+        CxPlatStorageReadValue(
+            Storage,
+            QUIC_SETTING_IGNORE_UNREACHABLE,
+            (uint8_t*)&Value,
+            &ValueLen);
+        Settings->IgnoreUnreachable = (uint8_t)Value;
+    }
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1569,6 +1590,7 @@ QuicSettingsDump(
     QuicTraceLogVerbose(SettingNetStatsEventEnabled,        "[sett] NetStatsEventEnabled   = %hhu", Settings->NetStatsEventEnabled);
     QuicTraceLogVerbose(SettingServerMigrationEnabled,      "[sett] ServerMigrationEnabled = %hhu", Settings->ServerMigrationEnabled);
     QuicTraceLogVerbose(SettingAddAddress,                  "[sett] AddAddressMode         = %hhu", Settings->AddAddressMode);
+    QuicTraceLogVerbose(SettingIgnoreUnreachable,           "[sett] IgnoreUnreachable      = %hhu", Settings->IgnoreUnreachable);
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1749,6 +1771,9 @@ QuicSettingsDumpNew(
     }
     if (Settings->IsSet.AddAddressMode) {
         QuicTraceLogVerbose(SettingAddAddress,                      "[sett] AddAddressMode         = %hhu", Settings->AddAddressMode);
+    }
+    if (Settings->IsSet.IgnoreUnreachable) {
+        QuicTraceLogVerbose(SettingIgnoreUnreachable,               "[sett] IgnoreUnreachable      = %hhu", Settings->IgnoreUnreachable);
     }
 }
 
@@ -2032,9 +2057,16 @@ QuicSettingsSettingsToInternal(
         SettingsSize,
         InternalSettings);
 
+    SETTING_COPY_TO_INTERNAL_SIZED(
+        AddAddressMode,
+        QUIC_SETTINGS,
+        Settings,
+        SettingsSize,
+        InternalSettings);
+
    SETTING_COPY_FLAG_TO_INTERNAL_SIZED(
         Flags,
-        AddAddressMode,
+        IgnoreUnreachable,
         QUIC_SETTINGS,
         Settings,
         SettingsSize,
@@ -2220,6 +2252,30 @@ QuicSettingsGetSettings(
     SETTING_COPY_FLAG_FROM_INTERNAL_SIZED(
         Flags,
         StreamMultiReceiveEnabled,
+        QUIC_SETTINGS,
+        Settings,
+        *SettingsLength,
+        InternalSettings);
+
+    SETTING_COPY_FLAG_FROM_INTERNAL_SIZED(
+        Flags,
+        ServerMigrationEnabled,
+        QUIC_SETTINGS,
+        Settings,
+        *SettingsLength,
+        InternalSettings);
+
+    SETTING_COPY_FLAG_FROM_INTERNAL_SIZED(
+        Flags,
+        AddAddressMode,
+        QUIC_SETTINGS,
+        Settings,
+        *SettingsLength,
+        InternalSettings);
+
+    SETTING_COPY_FLAG_FROM_INTERNAL_SIZED(
+        Flags,
+        IgnoreUnreachable,
         QUIC_SETTINGS,
         Settings,
         *SettingsLength,

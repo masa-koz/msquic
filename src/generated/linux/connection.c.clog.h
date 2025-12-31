@@ -793,28 +793,6 @@ tracepoint(CLOG_CONNECTION_C, UpdatePeerPacketTolerance , arg1, arg3);\
 
 
 /*----------------------------------------------------------
-// Decoder Ring for LocalAddressAdded
-// [conn][%p] Local address %!ADDR! (observed %!ADDR!) added
-// QuicTraceLogConnInfo(
-                LocalAddressAdded,
-                Connection,
-                "Local address %!ADDR! (observed %!ADDR!) added",
-                CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress),
-                CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress));
-// arg1 = arg1 = Connection = arg1
-// arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress) = arg3
-// arg4 = arg4 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress) = arg4
-----------------------------------------------------------*/
-#ifndef _clog_7_ARGS_TRACE_LocalAddressAdded
-#define _clog_7_ARGS_TRACE_LocalAddressAdded(uniqueId, arg1, encoded_arg_string, arg3, arg3_len, arg4, arg4_len)\
-tracepoint(CLOG_CONNECTION_C, LocalAddressAdded , arg1, arg3_len, arg3, arg4_len, arg4);\
-
-#endif
-
-
-
-
-/*----------------------------------------------------------
 // Decoder Ring for UpdateShareBinding
 // [conn][%p] Updated ShareBinding = %hhu
 // QuicTraceLogConnInfo(
@@ -2258,19 +2236,81 @@ tracepoint(CLOG_CONNECTION_C, ConnRecvUdpDatagrams , arg2, arg3, arg4);\
 
 
 /*----------------------------------------------------------
+// Decoder Ring for ConnBoundAddrAdded
+// [conn][%p] New Bound IP: %!ADDR!
+// QuicTraceEvent(
+        ConnBoundAddrAdded,
+        "[conn][%p] New Bound IP: %!ADDR!",
+        Connection,
+        CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress));
+// arg2 = arg2 = Connection = arg2
+// arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress) = arg3
+----------------------------------------------------------*/
+#ifndef _clog_5_ARGS_TRACE_ConnBoundAddrAdded
+#define _clog_5_ARGS_TRACE_ConnBoundAddrAdded(uniqueId, encoded_arg_string, arg2, arg3, arg3_len)\
+tracepoint(CLOG_CONNECTION_C, ConnBoundAddrAdded , arg2, arg3_len, arg3);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for ConnObservedAddrAdded
+// [conn][%p] New Observed IP: %!ADDR! for Bound IP: %!ADDR!
+// QuicTraceEvent(
+        ConnObservedAddrAdded,
+        "[conn][%p] New Observed IP: %!ADDR! for Bound IP: %!ADDR!",
+        Connection,
+        CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress),
+        CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress));
+// arg2 = arg2 = Connection = arg2
+// arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress) = arg3
+// arg4 = arg4 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress) = arg4
+----------------------------------------------------------*/
+#ifndef _clog_7_ARGS_TRACE_ConnObservedAddrAdded
+#define _clog_7_ARGS_TRACE_ConnObservedAddrAdded(uniqueId, encoded_arg_string, arg2, arg3, arg3_len, arg4, arg4_len)\
+tracepoint(CLOG_CONNECTION_C, ConnObservedAddrAdded , arg2, arg3_len, arg3, arg4_len, arg4);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for ConnLocalAddrRemoved
 // [conn][%p] Removed Local IP: %!ADDR!
 // QuicTraceEvent(
-                ConnLocalAddrRemoved,
-                "[conn][%p] Removed Local IP: %!ADDR!",
-                Connection,
-                CASTED_CLOG_BYTEARRAY(sizeof(Connection->Paths[0].Route.LocalAddress), &Connection->Paths[0].Route.LocalAddress));
+            ConnLocalAddrRemoved,
+            "[conn][%p] Removed Local IP: %!ADDR!",
+            Connection,
+            CASTED_CLOG_BYTEARRAY(sizeof(Connection->Paths[0].Route.LocalAddress), &Connection->Paths[0].Route.LocalAddress));
 // arg2 = arg2 = Connection = arg2
 // arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(Connection->Paths[0].Route.LocalAddress), &Connection->Paths[0].Route.LocalAddress) = arg3
 ----------------------------------------------------------*/
 #ifndef _clog_5_ARGS_TRACE_ConnLocalAddrRemoved
 #define _clog_5_ARGS_TRACE_ConnLocalAddrRemoved(uniqueId, encoded_arg_string, arg2, arg3, arg3_len)\
 tracepoint(CLOG_CONNECTION_C, ConnLocalAddrRemoved , arg2, arg3_len, arg3);\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for ConnRemoteAddrRemoved
+// [conn][%p] Removed Remote IP: %!ADDR!
+// QuicTraceEvent(
+            ConnRemoteAddrRemoved,
+            "[conn][%p] Removed Remote IP: %!ADDR!",
+            Connection,
+            CASTED_CLOG_BYTEARRAY(sizeof(Connection->Paths[0].Route.RemoteAddress), &Connection->Paths[0].Route.RemoteAddress));
+// arg2 = arg2 = Connection = arg2
+// arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(Connection->Paths[0].Route.RemoteAddress), &Connection->Paths[0].Route.RemoteAddress) = arg3
+----------------------------------------------------------*/
+#ifndef _clog_5_ARGS_TRACE_ConnRemoteAddrRemoved
+#define _clog_5_ARGS_TRACE_ConnRemoteAddrRemoved(uniqueId, encoded_arg_string, arg2, arg3, arg3_len)\
+tracepoint(CLOG_CONNECTION_C, ConnRemoteAddrRemoved , arg2, arg3_len, arg3);\
 
 #endif
 

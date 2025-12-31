@@ -127,6 +127,11 @@ typedef struct QUIC_PATH {
     BOOLEAN RemoteAddressSequenceNumberValid : 1;
 
     //
+    // Indicates whether we tries to do NAT traversal
+    //
+    BOOLEAN NatTraversal : 1;
+
+    //
     // The add address needs to be sent out.
     //
     BOOLEAN SendPunchMeNow : 1;

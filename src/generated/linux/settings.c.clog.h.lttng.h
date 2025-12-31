@@ -875,6 +875,22 @@ TRACEPOINT_EVENT(CLOG_SETTINGS_C, SettingAddAddress,
 
 
 /*----------------------------------------------------------
+// Decoder Ring for SettingIgnoreUnreachable
+// [sett] IgnoreUnreachable      = %hhu
+// QuicTraceLogVerbose(SettingIgnoreUnreachable,           "[sett] IgnoreUnreachable      = %hhu", Settings->IgnoreUnreachable);
+// arg2 = arg2 = Settings->IgnoreUnreachable = arg2
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_SETTINGS_C, SettingIgnoreUnreachable,
+    TP_ARGS(
+        unsigned char, arg2), 
+    TP_FIELDS(
+        ctf_integer(unsigned char, arg2, arg2)
+    )
+)
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for SettingDumpLFixedServerID
 // [sett] FixedServerID          = %u
 // QuicTraceLogVerbose(SettingDumpLFixedServerID,              "[sett] FixedServerID          = %u", Settings->FixedServerID);

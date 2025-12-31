@@ -225,6 +225,9 @@ typedef union QUIC_CONNECTION_STATE {
         BOOLEAN DisableConnIDGen : 1;
 #endif
         BOOLEAN ServerMigrationNegotiated : 1;
+
+        BOOLEAN NatTraverseNegotiated : 1;
+
     };
 } QUIC_CONNECTION_STATE;
 
@@ -437,6 +440,12 @@ typedef struct QUIC_CONNECTION {
     uint8_t PathsCount;
 
     //
+    // Number of local addresses the connection is currently tracking.
+    //
+    _Field_range_(0, QUIC_MAX_LOCAL_ADDRESS_COUNT)
+    uint8_t BoundAddressesCount;
+
+    //
     // The next identifier to use for a new path.
     //
     uint8_t NextPathId;
@@ -515,6 +524,11 @@ typedef struct QUIC_CONNECTION {
     QUIC_VAR_INT ObservedAddressSequenceNumber;
 
     //
+    // The concurrency limit of nat traverse attempts.
+    //
+    QUIC_VAR_INT NatTraverseConcurrencyLimit;
+
+    //
     // The sequence number to use for sending an add address.
     //
     QUIC_VAR_INT AddAddressSequenceNumber;
@@ -537,7 +551,9 @@ typedef struct QUIC_CONNECTION {
     //
     QUIC_PATH Paths[QUIC_MAX_PATH_COUNT];
 
-    CXPLAT_LIST_ENTRY LocalAddresses;
+    CXPLAT_LIST_ENTRY BoundAddresses;
+
+    CXPLAT_LIST_ENTRY CandidateAddresses;
 
     //
     // The list of connection IDs used for receiving.
@@ -728,11 +744,11 @@ typedef struct QUIC_CONNECTION {
 
 } QUIC_CONNECTION;
 
-typedef struct QUIC_LOCAL_ADDRESS_LIST_ENTRY {
+typedef struct QUIC_BOUND_ADDRESS_LIST_ENTRY {
 
     CXPLAT_LIST_ENTRY Link;
-    QUIC_ADDR LocalAddress;
-    QUIC_ADDR ObservedLocalAddress;
+    QUIC_ADDR Address;
+    QUIC_ADDR ObservedAddress;
     QUIC_BINDING* Binding;
     QUIC_VAR_INT SequenceNumber;
     BOOLEAN SequenceNumberValid : 1;
@@ -741,7 +757,15 @@ typedef struct QUIC_LOCAL_ADDRESS_LIST_ENTRY {
     BOOLEAN SendRemoveAddress : 1;
     BOOLEAN Removing : 1;
 
-} QUIC_LOCAL_ADDRESS_LIST_ENTRY;
+} QUIC_BOUND_ADDRESS_LIST_ENTRY;
+
+typedef struct QUIC_CANDIDATE_ADDRESS_LIST_ENTRY {
+
+    CXPLAT_LIST_ENTRY Link;
+    QUIC_ADDR Address;
+    QUIC_ADDR ObservedAddress;
+
+} QUIC_CANDIDATE_ADDRESS_LIST_ENTRY;
 
 typedef struct QUIC_SERIALIZED_RESUMPTION_STATE {
 
@@ -1706,8 +1730,16 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 QUIC_STATUS
 QuicConnOpenNewPath(
     _In_ QUIC_CONNECTION* Connection,
-    _In_ QUIC_PATH* Path,
-    _In_ QUIC_BINDING* NewBinding
+    _In_ QUIC_PATH* Path
+    );
+
+//
+// Open new paths for the connection.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+BOOLEAN
+QuicConnOpenNewPaths(
+    _In_ QUIC_CONNECTION* Connection
     );
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -1728,7 +1760,7 @@ _IRQL_requires_max_(PASSIVE_LEVEL)
 void
 QuicConnSendPunchProbe(
     _In_ QUIC_CONNECTION* Connection,
-    _In_ QUIC_LOCAL_ADDRESS_LIST_ENTRY* LocalAddress,
+    _In_ QUIC_BOUND_ADDRESS_LIST_ENTRY* LocalAddress,
     _In_ QUIC_ADDR* RemoteAddress
     );
 

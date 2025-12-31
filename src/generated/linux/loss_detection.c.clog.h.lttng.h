@@ -298,37 +298,6 @@ TRACEPOINT_EVENT(CLOG_LOSS_DETECTION_C, HandshakeConfirmedAck,
 
 
 /*----------------------------------------------------------
-// Decoder Ring for LocalAddressRemoved
-// [conn][%p] Local address %!ADDR! (observed %!ADDR!) removed
-// QuicTraceLogConnInfo(
-                    LocalAddressRemoved,
-                    Connection,
-                    "Local address %!ADDR! (observed %!ADDR!) removed",
-                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress),
-                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress));
-// arg1 = arg1 = Connection = arg1
-// arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress) = arg3
-// arg4 = arg4 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress) = arg4
-----------------------------------------------------------*/
-TRACEPOINT_EVENT(CLOG_LOSS_DETECTION_C, LocalAddressRemoved,
-    TP_ARGS(
-        const void *, arg1,
-        unsigned int, arg3_len,
-        const void *, arg3,
-        unsigned int, arg4_len,
-        const void *, arg4), 
-    TP_FIELDS(
-        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
-        ctf_integer(unsigned int, arg3_len, arg3_len)
-        ctf_sequence(char, arg3, arg3, unsigned int, arg3_len)
-        ctf_integer(unsigned int, arg4_len, arg4_len)
-        ctf_sequence(char, arg4, arg4, unsigned int, arg4_len)
-    )
-)
-
-
-
-/*----------------------------------------------------------
 // Decoder Ring for PathMinMtuValidated
 // [conn][%p] Path[%hhu] Minimum MTU validated
 // QuicTraceLogConnInfo(
@@ -465,6 +434,37 @@ TRACEPOINT_EVENT(CLOG_LOSS_DETECTION_C, AllocFailure,
     TP_FIELDS(
         ctf_string(arg2, arg2)
         ctf_integer(uint64_t, arg3, arg3)
+    )
+)
+
+
+
+/*----------------------------------------------------------
+// Decoder Ring for ConnObservedAddrRemoved
+// [conn][%p] Removed Observed IP: %!ADDR! for Bound IP: %!ADDR!
+// QuicTraceEvent(
+                    ConnObservedAddrRemoved,
+                    "[conn][%p] Removed Observed IP: %!ADDR! for Bound IP: %!ADDR!",
+                    Connection,
+                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress),
+                    CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress));
+// arg2 = arg2 = Connection = arg2
+// arg3 = arg3 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->ObservedLocalAddress), &LocalAddress->ObservedLocalAddress) = arg3
+// arg4 = arg4 = CASTED_CLOG_BYTEARRAY(sizeof(LocalAddress->LocalAddress), &LocalAddress->LocalAddress) = arg4
+----------------------------------------------------------*/
+TRACEPOINT_EVENT(CLOG_LOSS_DETECTION_C, ConnObservedAddrRemoved,
+    TP_ARGS(
+        const void *, arg2,
+        unsigned int, arg3_len,
+        const void *, arg3,
+        unsigned int, arg4_len,
+        const void *, arg4), 
+    TP_FIELDS(
+        ctf_integer_hex(uint64_t, arg2, (uint64_t)arg2)
+        ctf_integer(unsigned int, arg3_len, arg3_len)
+        ctf_sequence(char, arg3, arg3, unsigned int, arg3_len)
+        ctf_integer(unsigned int, arg4_len, arg4_len)
+        ctf_sequence(char, arg4, arg4, unsigned int, arg4_len)
     )
 )
 

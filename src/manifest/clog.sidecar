@@ -281,7 +281,7 @@
     },
     "BindingDropPacket": {
       "ModuleProperites": {},
-      "TraceString": "[bind][%p] DROP packet Dst=%!ADDR! Src=%!ADDR! Reason=%s.",
+      "TraceString": "[bind][%p] DROP packet Dst=%!ADDR! Src=%!ADDR! Dest CID=%!CID! Reason=%s.",
       "UniqueId": "BindingDropPacket",
       "splitArgs": [
         {
@@ -297,8 +297,12 @@
           "MacroVariableName": "arg4"
         },
         {
-          "DefinationEncoding": "s",
+          "DefinationEncoding": "!CID!",
           "MacroVariableName": "arg5"
+        },
+        {
+          "DefinationEncoding": "s",
+          "MacroVariableName": "arg6"
         }
       ],
       "macroName": "QuicTraceEvent"
@@ -1043,6 +1047,22 @@
       ],
       "macroName": "QuicTraceEvent"
     },
+    "ConnBoundAddrAdded": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] New Bound IP: %!ADDR!",
+      "UniqueId": "ConnBoundAddrAdded",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg3"
+        }
+      ],
+      "macroName": "QuicTraceEvent"
+    },
     "ConnCongestionV2": {
       "ModuleProperites": {},
       "TraceString": "[conn][%p] Congestion event: IsEcn=%hu",
@@ -1173,7 +1193,7 @@
     },
     "ConnDropPacket": {
       "ModuleProperites": {},
-      "TraceString": "[conn][%p] DROP packet Dst=%!ADDR! Src=%!ADDR! Reason=%s.",
+      "TraceString": "[conn][%p] DROP packet Dst=%!ADDR! Src=%!ADDR! Dest CID=%!CID! Reason=%s.",
       "UniqueId": "ConnDropPacket",
       "splitArgs": [
         {
@@ -1189,8 +1209,12 @@
           "MacroVariableName": "arg4"
         },
         {
-          "DefinationEncoding": "s",
+          "DefinationEncoding": "!CID!",
           "MacroVariableName": "arg5"
+        },
+        {
+          "DefinationEncoding": "s",
+          "MacroVariableName": "arg6"
         }
       ],
       "macroName": "QuicTraceEvent"
@@ -1611,6 +1635,46 @@
       ],
       "macroName": "QuicTraceEvent"
     },
+    "ConnObservedAddrAdded": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] New Observed IP: %!ADDR! for Bound IP: %!ADDR!",
+      "UniqueId": "ConnObservedAddrAdded",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg4"
+        }
+      ],
+      "macroName": "QuicTraceEvent"
+    },
+    "ConnObservedAddrRemoved": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Removed Observed IP: %!ADDR! for Bound IP: %!ADDR!",
+      "UniqueId": "ConnObservedAddrRemoved",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg4"
+        }
+      ],
+      "macroName": "QuicTraceEvent"
+    },
     "ConnOutFlowBlocked": {
       "ModuleProperites": {},
       "TraceString": "[conn][%p] Send Blocked Flags: %hhu",
@@ -1923,6 +1987,22 @@
       "ModuleProperites": {},
       "TraceString": "[conn][%p] New Remote IP: %!ADDR!",
       "UniqueId": "ConnRemoteAddrAdded",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg2"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg3"
+        }
+      ],
+      "macroName": "QuicTraceEvent"
+    },
+    "ConnRemoteAddrRemoved": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Removed Remote IP: %!ADDR!",
+      "UniqueId": "ConnRemoteAddrRemoved",
       "splitArgs": [
         {
           "DefinationEncoding": "p",
@@ -3359,6 +3439,34 @@
       ],
       "macroName": "QuicTraceLogConnVerbose"
     },
+    "DecodeTPNatTraverseClient": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] TP: NAT Traverse (%llu)",
+      "UniqueId": "DecodeTPNatTraverseClient",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg3"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
+    "DecodeTPNatTraverseServer": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] TP: NAT Traverse",
+      "UniqueId": "DecodeTPNatTraverseServer",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
     "DecodeTPObservedAddress": {
       "ModuleProperites": {},
       "TraceString": "[conn][%p] TP: Observed Address (%u)",
@@ -3922,6 +4030,34 @@
       ],
       "macroName": "QuicTraceLogConnVerbose"
     },
+    "EncodeTPNatTraverseClient": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] TP: NAT Traverse",
+      "UniqueId": "EncodeTPNatTraverseClient",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
+    "EncodeTPNatTraverseServer": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] TP: NAT Traverse (%llu)",
+      "UniqueId": "EncodeTPNatTraverseServer",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        },
+        {
+          "DefinationEncoding": "llu",
+          "MacroVariableName": "arg3"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
     "EncodeTPObservedAddress": {
       "ModuleProperites": {},
       "TraceString": "[conn][%p] TP: Observed Address (%u)",
@@ -4473,7 +4609,7 @@
     },
     "FrameLogAddAddress": {
       "ModuleProperites": {},
-      "TraceString": "[%c][%cX][%llu]   ADD_ADDRESS %llu %!ADDR!",
+      "TraceString": "[%c][%cX][%llu]   ADD_ADDRESS %llu %s",
       "UniqueId": "FrameLogAddAddress",
       "splitArgs": [
         {
@@ -4493,7 +4629,7 @@
           "MacroVariableName": "arg5"
         },
         {
-          "DefinationEncoding": "!ADDR!",
+          "DefinationEncoding": "s",
           "MacroVariableName": "arg6"
         }
       ],
@@ -5009,7 +5145,7 @@
     },
     "FrameLogObservedAddress": {
       "ModuleProperites": {},
-      "TraceString": "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!",
+      "TraceString": "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %s",
       "UniqueId": "FrameLogObservedAddress",
       "splitArgs": [
         {
@@ -5029,7 +5165,7 @@
           "MacroVariableName": "arg5"
         },
         {
-          "DefinationEncoding": "!ADDR!",
+          "DefinationEncoding": "s",
           "MacroVariableName": "arg6"
         }
       ],
@@ -5189,7 +5325,7 @@
     },
     "FrameLogPunchMeNow": {
       "ModuleProperites": {},
-      "TraceString": "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %!ADDR!",
+      "TraceString": "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %s",
       "UniqueId": "FrameLogPunchMeNow",
       "splitArgs": [
         {
@@ -5213,7 +5349,7 @@
           "MacroVariableName": "arg6"
         },
         {
-          "DefinationEncoding": "!ADDR!",
+          "DefinationEncoding": "s",
           "MacroVariableName": "arg7"
         }
       ],
@@ -7048,7 +7184,7 @@
     },
     "LocalAddressAdded": {
       "ModuleProperites": {},
-      "TraceString": "[conn][%p] Local address %!ADDR! (observed %!ADDR!) added",
+      "TraceString": "[conn][%p] Added local address %!ADDR!",
       "UniqueId": "LocalAddressAdded",
       "splitArgs": [
         {
@@ -7058,10 +7194,6 @@
         {
           "DefinationEncoding": "!ADDR!",
           "MacroVariableName": "arg3"
-        },
-        {
-          "DefinationEncoding": "!ADDR!",
-          "MacroVariableName": "arg4"
         }
       ],
       "macroName": "QuicTraceLogConnInfo"
@@ -7737,6 +7869,26 @@
         }
       ],
       "macroName": "QuicTraceLogStreamWarning"
+    },
+    "ObservedAddressAdded": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Added Observed address %!ADDR! for Local address %!ADDR!",
+      "UniqueId": "ObservedAddressAdded",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg3"
+        },
+        {
+          "DefinationEncoding": "!ADDR!",
+          "MacroVariableName": "arg4"
+        }
+      ],
+      "macroName": "QuicTraceLogConnInfo"
     },
     "OpenSsl1RttDataStart": {
       "ModuleProperites": {},
@@ -11159,6 +11311,18 @@
       ],
       "macroName": "QuicTraceLogVerbose"
     },
+    "SettingIgnoreUnreachable": {
+      "ModuleProperites": {},
+      "TraceString": "[sett] IgnoreUnreachable      = %hhu",
+      "UniqueId": "SettingIgnoreUnreachable",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "hhu",
+          "MacroVariableName": "arg2"
+        }
+      ],
+      "macroName": "QuicTraceLogVerbose"
+    },
     "SettingNetStatsEventEnabled": {
       "ModuleProperites": {},
       "TraceString": "[sett] NetStatsEventEnabled   = %hhu",
@@ -13621,9 +13785,9 @@
         "EncodingString": "[bind][%p] Destroyed"
       },
       {
-        "UniquenessHash": "aff4ab67-a70e-f05b-c51d-9b97628c141e",
+        "UniquenessHash": "f123e82e-9cb4-1189-c129-c8883ff3a93c",
         "TraceID": "BindingDropPacket",
-        "EncodingString": "[bind][%p] DROP packet Dst=%!ADDR! Src=%!ADDR! Reason=%s."
+        "EncodingString": "[bind][%p] DROP packet Dst=%!ADDR! Src=%!ADDR! Dest CID=%!CID! Reason=%s."
       },
       {
         "UniquenessHash": "262f6b18-033f-5ef9-44eb-b2bebae16084",
@@ -13851,6 +14015,11 @@
         "EncodingString": "[conn][%p] BBR: State=%u RState=%u CongestionWindow=%u BytesInFlight=%u BytesInFlightMax=%u MinRttEst=%lu EstBw=%lu AppLimited=%u"
       },
       {
+        "UniquenessHash": "8ca8c762-a3ec-dffb-e56d-9561e24bec75",
+        "TraceID": "ConnBoundAddrAdded",
+        "EncodingString": "[conn][%p] New Bound IP: %!ADDR!"
+      },
+      {
         "UniquenessHash": "631f94ef-27ad-9be6-98cf-966dbce8bad9",
         "TraceID": "ConnCongestionV2",
         "EncodingString": "[conn][%p] Congestion event: IsEcn=%hu"
@@ -13886,9 +14055,9 @@
         "EncodingString": "[conn][%p] Destroyed"
       },
       {
-        "UniquenessHash": "946d7a4f-ca9f-b676-8fef-1661da5703cd",
+        "UniquenessHash": "4e266614-2e20-b11f-67be-1824de4008e1",
         "TraceID": "ConnDropPacket",
-        "EncodingString": "[conn][%p] DROP packet Dst=%!ADDR! Src=%!ADDR! Reason=%s."
+        "EncodingString": "[conn][%p] DROP packet Dst=%!ADDR! Src=%!ADDR! Dest CID=%!CID! Reason=%s."
       },
       {
         "UniquenessHash": "7b8fcbcd-b097-9b8b-3d56-a2ca2d8b5cb8",
@@ -14011,6 +14180,16 @@
         "EncodingString": "[conn][%p] No Listener for IP address: %!ADDR!"
       },
       {
+        "UniquenessHash": "bfa65629-7bfc-76cd-752a-aa5e8e61f016",
+        "TraceID": "ConnObservedAddrAdded",
+        "EncodingString": "[conn][%p] New Observed IP: %!ADDR! for Bound IP: %!ADDR!"
+      },
+      {
+        "UniquenessHash": "8d463c5d-b01f-d44c-e2df-3b6a08892f75",
+        "TraceID": "ConnObservedAddrRemoved",
+        "EncodingString": "[conn][%p] Removed Observed IP: %!ADDR! for Bound IP: %!ADDR!"
+      },
+      {
         "UniquenessHash": "11964356-1a57-bc4d-0637-9300c14e0cb9",
         "TraceID": "ConnOutFlowBlocked",
         "EncodingString": "[conn][%p] Send Blocked Flags: %hhu"
@@ -14084,6 +14263,11 @@
         "UniquenessHash": "57df3cb1-120c-282b-ea2a-f9ff854b5a76",
         "TraceID": "ConnRemoteAddrAdded",
         "EncodingString": "[conn][%p] New Remote IP: %!ADDR!"
+      },
+      {
+        "UniquenessHash": "1944d511-df0a-c314-2cde-d03579c95a89",
+        "TraceID": "ConnRemoteAddrRemoved",
+        "EncodingString": "[conn][%p] Removed Remote IP: %!ADDR!"
       },
       {
         "UniquenessHash": "9ba874f3-1fe6-aef6-6d3b-5c9b8b9d8720",
@@ -14531,6 +14715,16 @@
         "EncodingString": "[conn][%p] TP: Min ACK Delay (%llu us)"
       },
       {
+        "UniquenessHash": "b74dc4c4-8f7e-862f-01bb-eb243a183d0f",
+        "TraceID": "DecodeTPNatTraverseClient",
+        "EncodingString": "[conn][%p] TP: NAT Traverse (%llu)"
+      },
+      {
+        "UniquenessHash": "629768b5-eeb6-9349-f241-680c2a1f6f97",
+        "TraceID": "DecodeTPNatTraverseServer",
+        "EncodingString": "[conn][%p] TP: NAT Traverse"
+      },
+      {
         "UniquenessHash": "e8aec38b-688c-f6de-a6c4-61cb54fb8551",
         "TraceID": "DecodeTPObservedAddress",
         "EncodingString": "[conn][%p] TP: Observed Address (%u)"
@@ -14716,6 +14910,16 @@
         "EncodingString": "[conn][%p] TP: Min ACK Delay (%llu us)"
       },
       {
+        "UniquenessHash": "19cc103a-19dd-e348-77bd-5b3f17ef9376",
+        "TraceID": "EncodeTPNatTraverseClient",
+        "EncodingString": "[conn][%p] TP: NAT Traverse"
+      },
+      {
+        "UniquenessHash": "1051c984-9857-1a9d-9f52-b6d0306b1a7b",
+        "TraceID": "EncodeTPNatTraverseServer",
+        "EncodingString": "[conn][%p] TP: NAT Traverse (%llu)"
+      },
+      {
         "UniquenessHash": "3d6f007d-1c27-e409-b019-19aab1d0b893",
         "TraceID": "EncodeTPObservedAddress",
         "EncodingString": "[conn][%p] TP: Observed Address (%u)"
@@ -14876,9 +15080,9 @@
         "EncodingString": "[%c][%cX][%llu]     %llu"
       },
       {
-        "UniquenessHash": "2ac5766a-4070-bebd-c25a-5d481b1ceb25",
+        "UniquenessHash": "8768ea28-fc4b-ac6f-94a2-46f6e7efb88f",
         "TraceID": "FrameLogAddAddress",
-        "EncodingString": "[%c][%cX][%llu]   ADD_ADDRESS %llu %!ADDR!"
+        "EncodingString": "[%c][%cX][%llu]   ADD_ADDRESS %llu %s"
       },
       {
         "UniquenessHash": "1b80f8cb-e5e7-5753-a786-6e0887adfa1b",
@@ -14991,9 +15195,9 @@
         "EncodingString": "[%c][%cX][%llu]   NEW_TOKEN [Invalid]"
       },
       {
-        "UniquenessHash": "c7b48bcc-a7b0-e30b-7f83-528b64411202",
+        "UniquenessHash": "ca48a549-3a71-4238-4f0b-9c86f112cd2e",
         "TraceID": "FrameLogObservedAddress",
-        "EncodingString": "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %!ADDR!"
+        "EncodingString": "[%c][%cX][%llu]   OBSERVED_ADDRESS %llu  %s"
       },
       {
         "UniquenessHash": "4466cb8b-c272-75d6-71f3-4bfd8dd953fc",
@@ -15031,9 +15235,9 @@
         "EncodingString": "[%c][%cX][%llu]   PING"
       },
       {
-        "UniquenessHash": "f6ee354b-d966-c860-a0ea-e18f79bccbae",
+        "UniquenessHash": "774dad6d-3177-3ab1-66e6-7030f74d2254",
         "TraceID": "FrameLogPunchMeNow",
-        "EncodingString": "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %!ADDR!"
+        "EncodingString": "[%c][%cX][%llu]   PUNCH_ME_NOW %llu %llu %s"
       },
       {
         "UniquenessHash": "56046983-0319-fcfc-22d9-90c484d66a6d",
@@ -15606,9 +15810,9 @@
         "EncodingString": "[list][%p] Stopped"
       },
       {
-        "UniquenessHash": "0efccb2a-093c-2af5-40e1-4d0328322fb4",
+        "UniquenessHash": "c69a0176-016d-40da-9165-e2fec2133faf",
         "TraceID": "LocalAddressAdded",
-        "EncodingString": "[conn][%p] Local address %!ADDR! (observed %!ADDR!) added"
+        "EncodingString": "[conn][%p] Added local address %!ADDR!"
       },
       {
         "UniquenessHash": "cbc6e749-fe1b-7e87-2ced-3debaf4401cd",
@@ -15779,6 +15983,11 @@
         "UniquenessHash": "48b0b691-89c1-4bb2-1ba4-5bc91586b2b3",
         "TraceID": "NotAccepted",
         "EncodingString": "[strm][%p] New stream wasn't accepted, 0x%x"
+      },
+      {
+        "UniquenessHash": "54127702-4524-3b09-8f09-0120d9c82718",
+        "TraceID": "ObservedAddressAdded",
+        "EncodingString": "[conn][%p] Added Observed address %!ADDR! for Local address %!ADDR!"
       },
       {
         "UniquenessHash": "eaede67a-124b-3b3f-95ba-363d08546d2a",
@@ -16924,6 +17133,11 @@
         "UniquenessHash": "3204077b-15dd-eacb-1594-51d66d8db668",
         "TraceID": "SettingHyStartEnabled",
         "EncodingString": "[sett] HyStartEnabled         = %hhu"
+      },
+      {
+        "UniquenessHash": "77ab1610-2ec3-cabb-48c6-b873e735a6c3",
+        "TraceID": "SettingIgnoreUnreachable",
+        "EncodingString": "[sett] IgnoreUnreachable      = %hhu"
       },
       {
         "UniquenessHash": "b2b7c2a6-35c7-4b14-47f2-dca7aad8817a",
