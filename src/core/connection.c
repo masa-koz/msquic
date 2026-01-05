@@ -182,7 +182,6 @@ QuicConnAlloc(
         Connection->Stats.QuicVersion = Packet->Invariant->LONG_HDR.Version;
         QuicConnOnQuicVersionSet(Connection);
         QuicCopyRouteInfo(&Path->Route, Packet->Route);
-
         Connection->State.LocalAddressSet = TRUE;
         Connection->State.RemoteAddressSet = TRUE;
 
@@ -1305,6 +1304,7 @@ QuicConnReplaceRetiredCids(
     return TRUE;
 }
 
+// Assign new destination CIDs to any paths that don't have one yet.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
 QuicConnAssignCids(
@@ -1913,6 +1913,7 @@ QuicConnProcessProbeAfterPunchOperation(
     _In_ QUIC_CONNECTION* Connection
     )
 {
+    CXPLAT_DBG_ASSERT(Connection->State.HandshakeConfirmed);
     QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_PATH_CHALLENGE);
 }
 
@@ -2137,9 +2138,9 @@ QuicConnStart(
         goto Exit;
     }
 
+    Connection->State.LocalAddressSet = TRUE;
     QuicBindingGetLocalAddress(Path->Binding, &Path->Route.LocalAddress);
 
-    Connection->State.LocalAddressSet = TRUE;
     QuicTraceEvent(
         ConnLocalAddrAdded,
         "[conn][%p] New Local IP: %!ADDR!",
@@ -5703,6 +5704,16 @@ QuicConnRecvFrames(
                 QuicConnTransportError(Connection, QUIC_ERROR_FRAME_ENCODING_ERROR);
                 return FALSE;
             }
+            if ((QuicConnIsClient(Connection) && Connection->State.ServerMigrationNegotiated) ||
+                (QuicConnIsServer(Connection) && !Connection->State.ServerMigrationNegotiated)) {
+                QuicTraceEvent(
+                    ConnError,
+                    "[conn][%p] ERROR, %s.",
+                    Connection,
+                    "Server received REMOVE_ADDRESS frame");
+                QuicConnTransportError(Connection, QUIC_ERROR_PROTOCOL_VIOLATION);
+                return FALSE;
+            }
             QUIC_STATUS Status = QuicConnProcessRemoveAddress(Connection, &Frame);
             if (QUIC_FAILED(Status)) {
                 QuicTraceEvent(
@@ -6416,6 +6427,7 @@ QuicConnProcessUdpUnreachable(
         //
         // Only accept unreachable events at the beginning of the handshake.
         // Otherwise, it opens up an attack surface.
+        // If configured, ignore unreachable events.
         //
         QuicTraceLogConnWarning(
             UnreachableIgnore,
@@ -6623,6 +6635,7 @@ QuicConnUpdatePeerPacketTolerance(
     }
 }
 
+// Opens a new path for the connection. 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 QUIC_STATUS
 QuicConnOpenNewPath(
@@ -6727,6 +6740,7 @@ QuicConnOpenNewPath(
     return QUIC_STATUS_SUCCESS;
 }
 
+// Opens new paths for the connection when the handshake is confirmed.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
 QuicConnOpenNewPaths(
@@ -6766,6 +6780,7 @@ QuicConnOpenNewPaths(
     return Assigned;
 }
 
+// Adds a new bound address to the connection.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 QUIC_STATUS
@@ -6832,6 +6847,7 @@ QuicConnAddBoundAddress(
     }
  
     QuicBindingGetLocalAddress(Bound->Binding, &Bound->Address);
+
     Bound->ObservedAddressSet = FALSE;
     Bound->SequenceNumberValid = FALSE;
     Bound->SequenceNumber = QUIC_VAR_INT_MAX;
@@ -6855,6 +6871,8 @@ QuicConnAddBoundAddress(
     return QUIC_STATUS_SUCCESS;
 }
 
+// Adds a new observed address for a bound address.
+// This function invokes sending of ADD_ADDRESS frame.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 QUIC_STATUS
@@ -6918,6 +6936,7 @@ QuicConnAddObservedAddress(
     return QUIC_STATUS_SUCCESS;
 }
 
+// Adds a new path to the connection.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 QUIC_STATUS
@@ -6998,6 +7017,7 @@ QuicConnAddPath(
         Connection->State.RemoteAddressSet = TRUE;
     }
 
+    // Can't open new path until handshake is confirmed.
     if (!Connection->State.HandshakeConfirmed) {
         goto Done;
     }
@@ -7020,6 +7040,7 @@ Done:
     return Status;
 }
 
+// Activates a new path for the connection.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 QUIC_STATUS
@@ -7037,15 +7058,18 @@ QuicConnActivatePath(
         return QUIC_STATUS_INVALID_STATE;
     }
 
+    // Check if the path already exists.
     QUIC_PATH* Path = QuicConnGetPathByAddress(
         Connection,
         Param->LocalAddress,
         Param->RemoteAddress);
     if (Path != NULL) {
+        // If the path already exists, activate it.
         QuicPathSetActive(Connection, Path);
         return QUIC_STATUS_SUCCESS;
     }
 
+    // If the path doesn't exist, we try to create and activate it.
     QUIC_BINDING* OldBinding = Connection->Paths[0].Binding;
 
     CXPLAT_UDP_CONFIG UdpConfig = {0};
@@ -7148,6 +7172,7 @@ QuicConnActivatePath(
     return QUIC_STATUS_SUCCESS;
 }
 
+// Removes a bound address from the connection.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 QUIC_STATUS
@@ -7233,28 +7258,14 @@ QuicConnRemoveBoundAddress(
                 return QUIC_STATUS_ABORTED;
             } else {
                 if (Path->IsActive) {
-                    CXPLAT_DBG_ASSERT(i == 0);
-                    CXPLAT_DBG_ASSERT(!QuicConnIsClient(Connection) || Connection->State.Started);
-                    CXPLAT_DBG_ASSERT(Connection->State.HandshakeConfirmed);
-                    uint8_t NewActivePathIndex = Connection->PathsCount;
-                    for (uint8_t j = 1; j < Connection->PathsCount; ++j) {
-                        if (Connection->Paths[j].DestCid != NULL) {
-                            NewActivePathIndex = j;
-                            break;
-                        }
-                    }
-                    if (NewActivePathIndex == Connection->PathsCount) {
-                        QuicTraceEvent(
-                            ConnError,
-                            "[conn][%p] ERROR, %s.",
-                            Connection,
-                            "No Active Path Remaining!");
-                        QuicConnSilentlyAbort(Connection);
-                        return QUIC_STATUS_ABORTED;
-                    }
-                    QUIC_PATH* NewActivePath = &Connection->Paths[NewActivePathIndex];
-                    QuicPathSetActive(Connection, NewActivePath);
-                    RemovingPathIndex = NewActivePathIndex; // The removing path is now at the new active index.
+                    // Server cannot remove an active path because it cannot switch to a new one.
+                    QuicTraceEvent(
+                        ConnError,
+                        "[conn][%p] ERROR, %s.",
+                        Connection,
+                        "Server cannot remove an active path");
+                    QuicConnSilentlyAbort(Connection);
+                    return QUIC_STATUS_ABORTED;
                 }
                 QuicPathRemove(Connection, RemovingPathIndex);
             }
@@ -7269,6 +7280,7 @@ QuicConnRemoveBoundAddress(
     return QUIC_STATUS_SUCCESS;
 }
 
+// Removes a path from the connection.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 QUIC_STATUS
@@ -7287,7 +7299,8 @@ QuicConnRemovePath(
     }
 
     BOOLEAN PathFound = FALSE;
-   // NB: Traversing the array backwards is simpler and more efficient here due
+    //
+    // NB: Traversing the array backwards is simpler and more efficient here due
     // to the array shifting that happens in QuicPathRemove.
     //
     for (int16_t i = Connection->PathsCount - 1; i >= 0; --i) {
@@ -7390,6 +7403,7 @@ QuicConnRemovePath(
     return QUIC_STATUS_SUCCESS;
 }
 
+// Adds a new candidate address for the connection.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 QUIC_STATUS
@@ -7447,6 +7461,7 @@ QuicConnAddCandidateAddress(
     return QUIC_STATUS_SUCCESS;
 }
 
+// Removes a candidate address from the connection.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 static
 QUIC_STATUS
@@ -7491,6 +7506,7 @@ QuicConnRemoveCandidateAddress(
     return QUIC_STATUS_SUCCESS;
 }
 
+// Processes an ADD_ADDRESS frame from the peer.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 QUIC_STATUS
 QuicConnProcessAddAddress(
@@ -7522,6 +7538,7 @@ QuicConnProcessAddAddress(
 
     QUIC_ADDR LocalAddress = {0};
     if (Connection->Settings.AddAddressMode == QUIC_ADD_ADDRESS_NAT_TRAVERSAL) {
+        // TODO - Use the correct local address based on the observed address.
         if (CxPlatListIsEmpty(&Connection->CandidateAddresses)) {
             return QUIC_STATUS_NOT_FOUND;
         }
@@ -7563,6 +7580,7 @@ QuicConnProcessAddAddress(
     return QUIC_STATUS_SUCCESS;
 }
 
+// Processes a REMOVE_ADDRESS frame from the peer.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 QUIC_STATUS
 QuicConnProcessRemoveAddress(
@@ -7640,6 +7658,7 @@ QuicConnProcessRemoveAddressOper(
     return;
 }
 
+// Sends a punch probe to the specified remote address using the specified bound address.
 _IRQL_requires_max_(PASSIVE_LEVEL)
 void
 QuicConnSendPunchProbe(
@@ -7733,8 +7752,7 @@ QuicConnParamSet(
             break;
         }
 
-        if (Connection->State.Started &&
-            !Connection->State.HandshakeConfirmed) {
+        if (Connection->State.Started) {
             Status = QUIC_STATUS_INVALID_STATE;
             break;
         }
@@ -7746,104 +7764,9 @@ QuicConnParamSet(
             break;
         }
 
-        if (!Connection->State.Started) {
-            Connection->State.LocalAddressSet = TRUE;
-            CxPlatCopyMemory(&Connection->Paths[0].Route.LocalAddress, Buffer, sizeof(QUIC_ADDR));
-        } else {
-            CXPLAT_DBG_ASSERT(Connection->State.RemoteAddressSet);
-            QUIC_PATH* Path = QuicConnGetPathByAddress(Connection, LocalAddress, &Connection->Paths[0].Route.RemoteAddress);
-            if (Path != NULL) {
-                if (!Path->IsActive) {
-                    QuicPathSetActive(Connection, Path);
-                }
-                Status = QUIC_STATUS_SUCCESS;
-                break;
-            }
-
-            CXPLAT_DBG_ASSERT(Connection->Paths[0].Binding);
-            CXPLAT_DBG_ASSERT(Connection->Configuration != NULL);
-
-            QUIC_BINDING* OldBinding = Connection->Paths[0].Binding;
-
-            CXPLAT_UDP_CONFIG UdpConfig = {0};
-            UdpConfig.LocalAddress = LocalAddress;
-            UdpConfig.RemoteAddress = &Connection->Paths[0].Route.RemoteAddress;
-            UdpConfig.Flags = CXPLAT_SOCKET_FLAG_NONE;
-            UdpConfig.InterfaceIndex = 0;
-#ifdef QUIC_COMPARTMENT_ID
-            UdpConfig.CompartmentId = Connection->Configuration->CompartmentId;
-#endif
-#ifdef QUIC_OWNING_PROCESS
-            UdpConfig.OwningProcess = Connection->Configuration->OwningProcess;
-#endif
-            if (Connection->State.ShareBinding) {
-                UdpConfig.Flags |= CXPLAT_SOCKET_FLAG_SHARE;
-            }
-            if (Connection->Settings.XdpEnabled) {
-                UdpConfig.Flags |= CXPLAT_SOCKET_FLAG_XDP;
-            }
-            if (Connection->Settings.QTIPEnabled) {
-                UdpConfig.Flags |= CXPLAT_SOCKET_FLAG_QTIP;
-            }
-            Status =
-                QuicLibraryGetBinding(
-                    &UdpConfig,
-                    &Connection->Paths[0].Binding);
-            if (QUIC_FAILED(Status)) {
-                Connection->Paths[0].Binding = OldBinding;
-                break;
-            }
-
-            if (!QuicConnRetireCurrentDestCid(Connection, &Connection->Paths[0])) {
-                QuicLibraryReleaseBinding(Connection->Paths[0].Binding);
-                Connection->Paths[0].Binding = OldBinding;
-                Status = QUIC_STATUS_INVALID_STATE;
-                break;
-            }
-
-            Connection->Paths[0].Route.State = RouteUnresolved;
-            Connection->Paths[0].Route.Queue = NULL;
-
-            //
-            // TODO - Need to free any queued recv packets from old binding.
-            //
-
-            if (!Connection->State.ShareBinding) {
-                if (!QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection)) {
-                    QuicLibraryReleaseBinding(Connection->Paths[0].Binding);
-                    Connection->Paths[0].Binding = OldBinding;
-                    Status = QUIC_STATUS_OUT_OF_MEMORY;
-                    break;
-                }
-            } else {
-                if (!QuicBindingAddAllSourceConnectionIDs(Connection->Paths[0].Binding, Connection)) {
-                    QuicConnGenerateNewSourceCids(Connection, TRUE);
-                }
-            }
-            QuicBindingRemoveAllSourceConnectionIDs(OldBinding, Connection);
-            QuicLibraryReleaseBinding(OldBinding);
-
-            QuicTraceEvent(
-                ConnLocalAddrRemoved,
-                "[conn][%p] Removed Local IP: %!ADDR!",
-                Connection,
-                CASTED_CLOG_BYTEARRAY(sizeof(Connection->Paths[0].Route.LocalAddress), &Connection->Paths[0].Route.LocalAddress));
-
-            QuicBindingGetLocalAddress(
-                Connection->Paths[0].Binding,
-                &Connection->Paths[0].Route.LocalAddress);
-
-            QuicTraceEvent(
-                ConnLocalAddrAdded,
-                "[conn][%p] New Local IP: %!ADDR!",
-                Connection,
-                CASTED_CLOG_BYTEARRAY(sizeof(Connection->Paths[0].Route.LocalAddress), &Connection->Paths[0].Route.LocalAddress));
-
-            QuicCongestionControlReset(&Connection->CongestionControl, FALSE);
-
-            QuicSendSetSendFlag(&Connection->Send, QUIC_CONN_SEND_FLAG_PING);
-        }
-
+        Connection->State.LocalAddressSet = TRUE;
+        CxPlatCopyMemory(&Connection->Paths[0].Route.LocalAddress, Buffer, sizeof(QUIC_ADDR));
+        
         Status = QUIC_STATUS_SUCCESS;
         break;
     }

@@ -1353,6 +1353,7 @@ QuicBindingCreateConnection(
     BindingRefAdded = TRUE;
     NewConnection->Paths[0].Binding = Binding;
 
+    // Add the local address to the connection's list of bound addresses.
     QUIC_BOUND_ADDRESS_LIST_ENTRY* Bound =
         (QUIC_BOUND_ADDRESS_LIST_ENTRY*)
         CXPLAT_ALLOC_NONPAGED(

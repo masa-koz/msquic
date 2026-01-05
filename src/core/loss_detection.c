@@ -926,7 +926,7 @@ QuicLossDetectionRetransmitFrames(
                 NewDataQueued |=
                     QuicSendSetSendFlag(
                         &Connection->Send,
-                        QUIC_CONN_SEND_FLAG_ACK_FREQUENCY);
+                        QUIC_CONN_SEND_FLAG_OBSERVED_ADDRESS);
             }
             break;
 

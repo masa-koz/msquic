@@ -581,11 +581,6 @@ CXPLAT_STATIC_ASSERT(
 #define QUIC_DEFAULT_SERVER_MIGRATION_ENABLED        FALSE
 
 //
-// The default settings for permitting server migration.
-//
-#define QUIC_DEFAULT_SERVER_MIGRATION_ENABLED        FALSE
-
-//
 // The concurrency limit for NAT traverse attempts.
 //
 #define QUIC_NAT_TRAVERSE_CONCURRENCY_LIMIT          2
