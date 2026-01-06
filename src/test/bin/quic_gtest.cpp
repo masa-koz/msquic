@@ -1802,7 +1802,7 @@ TEST_P(WithProbePathArgs, MultipleLocalAddresses) {
         QUIC_RUN_PROBE_PATH_PARAMS Params = {
             GetParam().Family,
             GetParam().ShareBinding,
-            GetParam().DeferConnIDGenf,
+            GetParam().DeferConnIDGen,
             GetParam().DropPacketCount
         };
         ASSERT_TRUE(DriverClient.Run(IOCTL_QUIC_RUN_MULTIPLE_LOCAL_ADDRESSES, Params));
