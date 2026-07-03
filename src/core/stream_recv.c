@@ -1116,8 +1116,7 @@ QuicStreamReceiveComplete(
     //
     // Reclaim any buffer space comsumed by the app.
     //
-    if (Stream->RecvPendingLength == 0 ||
-        QuicRecvBufferDrain(&Stream->RecvBuffer, BufferLength)) {
+    if (QuicRecvBufferDrain(&Stream->RecvBuffer, BufferLength)) {
         Stream->Flags.ReceiveDataPending = FALSE; // No more pending data to deliver.
     }
 
