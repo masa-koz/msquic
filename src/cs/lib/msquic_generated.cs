@@ -3789,6 +3789,9 @@ namespace Microsoft.Quic
         [NativeTypeName("#define QUIC_PARAM_CONN_CLOSE_ASYNC 0x0500001A")]
         internal const uint QUIC_PARAM_CONN_CLOSE_ASYNC = 0x0500001A;
 
+        [NativeTypeName("#define QUIC_PARAM_CONN_UNCONNECTED_UDP_SOCKET 0x0500001B")]
+        internal const uint QUIC_PARAM_CONN_UNCONNECTED_UDP_SOCKET = 0x0500001B;
+
         [NativeTypeName("#define QUIC_PARAM_TLS_HANDSHAKE_INFO 0x06000000")]
         internal const uint QUIC_PARAM_TLS_HANDSHAKE_INFO = 0x06000000;
 
