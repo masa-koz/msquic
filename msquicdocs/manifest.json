@@ -1,4 +1,5 @@
 {
+  "docfx_version": "2.81.0+ba844df625370a6bd7c1ecab0d0ec4d1d9128ac4",
   "source_base_path": "/home/runner/work/msquic/msquic",
   "xrefmap": "xrefmap.yml",
   "files": [
@@ -854,11 +855,11 @@
       "type": "Toc",
       "source_relative_path": "docs/api/toc.yml",
       "output": {
-        ".json": {
-          "relative_path": "docs/api/toc.json"
-        },
         ".html": {
           "relative_path": "docs/api/toc.html"
+        },
+        ".json": {
+          "relative_path": "docs/api/toc.json"
         }
       },
       "version": ""
@@ -917,11 +918,11 @@
       "type": "Toc",
       "source_relative_path": "docs/contrib/toc.yml",
       "output": {
-        ".json": {
-          "relative_path": "docs/contrib/toc.json"
-        },
         ".html": {
           "relative_path": "docs/contrib/toc.html"
+        },
+        ".json": {
+          "relative_path": "docs/contrib/toc.json"
         }
       },
       "version": ""
@@ -940,11 +941,11 @@
       "type": "Toc",
       "source_relative_path": "docs/experimental/toc.yml",
       "output": {
-        ".json": {
-          "relative_path": "docs/experimental/toc.json"
-        },
         ".html": {
           "relative_path": "docs/experimental/toc.html"
+        },
+        ".json": {
+          "relative_path": "docs/experimental/toc.json"
         }
       },
       "version": ""
@@ -1143,11 +1144,11 @@
       "type": "Toc",
       "source_relative_path": "docs/toc.yml",
       "output": {
-        ".json": {
-          "relative_path": "docs/toc.json"
-        },
         ".html": {
           "relative_path": "docs/toc.html"
+        },
+        ".json": {
+          "relative_path": "docs/toc.json"
         }
       },
       "version": ""
@@ -1256,11 +1257,11 @@
       "type": "Toc",
       "source_relative_path": "toc.yml",
       "output": {
-        ".json": {
-          "relative_path": "toc.json"
-        },
         ".html": {
           "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
         }
       },
       "version": ""
