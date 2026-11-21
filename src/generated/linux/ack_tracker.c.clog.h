@@ -47,5 +47,5 @@ tracepoint(CLOG_ACK_TRACKER_C, PacketRxMarkedForAck , arg2, arg3, arg4);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_ack_tracker.c.clog.h.c"
+#include "quic.clog_ack_tracker.c.clog.h.c"
 #endif

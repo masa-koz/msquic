@@ -361,12 +361,12 @@ tracepoint(CLOG_STREAM_RECV_C, RemoteBlocked , arg1, arg3);\
                         Stream,
                         "Increasing max RX buffer size to %u (MinRtt=%llu; TimeNow=%llu; LastUpdate=%llu)",
                         (uint32_t)NewLength,
-                        QuicPathGetActive(&Stream->Connection->Paths)->MinRtt,
+                        Stream->Connection->Paths[0].MinRtt,
                         TimeNow,
                         Stream->RecvWindowLastUpdate);
 // arg1 = arg1 = Stream = arg1
 // arg3 = arg3 = (uint32_t)NewLength = arg3
-// arg4 = arg4 = QuicPathGetActive(&Stream->Connection->Paths)->MinRtt = arg4
+// arg4 = arg4 = Stream->Connection->Paths[0].MinRtt = arg4
 // arg5 = arg5 = TimeNow = arg5
 // arg6 = arg6 = Stream->RecvWindowLastUpdate = arg6
 ----------------------------------------------------------*/
@@ -579,5 +579,5 @@ tracepoint(CLOG_STREAM_RECV_C, StreamAppReceiveComplete , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_stream_recv.c.clog.h.c"
+#include "quic.clog_stream_recv.c.clog.h.c"
 #endif

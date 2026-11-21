@@ -45,5 +45,5 @@ tracepoint(CLOG_CONGESTION_CONTROL_C, InvalidCongestionControlAlgorithm , arg1, 
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_congestion_control.c.clog.h.c"
+#include "quic.clog_congestion_control.c.clog.h.c"
 #endif

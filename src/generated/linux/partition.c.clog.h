@@ -45,5 +45,5 @@ tracepoint(CLOG_PARTITION_C, LibraryErrorStatus , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_partition.c.clog.h.c"
+#include "quic.clog_partition.c.clog.h.c"
 #endif

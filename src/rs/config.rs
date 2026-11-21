@@ -228,12 +228,8 @@ impl CertificateHashStore {
         // Android, and the generated binding declares `StoreName` as
         // `[c_char; 128]`, so hardcoding the signedness only compiles where the
         // bindings happened to be generated.
-        let c_slice2 = unsafe {
-            std::slice::from_raw_parts(
-                c_slice.as_ptr() as *const c_char,
-                c_slice.len(),
-            )
-        };
+        let c_slice2 =
+            unsafe { std::slice::from_raw_parts(c_slice.as_ptr() as *const c_char, c_slice.len()) };
         // copy with nul terminator
         let mut name_buff = [0 as c_char; 128];
         let chunk = &mut name_buff[..c_slice2.len()];

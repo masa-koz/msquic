@@ -1198,5 +1198,5 @@ tracepoint(CLOG_SETTINGS_C, AllocFailure , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_settings.c.clog.h.c"
+#include "quic.clog_settings.c.clog.h.c"
 #endif

@@ -8,5 +8,5 @@ extern "C" {
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_candidate.c.clog.h.c"
+#include "quic.clog_candidate.c.clog.h.c"
 #endif

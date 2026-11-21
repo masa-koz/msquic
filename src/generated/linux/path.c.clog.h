@@ -323,5 +323,5 @@ tracepoint(CLOG_PATH_C, ConnPathActive , arg2, arg3, arg4);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_path.c.clog.h.c"
+#include "quic.clog_path.c.clog.h.c"
 #endif

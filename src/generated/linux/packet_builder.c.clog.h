@@ -273,5 +273,5 @@ tracepoint(CLOG_PACKET_BUILDER_C, PacketBatchSent , arg2);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_packet_builder.c.clog.h.c"
+#include "quic.clog_packet_builder.c.clog.h.c"
 #endif

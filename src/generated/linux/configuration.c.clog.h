@@ -261,5 +261,5 @@ tracepoint(CLOG_CONFIGURATION_C, ConfigurationRundown , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_configuration.c.clog.h.c"
+#include "quic.clog_configuration.c.clog.h.c"
 #endif

@@ -183,5 +183,5 @@ tracepoint(CLOG_REGISTRATION_C, RegistrationRundownV2 , arg2, arg3, arg4);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_registration.c.clog.h.c"
+#include "quic.clog_registration.c.clog.h.c"
 #endif

@@ -552,5 +552,5 @@ tracepoint(CLOG_LOSS_DETECTION_C, ConnEcnFailed , arg2, arg3, arg4, arg5, arg6, 
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_loss_detection.c.clog.h.c"
+#include "quic.clog_loss_detection.c.clog.h.c"
 #endif

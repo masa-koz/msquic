@@ -201,9 +201,23 @@ QuicPathValidate(
          Path->DestCid->CID.UsedLocally));
 }
 #else
-#define QuicCidSetPath(PathSet, Cid, Path)
-#define QuicCidClearPath(Cid)
-#define QuicCidValidateUnused(PathSet, Cid)
+//
+// The arguments are referenced even when the checks compile out: this fork has
+// call sites whose only use of a CID is to validate it, and a release build
+// would otherwise report the variable as unused and fail on /WX.
+//
+#define QuicCidSetPath(PathSet, Cid, Path) \
+    do { \
+        UNREFERENCED_PARAMETER(PathSet); \
+        UNREFERENCED_PARAMETER(Cid); \
+        UNREFERENCED_PARAMETER(Path); \
+    } while (0)
+#define QuicCidClearPath(Cid) UNREFERENCED_PARAMETER(Cid)
+#define QuicCidValidateUnused(PathSet, Cid) \
+    do { \
+        UNREFERENCED_PARAMETER(PathSet); \
+        UNREFERENCED_PARAMETER(Cid); \
+    } while (0)
 #define QuicPathValidate(Path) UNREFERENCED_PARAMETER(Path)
 #endif
 

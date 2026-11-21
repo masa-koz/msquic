@@ -255,12 +255,25 @@ TEST_F(PathTest, UpdateDestCidsPrioritizesActivePathForReplacement)
 
     QuicPathUpdateDestCids(&Connection.Paths, &Connection);
 
-    ASSERT_EQ(1, Connection.Paths.Count);
+    //
+    // The active path takes the one unused CID, and the non-active path whose
+    // CID was retired with nothing to replace it is removed. Paths 2 and 3
+    // differ from upstream: they have no destination CID at all, which on this
+    // fork means their path id is new and the peer has not issued CIDs for it
+    // yet (#196 asks and waits), so the sweep leaves them where they are.
+    // Upstream removes them, which is why its expectation here is a count of 1.
+    //
+    ASSERT_EQ(3, Connection.Paths.Count);
     ASSERT_EQ(ReplacementCid, Connection.Paths.Paths[0].DestCid);
     ASSERT_TRUE(ReplacementCid->CID.UsedLocally);
     ASSERT_TRUE(Connection.Paths.Paths[0].InitiatedCidUpdate);
     ASSERT_EQ(0U, Connection.Paths.Paths[0].ID);
-    ASSERT_FALSE(Connection.Paths.Paths[1].InUse);
+    //
+    // The removal shifted the two CID-less paths down a slot.
+    //
+    ASSERT_EQ(2U, Connection.Paths.Paths[1].ID);
+    ASSERT_EQ(3U, Connection.Paths.Paths[2].ID);
+    ASSERT_FALSE(Connection.Paths.Paths[3].InUse);
 #if DEBUG
     ASSERT_EQ(Connection.Paths.Paths[0].ID, ReplacementCid->AssignedPathId);
 #endif

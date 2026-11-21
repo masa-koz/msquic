@@ -360,5 +360,5 @@ tracepoint(CLOG_BINDING_C, PacketReceive , arg2);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_binding.c.clog.h.c"
+#include "quic.clog_binding.c.clog.h.c"
 #endif

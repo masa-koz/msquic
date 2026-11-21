@@ -3381,5 +3381,5 @@ tracepoint(CLOG_CONNECTION_C, ConnRemoteAddrRemoved , arg2, arg3_len, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_connection.c.clog.h.c"
+#include "quic.clog_connection.c.clog.h.c"
 #endif

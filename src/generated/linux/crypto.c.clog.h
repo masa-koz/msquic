@@ -607,5 +607,5 @@ tracepoint(CLOG_CRYPTO_C, ConnKeyPhaseChange , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_crypto.c.clog.h.c"
+#include "quic.clog_crypto.c.clog.h.c"
 #endif

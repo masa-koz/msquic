@@ -45,5 +45,5 @@ tracepoint(CLOG_RANGE_C, AllocFailure , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_range.c.clog.h.c"
+#include "quic.clog_range.c.clog.h.c"
 #endif

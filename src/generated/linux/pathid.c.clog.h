@@ -279,5 +279,5 @@ tracepoint(CLOG_PATHID_C, ConnDestCidUpdated , arg2, arg3, arg4, arg5_len, arg5)
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic_pathid.c.clog.h.c"
+#include "quic.clog_pathid.c.clog.h.c"
 #endif

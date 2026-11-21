@@ -9090,7 +9090,7 @@
     },
     "MtuDiscarded": {
       "ModuleProperites": {},
-      "TraceString": "[conn][%p] Path[%u] Mtu Discovery Packet Discarded: size=%u, probe_count=%u",
+      "TraceString": "[conn][%p] Path[%hhu] Mtu Discovery Packet Discarded: size=%u, probe_count=%u",
       "UniqueId": "MtuDiscarded",
       "splitArgs": [
         {
@@ -9098,7 +9098,7 @@
           "MacroVariableName": "arg1"
         },
         {
-          "DefinationEncoding": "u",
+          "DefinationEncoding": "hhu",
           "MacroVariableName": "arg3"
         },
         {
@@ -9114,7 +9114,7 @@
     },
     "MtuIncorrectSize": {
       "ModuleProperites": {},
-      "TraceString": "[conn][%p] Path[%u] Mtu Discovery Received Out of Order: expected=%u received=%u",
+      "TraceString": "[conn][%p] Path[%hhu] Mtu Discovery Received Out of Order: expected=%u received=%u",
       "UniqueId": "MtuIncorrectSize",
       "splitArgs": [
         {
@@ -9122,7 +9122,7 @@
           "MacroVariableName": "arg1"
         },
         {
-          "DefinationEncoding": "u",
+          "DefinationEncoding": "hhu",
           "MacroVariableName": "arg3"
         },
         {
@@ -9138,7 +9138,7 @@
     },
     "MtuPathInitialized": {
       "ModuleProperites": {},
-      "TraceString": "[conn][%p] Path[%u] Mtu Discovery Initialized: max_mtu=%u, cur/min_mtu=%u",
+      "TraceString": "[conn][%p] Path[%hhu] Mtu Discovery Initialized: max_mtu=%u, cur/min_mtu=%u",
       "UniqueId": "MtuPathInitialized",
       "splitArgs": [
         {
@@ -9146,7 +9146,7 @@
           "MacroVariableName": "arg1"
         },
         {
-          "DefinationEncoding": "u",
+          "DefinationEncoding": "hhu",
           "MacroVariableName": "arg3"
         },
         {
@@ -9186,7 +9186,7 @@
     },
     "MtuSearchComplete": {
       "ModuleProperites": {},
-      "TraceString": "[conn][%p] Path[%u] Mtu Discovery Entering Search Complete at MTU %hu",
+      "TraceString": "[conn][%p] Path[%hhu] Mtu Discovery Entering Search Complete at MTU %hu",
       "UniqueId": "MtuSearchComplete",
       "splitArgs": [
         {
@@ -9194,7 +9194,7 @@
           "MacroVariableName": "arg1"
         },
         {
-          "DefinationEncoding": "u",
+          "DefinationEncoding": "hhu",
           "MacroVariableName": "arg3"
         },
         {
@@ -9206,7 +9206,7 @@
     },
     "MtuSearching": {
       "ModuleProperites": {},
-      "TraceString": "[conn][%p] Path[%u] Mtu Discovery Search Packet Sending with MTU %hu",
+      "TraceString": "[conn][%p] Path[%hhu] Mtu Discovery Search Packet Sending with MTU %hu",
       "UniqueId": "MtuSearching",
       "splitArgs": [
         {
@@ -9214,7 +9214,7 @@
           "MacroVariableName": "arg1"
         },
         {
-          "DefinationEncoding": "u",
+          "DefinationEncoding": "hhu",
           "MacroVariableName": "arg3"
         },
         {
@@ -10444,7 +10444,7 @@
     },
     "PathMtuUpdated": {
       "ModuleProperites": {},
-      "TraceString": "[conn][%p] Path[%u] MTU updated to %hu bytes",
+      "TraceString": "[conn][%p] Path[%hhu] MTU updated to %hu bytes",
       "UniqueId": "PathMtuUpdated",
       "splitArgs": [
         {
@@ -10452,7 +10452,7 @@
           "MacroVariableName": "arg1"
         },
         {
-          "DefinationEncoding": "u",
+          "DefinationEncoding": "hhu",
           "MacroVariableName": "arg3"
         },
         {
@@ -18837,19 +18837,19 @@
         "EncodingString": "[conn][%p] App configured max stream count of %hu (type=%hhu)."
       },
       {
-        "UniquenessHash": "03564dae-539b-4e8a-57b6-a1a71a2fb9e0",
+        "UniquenessHash": "1aa1d324-af31-356c-0738-863e209f6f21",
         "TraceID": "MtuDiscarded",
-        "EncodingString": "[conn][%p] Path[%u] Mtu Discovery Packet Discarded: size=%u, probe_count=%u"
+        "EncodingString": "[conn][%p] Path[%hhu] Mtu Discovery Packet Discarded: size=%u, probe_count=%u"
       },
       {
-        "UniquenessHash": "ddb7281d-8e2f-0851-34e0-3aa0173cb522",
+        "UniquenessHash": "a20786c3-f6b7-176d-7e63-b6c558f7d394",
         "TraceID": "MtuIncorrectSize",
-        "EncodingString": "[conn][%p] Path[%u] Mtu Discovery Received Out of Order: expected=%u received=%u"
+        "EncodingString": "[conn][%p] Path[%hhu] Mtu Discovery Received Out of Order: expected=%u received=%u"
       },
       {
-        "UniquenessHash": "2751725a-a120-72cd-5e92-9a5d56b30b2d",
+        "UniquenessHash": "3f758826-f3d7-22eb-b7df-0453cdad3bc8",
         "TraceID": "MtuPathInitialized",
-        "EncodingString": "[conn][%p] Path[%u] Mtu Discovery Initialized: max_mtu=%u, cur/min_mtu=%u"
+        "EncodingString": "[conn][%p] Path[%hhu] Mtu Discovery Initialized: max_mtu=%u, cur/min_mtu=%u"
       },
       {
         "UniquenessHash": "0c5c6ebf-d8d6-35b9-62ac-2f3ffa27f7d2",
@@ -18857,14 +18857,14 @@
         "EncodingString": "[conn][%p] Path[%u] MTU probe of %hu not sent: peer accepts only %hu"
       },
       {
-        "UniquenessHash": "59d53545-f3fd-6288-5343-f7360c467c68",
+        "UniquenessHash": "92ab8084-33fb-0565-da7b-d2278d05c642",
         "TraceID": "MtuSearchComplete",
-        "EncodingString": "[conn][%p] Path[%u] Mtu Discovery Entering Search Complete at MTU %hu"
+        "EncodingString": "[conn][%p] Path[%hhu] Mtu Discovery Entering Search Complete at MTU %hu"
       },
       {
-        "UniquenessHash": "af061074-69c0-cf5d-d770-0aa63ac01629",
+        "UniquenessHash": "c7a85c07-7d70-b24f-313d-2db9a20333bd",
         "TraceID": "MtuSearching",
-        "EncodingString": "[conn][%p] Path[%u] Mtu Discovery Search Packet Sending with MTU %hu"
+        "EncodingString": "[conn][%p] Path[%hhu] Mtu Discovery Search Packet Sending with MTU %hu"
       },
       {
         "UniquenessHash": "7c8ed181-6e73-0552-43f1-7e00ce4948af",
@@ -19237,9 +19237,9 @@
         "EncodingString": "[conn][%p] Path[%u] Minimum MTU validated"
       },
       {
-        "UniquenessHash": "360205d0-262e-37a7-4593-00e29dee9966",
+        "UniquenessHash": "e4b7c3f7-0733-40b5-95d7-af81de6568ec",
         "TraceID": "PathMtuUpdated",
-        "EncodingString": "[conn][%p] Path[%u] MTU updated to %hu bytes"
+        "EncodingString": "[conn][%p] Path[%hhu] MTU updated to %hu bytes"
       },
       {
         "UniquenessHash": "bb1e998d-41e5-31d9-6efa-5e70ee344107",
