@@ -2828,7 +2828,14 @@ QuicConnGenerateNewSourceCids(
     QuicPathIDGenerateNewSourceCids(Connection->Paths.Paths[0].PathID, ReplaceExistingCids);
 }
 
-_IRQL_requires_max_(DISPATCH_LEVEL)
+//
+// PASSIVE_LEVEL, matching both the declaration and QuicPathIDGetUnusedDestCid,
+// which this delegates to: a DISPATCH_LEVEL caller could not legally call it.
+// The two disagreed after the merge (this fork annotated the definition
+// DISPATCH_LEVEL, upstream's declaration says PASSIVE_LEVEL), which MSVC's SAL
+// pass reports as C28252/C28253.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
 QUIC_CID_LIST_ENTRY*
 QuicConnGetUnusedDestCid(
     _In_ const QUIC_CONNECTION* Connection
