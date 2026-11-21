@@ -1171,12 +1171,30 @@ CxPlatTlsInitialize(
     TlsContext->Extensions[1].data.len = 0;
     TlsContext->HandshakeProperties.additional_extensions = TlsContext->Extensions;
 
+    //
+    // On success the TLS layer owns LocalTPBuffer (freed in
+    // CxPlatTlsUninitialize) and ResumptionTicketBuffer. Resumption isn't
+    // supported, so the ticket is dropped.
+    //
+    if (Config->ResumptionTicketBuffer != NULL) {
+        CXPLAT_FREE(Config->ResumptionTicketBuffer, QUIC_POOL_CRYPTO_RESUMPTION_TICKET);
+    }
+
     Status = QUIC_STATUS_SUCCESS;
     *NewTlsContext = TlsContext;
     TlsContext = NULL;
 
 Exit:
     if (TlsContext) {
+        //
+        // LocalTPBuffer is still the caller's on failure, so it isn't freed here.
+        //
+        if (TlsContext->AlpnVec != NULL) {
+            CXPLAT_FREE(TlsContext->AlpnVec, QUIC_POOL_TLS_ALPN_VEC);
+        }
+        if (TlsContext->Tls != NULL) {
+            ptls_free(TlsContext->Tls);
+        }
         CXPLAT_FREE(TlsContext, QUIC_POOL_TLS_CTX);
     }
     return Status;
@@ -1202,6 +1220,11 @@ CxPlatTlsUninitialize(
         if (TlsContext->Tls != NULL) {
             ptls_free(TlsContext->Tls);
             TlsContext->Tls = NULL;
+        }
+
+        if (TlsContext->Extensions[0].data.base != NULL) {
+            CXPLAT_FREE(TlsContext->Extensions[0].data.base, QUIC_POOL_TLS_TRANSPARAMS);
+            TlsContext->Extensions[0].data.base = NULL;
         }
 
         CXPLAT_FREE(TlsContext, QUIC_POOL_TLS_CTX);
