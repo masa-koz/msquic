@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 use crate::ffi::{QUIC_CREDENTIAL_CONFIG, QUIC_REGISTRATION_CONFIG};
-use std::ffi::CString;
+use std::ffi::{c_char, CString};
 
 /// Specifies the configuration for a new registration.
 #[derive(Debug, Default)]
@@ -41,18 +41,13 @@ impl RegistrationConfig {
 }
 
 /// Configures how to process a registration's workload.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Default)]
 pub enum ExecutionProfile {
+    #[default]
     LowLatency,
     MaxThroughput,
     Scavenger,
     RealTime,
-}
-
-impl Default for ExecutionProfile {
-    fn default() -> Self {
-        Self::LowLatency
-    }
 }
 
 impl From<ExecutionProfile> for crate::ffi::QUIC_EXECUTION_PROFILE {
@@ -230,9 +225,9 @@ impl CertificateHashStore {
         let c_str = CString::new(store_name).unwrap();
         let c_slice = c_str.as_bytes_with_nul();
         let c_slice2 =
-            unsafe { std::slice::from_raw_parts(c_slice.as_ptr() as *const i8, c_slice.len()) };
+            unsafe { std::slice::from_raw_parts(c_slice.as_ptr() as *const c_char, c_slice.len()) };
         // copy with nul terminator
-        let mut name_buff = [0_i8; 128];
+        let mut name_buff = [0 as c_char; 128];
         let chunk = &mut name_buff[..c_slice2.len()];
         chunk.copy_from_slice(c_slice2);
         Self(crate::ffi::QUIC_CERTIFICATE_HASH_STORE {
@@ -341,8 +336,9 @@ impl CertificatePkcs12 {
 }
 
 /// Type of credentials used for a connection.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum Credential {
+    #[default]
     None,
     /// windows schannel only
     CertificateHash(CertificateHash),
@@ -356,12 +352,6 @@ pub enum Credential {
     CertificateFileProtected(CertificateFileProtected),
     /// quictls only
     CertificatePkcs12(CertificatePkcs12),
-}
-
-impl Default for Credential {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 bitflags::bitflags! {
@@ -486,7 +476,11 @@ mod tests {
                 .unwrap_err()
                 .try_as_status_code()
                 .unwrap();
-            if cfg!(windows) && !cfg!(feature = "openssl") && !cfg!(feature = "quictls") {
+            if cfg!(windows)
+                && !cfg!(feature = "openssl")
+                && !cfg!(feature = "openssl_external")
+                && !cfg!(feature = "quictls")
+            {
                 // schannel does not support load from file.
                 assert_eq!(load_err, StatusCode::QUIC_STATUS_NOT_SUPPORTED);
             } else {

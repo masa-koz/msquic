@@ -23,15 +23,19 @@ Abstract:
 //
 #define MAX_VER_NEG_PACKET_LENGTH \
 ( \
-    sizeof(QUIC_VERSION_NEGOTIATION_PACKET) + \
-    QUIC_MAX_CONNECTION_ID_LENGTH_INVARIANT + \
-    QUIC_MAX_CONNECTION_ID_LENGTH_INVARIANT + \
-    sizeof(uint32_t) + \
-    (ARRAYSIZE(QuicSupportedVersionList) * sizeof(uint32_t)) \
+    sizeof(QUIC_VERSION_NEGOTIATION_PACKET) + /* Flags, version and DestCidLength */ \
+    2 * QUIC_MAX_CONNECTION_ID_LENGTH_INVARIANT + /* Destination and source CIDs */ \
+    sizeof(uint8_t) + /* SourceCidLength (not included in the header struct) */ \
+    sizeof(uint32_t) + /* Random reserved version */ \
+    (QUIC_MAX_NEGOTIATION_VERSIONS * sizeof(uint32_t)) /* Offered versions */ \
 )
 CXPLAT_STATIC_ASSERT(
-    QUIC_DPLPMTUD_MIN_MTU - 48 >= MAX_VER_NEG_PACKET_LENGTH,
+    QUIC_DPLPMTUD_MIN_MTU - CXPLAT_MIN_IPV6_HEADER_SIZE - CXPLAT_UDP_HEADER_SIZE >=
+        MAX_VER_NEG_PACKET_LENGTH,
     "Too many supported version numbers! Requires too big of buffer for response!");
+CXPLAT_STATIC_ASSERT(
+    ARRAYSIZE(DefaultSupportedVersionsList) <= QUIC_MAX_NEGOTIATION_VERSIONS,
+    "Default supported versions exceed the negotiation limit!");
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
 QUIC_STATUS
@@ -68,6 +72,9 @@ QuicBindingInitialize(
     CxPlatDispatchLockInitialize(&Binding->StatelessOperLock);
     CxPlatListInitializeHead(&Binding->Listeners);
     QuicLookupInitialize(&Binding->Lookup);
+#if DEBUG
+    QuicLibraryTrackDbgObject(QUIC_DBG_OBJECT_TYPE_BINDING, &Binding->DbgObjectLink);
+#endif
     if (!CxPlatHashtableInitializeEx(&Binding->StatelessOperTable, CXPLAT_HASH_MIN_SIZE)) {
         Status = QUIC_STATUS_OUT_OF_MEMORY;
         goto Error;
@@ -179,6 +186,9 @@ Error:
             if (HashTableInitialized) {
                 CxPlatHashtableUninitialize(&Binding->StatelessOperTable);
             }
+#if DEBUG
+            QuicLibraryUntrackDbgObject(QUIC_DBG_OBJECT_TYPE_BINDING, &Binding->DbgObjectLink);
+#endif
             CxPlatDispatchLockUninitialize(&Binding->StatelessOperLock);
             CxPlatDispatchRwLockUninitialize(&Binding->RwLock);
             CXPLAT_FREE(Binding, QUIC_POOL_BINDING);
@@ -231,6 +241,9 @@ QuicBindingUninitialize(
     QuicLookupUninitialize(&Binding->Lookup);
     CxPlatDispatchLockUninitialize(&Binding->StatelessOperLock);
     CxPlatHashtableUninitialize(&Binding->StatelessOperTable);
+#if DEBUG
+    QuicLibraryUntrackDbgObject(QUIC_DBG_OBJECT_TYPE_BINDING, &Binding->DbgObjectLink);
+#endif
     CxPlatDispatchRwLockUninitialize(&Binding->RwLock);
 
     QuicTraceEvent(
@@ -301,6 +314,15 @@ QuicBindingGetRemoteAddress(
         Hooks->GetRemoteAddress(Address);
     }
 #endif
+}
+
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+QuicBindingGetQtipEnabled(
+    _In_ const QUIC_BINDING* Binding
+    )
+{
+    return CxPlatSocketGetQtipEnabled(Binding->Socket);
 }
 
 //
@@ -519,31 +541,31 @@ QuicBindingAcceptConnection(
     }
 
     //
-    // Save the negotiated ALPN (starting with the length prefix) to be
-    // used later in building up the TLS response.
+    // Info->ClientAlpnList points into the crypto recv buffer, which can be
+    // freed before ALPN renegotiation, so own a copy here. Check if 
+    // the full list fits and use the preallocated buffer, allocate on the  heap otherwise. 
     //
-    uint16_t NegotiatedAlpnLength = 1 + Info->NegotiatedAlpn[-1];
-    uint8_t* NegotiatedAlpn;
-
-    if (NegotiatedAlpnLength <= TLS_SMALL_ALPN_BUFFER_SIZE) {
-        NegotiatedAlpn = Connection->Crypto.TlsState.SmallAlpnBuffer;
+    
+    uint8_t* ClientAlpnList;
+    if (Info->ClientAlpnListLength < TLS_SMALL_ALPN_BUFFER_SIZE) {
+        ClientAlpnList = Connection->Crypto.TlsState.SmallAlpnBuffer;
     } else {
-        NegotiatedAlpn = CXPLAT_ALLOC_NONPAGED(NegotiatedAlpnLength, QUIC_POOL_ALPN);
-        if (NegotiatedAlpn == NULL) {
+        ClientAlpnList = CXPLAT_ALLOC_NONPAGED(Info->ClientAlpnListLength, QUIC_POOL_ALPN);
+        if (ClientAlpnList == NULL) {
             QuicTraceEvent(
                 AllocFailure,
                 "Allocation of '%s' failed. (%llu bytes)",
-                "NegotiatedAlpn",
-                NegotiatedAlpnLength);
+                "ClientAlpnList",
+                Info->ClientAlpnListLength);
             QuicConnTransportError(
                 Connection,
                 QUIC_ERROR_INTERNAL_ERROR);
             goto Error;
         }
     }
-    CxPlatCopyMemory(NegotiatedAlpn, Info->NegotiatedAlpn - 1, NegotiatedAlpnLength);
-    Connection->Crypto.TlsState.NegotiatedAlpn = NegotiatedAlpn;
-    Connection->Crypto.TlsState.ClientAlpnList = Info->ClientAlpnList;
+
+    CxPlatCopyMemory(ClientAlpnList, Info->ClientAlpnList, Info->ClientAlpnListLength);
+    Connection->Crypto.TlsState.ClientAlpnList = ClientAlpnList;
     Connection->Crypto.TlsState.ClientAlpnListLength = Info->ClientAlpnListLength;
 
     //
@@ -830,13 +852,18 @@ QuicBindingProcessStatelessOperation(
             SupportedVersionsLength = ARRAYSIZE(DefaultSupportedVersionsList);
         }
 
-        const uint16_t PacketLength =
+        if (SupportedVersionsLength > QUIC_MAX_NEGOTIATION_VERSIONS) {
+            QuicPacketLogDrop(Binding, RecvPacket, "Too many versions for VN response");
+            goto Exit;
+        }
+
+        const uint16_t PacketLength = (uint16_t)(
             sizeof(QUIC_VERSION_NEGOTIATION_PACKET) +               // Header
             RecvPacket->SourceCidLen +
             sizeof(uint8_t) +
             RecvPacket->DestCidLen +
             sizeof(uint32_t) +                                      // One random version
-            (uint16_t)(SupportedVersionsLength * sizeof(uint32_t)); // Our actual supported versions
+            SupportedVersionsLength * sizeof(uint32_t));           // Our actual supported versions
 
         SendDatagram =
             CxPlatSendDataAllocBuffer(SendData, PacketLength);
@@ -914,7 +941,7 @@ QuicBindingProcessStatelessOperation(
 
         if (PacketLength >= RecvPacket->AvailBufferLength) {
             //
-            // Can't go over the recieve packet's length.
+            // Can't go over the receive packet's length.
             //
             PacketLength = (uint8_t)RecvPacket->AvailBufferLength - 1;
         }
@@ -977,9 +1004,18 @@ QuicBindingProcessStatelessOperation(
             goto Exit;
         }
 
+        const uint8_t CidTotalLength = MsQuicLib.CidTotalLength;
         uint8_t NewDestCid[QUIC_CID_MAX_LENGTH];
-        CXPLAT_DBG_ASSERT(sizeof(NewDestCid) >= MsQuicLib.CidTotalLength);
-        CxPlatRandom(sizeof(NewDestCid), NewDestCid);
+        CXPLAT_DBG_ASSERT(sizeof(NewDestCid) >= CidTotalLength);
+        //
+        // RFC 9000 sec. 17.2.5.1: "This value MUST NOT be equal to the
+        // Destination Connection ID field of the packet sent by the client."
+        // Regenerate until the new Source CID differs from the client's DCID.
+        //
+        do {
+            CxPlatRandom(CidTotalLength, NewDestCid);
+        } while (RecvPacket->DestCidLen == CidTotalLength &&
+                 memcmp(NewDestCid, RecvPacket->DestCid, CidTotalLength) == 0);
 
         QUIC_TOKEN_CONTENTS Token = { 0 };
         Token.Authenticated.Timestamp = (uint64_t)CxPlatTimeEpochMs64();
@@ -990,14 +1026,14 @@ QuicBindingProcessStatelessOperation(
         Token.Encrypted.OrigConnIdLength = RecvPacket->DestCidLen;
 
         uint8_t Iv[CXPLAT_MAX_IV_LENGTH];
-        if (MsQuicLib.CidTotalLength >= CXPLAT_IV_LENGTH) {
+        if (CidTotalLength >= CXPLAT_IV_LENGTH) {
             CxPlatCopyMemory(Iv, NewDestCid, CXPLAT_IV_LENGTH);
-            for (uint8_t i = CXPLAT_IV_LENGTH; i < MsQuicLib.CidTotalLength; ++i) {
+            for (uint8_t i = CXPLAT_IV_LENGTH; i < CidTotalLength; ++i) {
                 Iv[i % CXPLAT_IV_LENGTH] ^= NewDestCid[i];
             }
         } else {
             CxPlatZeroMemory(Iv, CXPLAT_IV_LENGTH);
-            CxPlatCopyMemory(Iv, NewDestCid, MsQuicLib.CidTotalLength);
+            CxPlatCopyMemory(Iv, NewDestCid, CidTotalLength);
         }
 
         CxPlatDispatchLockAcquire(&Partition->StatelessRetryKeysLock);
@@ -1009,12 +1045,17 @@ QuicBindingProcessStatelessOperation(
             goto Exit;
         }
 
+        uint64_t EncryptStart = CxPlatTimeUs64();
         QUIC_STATUS Status =
             CxPlatEncrypt(
                 StatelessRetryKey,
                 Iv,
                 sizeof(Token.Authenticated), (uint8_t*) &Token.Authenticated,
                 sizeof(Token.Encrypted) + sizeof(Token.EncryptionTag), (uint8_t*)&(Token.Encrypted));
+        QuicPerfCounterAdd(
+            Partition,
+            QUIC_PERF_COUNTER_ENCRYPT_DURATION_US,
+            (int64_t)CxPlatTimeDiff64(EncryptStart, CxPlatTimeUs64()));
 
         CxPlatDispatchLockRelease(&Partition->StatelessRetryKeysLock);
         if (QUIC_FAILED(Status)) {
@@ -1025,7 +1066,7 @@ QuicBindingProcessStatelessOperation(
             QuicPacketEncodeRetryV1(
                 RecvPacket->LH->Version,
                 RecvPacket->SourceCid, RecvPacket->SourceCidLen,
-                NewDestCid, MsQuicLib.CidTotalLength,
+                NewDestCid, CidTotalLength,
                 RecvPacket->DestCid, RecvPacket->DestCidLen,
                 sizeof(Token),
                 (uint8_t*)&Token,
@@ -1041,7 +1082,7 @@ QuicBindingProcessStatelessOperation(
             "[S][TX][-] LH Ver:0x%x DestCid:%s SrcCid:%s Type:R OrigDestCid:%s (Token %hu bytes)",
             RecvPacket->LH->Version,
             QuicCidBufToStr(RecvPacket->SourceCid, RecvPacket->SourceCidLen).Buffer,
-            QuicCidBufToStr(NewDestCid, MsQuicLib.CidTotalLength).Buffer,
+            QuicCidBufToStr(NewDestCid, CidTotalLength).Buffer,
             QuicCidBufToStr(RecvPacket->DestCid, RecvPacket->DestCidLen).Buffer,
             (uint16_t)sizeof(Token));
 
@@ -1306,7 +1347,7 @@ QuicBindingCreateConnection(
     }
 
     BindingRefAdded = TRUE;
-    NewConnection->Paths[0].Binding = Binding;
+    QuicPathGetActive(&NewConnection->Paths)->Binding = Binding;
 
     if (!QuicLookupAddRemoteHash(
             &Binding->Lookup,

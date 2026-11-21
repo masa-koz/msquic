@@ -874,6 +874,41 @@ CxPlatTlsParamSet(
     return QUIC_STATUS_NOT_SUPPORTED;
 }
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatTlsExportKeyingMaterial(
+    _In_ CXPLAT_TLS* TlsContext,
+    _In_z_ const char* Label,
+    _In_reads_bytes_opt_(ContextLength)
+        const uint8_t* Context,
+    _In_ uint32_t ContextLength,
+    _Out_writes_bytes_(OutputLength)
+        uint8_t* Output,
+    _In_ uint32_t OutputLength
+    )
+{
+    //
+    // In TLS 1.3 an absent exporter context is equivalent to an empty one
+    // (RFC 8446, Section 7.5).
+    //
+    if (ptls_export_secret(
+            TlsContext->Tls,
+            Output,
+            OutputLength,
+            Label,
+            ptls_iovec_init(Context, Context != NULL ? ContextLength : 0),
+            0) != 0) {
+        QuicTraceEvent(
+            TlsError,
+            "[ tls][%p] ERROR, %s.",
+            TlsContext->Connection,
+            "ptls_export_secret failed");
+        return QUIC_STATUS_TLS_ERROR;
+    }
+
+    return QUIC_STATUS_SUCCESS;
+}
+
 _Success_(return==TRUE)
 BOOLEAN
 QuicTlsPopulateOffloadKeys(

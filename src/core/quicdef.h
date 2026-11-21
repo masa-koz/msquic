@@ -16,7 +16,9 @@ typedef struct QUIC_CONGESTION_CONTROL QUIC_CONGESTION_CONTROL;
 typedef struct QUIC_CONNECTION QUIC_CONNECTION;
 typedef struct QUIC_STREAM QUIC_STREAM;
 typedef struct QUIC_PACKET_BUILDER QUIC_PACKET_BUILDER;
+typedef struct QUIC_CID_LIST_ENTRY QUIC_CID_LIST_ENTRY;
 typedef struct QUIC_PATH QUIC_PATH;
+typedef struct QUIC_PATH_SET QUIC_PATH_SET;
 typedef struct QUIC_RX_PACKET QUIC_RX_PACKET;
 
 /*************************************************************
@@ -90,6 +92,20 @@ typedef struct QUIC_RX_PACKET QUIC_RX_PACKET;
 // before timing out.
 //
 #define QUIC_CLOSE_PTO_COUNT                    3
+
+//
+// The number of PTOs to wait before abandoning path validation. Per RFC 9000
+// section 8.2.4 the recommended value is 3.
+//
+#define QUIC_PATH_VALIDATION_PTO_COUNT          3
+
+//
+// The minimum path validation timeout, expressed as a multiple of the
+// connection's configured initial RTT. Used as a floor when the path's
+// current PTO (multiplied by QUIC_PATH_VALIDATION_PTO_COUNT) would otherwise
+// produce too short a timeout.
+//
+#define QUIC_PATH_VALIDATION_MIN_INITIAL_RTT_MULTIPLE   6
 
 //
 // The congestion window to use after persistent congestion. TCP uses one

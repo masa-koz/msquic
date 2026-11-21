@@ -50,10 +50,6 @@ on:
         required: false
         default: '' # Empty string means build all
         type: string
-      xdp:
-        required: false
-        default: ''
-        type: string
       time64:
         required: false
         default: ''
@@ -74,7 +70,6 @@ jobs:
       systemcrypto: '-UseSystemOpenSSLCrypto' # packages must use libcrypto on system
       clang: ${{ inputs.clang }}
       build: ${{ inputs.build }}
-      xdp: ${{ inputs.xdp }}
       repo: ${{ github.repository }}
 
   package:
@@ -83,16 +78,16 @@ jobs:
     runs-on: ${{ inputs.os }}
     steps:
     - name: Checkout repository
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
     - name: Prepare Machine
       shell: pwsh
-      run: scripts/prepare-machine.ps1 -ForBuild ${{ inputs.xdp }}
+      run: scripts/prepare-machine.ps1 -ForBuild
     - name: Download Build Artifacts
-      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
       with:
-        name: ${{ inputs.config }}-linux-${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.tls }}-UseSystemOpenSSLCrypto${{ inputs.sanitize }}${{ inputs.xdp }}${{ inputs.build }}
+        name: ${{ inputs.config }}-linux-${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.tls }}-UseSystemOpenSSLCrypto${{ inputs.sanitize }}${{ inputs.build }}
         path: artifacts
     - name: Extract binaries # they are tar'd to preserve permissions and symlinks.
       run: |
@@ -103,7 +98,7 @@ jobs:
       shell: pwsh
       run: scripts/package-distribution.ps1 ${{ inputs.time64 }}
     - name: Upload build artifacts
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
-        name: Package-${{ inputs.config }}-linux-${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.tls }}-UseSystemOpenSSLCrypto${{ inputs.sanitize }}${{ inputs.xdp }}${{ inputs.build }}
+        name: Package-${{ inputs.config }}-linux-${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.tls }}-UseSystemOpenSSLCrypto${{ inputs.sanitize }}${{ inputs.build }}
         path: artifacts/dist

@@ -90,8 +90,8 @@ QuicSettingsSetDefault(
     if (!Settings->IsSet.TlsClientMaxSendBuffer) {
         Settings->TlsClientMaxSendBuffer = QUIC_MAX_TLS_CLIENT_SEND_BUFFER;
     }
-    if (!Settings->IsSet.TlsClientMaxSendBuffer) {
-        Settings->TlsClientMaxSendBuffer = QUIC_MAX_TLS_SERVER_SEND_BUFFER;
+    if (!Settings->IsSet.TlsServerMaxSendBuffer) {
+        Settings->TlsServerMaxSendBuffer = QUIC_MAX_TLS_SERVER_SEND_BUFFER;
     }
     if (!Settings->IsSet.StreamRecvWindowDefault) {
         Settings->StreamRecvWindowDefault = QUIC_DEFAULT_STREAM_FC_WINDOW_SIZE;
@@ -246,8 +246,8 @@ QuicSettingsCopy(
     if (!Destination->IsSet.TlsClientMaxSendBuffer) {
         Destination->TlsClientMaxSendBuffer = Source->TlsClientMaxSendBuffer;
     }
-    if (!Destination->IsSet.TlsClientMaxSendBuffer) {
-        Destination->TlsClientMaxSendBuffer = Source->TlsClientMaxSendBuffer;
+    if (!Destination->IsSet.TlsServerMaxSendBuffer) {
+        Destination->TlsServerMaxSendBuffer = Source->TlsServerMaxSendBuffer;
     }
     if (!Destination->IsSet.StreamRecvWindowDefault) {
         Destination->StreamRecvWindowDefault = Source->StreamRecvWindowDefault;
@@ -531,9 +531,9 @@ QuicSettingApply(
         Destination->TlsClientMaxSendBuffer = Source->TlsClientMaxSendBuffer;
         Destination->IsSet.TlsClientMaxSendBuffer = TRUE;
     }
-    if (Source->IsSet.TlsClientMaxSendBuffer && (!Destination->IsSet.TlsClientMaxSendBuffer || OverWrite)) {
-        Destination->TlsClientMaxSendBuffer = Source->TlsClientMaxSendBuffer;
-        Destination->IsSet.TlsClientMaxSendBuffer = TRUE;
+    if (Source->IsSet.TlsServerMaxSendBuffer && (!Destination->IsSet.TlsServerMaxSendBuffer || OverWrite)) {
+        Destination->TlsServerMaxSendBuffer = Source->TlsServerMaxSendBuffer;
+        Destination->IsSet.TlsServerMaxSendBuffer = TRUE;
     }
     if (Source->IsSet.StreamRecvWindowDefault && (!Destination->IsSet.StreamRecvWindowDefault || OverWrite)) {
         if (Source->StreamRecvWindowDefault == 0 || (Source->StreamRecvWindowDefault & (Source->StreamRecvWindowDefault - 1)) != 0) {
@@ -710,6 +710,18 @@ QuicSettingApply(
     if (Source->IsSet.ReliableResetEnabled && (!Destination->IsSet.ReliableResetEnabled || OverWrite)) {
         Destination->ReliableResetEnabled = Source->ReliableResetEnabled;
         Destination->IsSet.ReliableResetEnabled = TRUE;
+    }
+
+    //
+    // If XDP map mode is active (XdpMapConfigCount > 0), XDP is implicitly
+    // enabled for all sockets. Reject an explicit XdpEnabled = FALSE since
+    // it contradicts map mode - there is no OS datapath to fall back to.
+    //
+    if (Source->IsSet.XdpEnabled && !Source->XdpEnabled && MsQuicLib.XdpMapConfigCount > 0) {
+        QuicTraceLogError(
+            SettingXdpDisabledInMapMode,
+            "[ lib] Error: Xdp must be enabled when an XDP map was configured.");
+        return FALSE;
     }
 
     if (Source->IsSet.XdpEnabled && (!Destination->IsSet.XdpEnabled || OverWrite)) {
@@ -1122,6 +1134,13 @@ QuicSettingsLoad(
                 AcceptableVersionsSize +
                 OfferedVersionsSize +
                 FullyDeployedVersionsSize;
+            if (OfferedVersionsSize >
+                QUIC_MAX_NEGOTIATION_VERSIONS * sizeof(uint32_t)) {
+                QuicTraceLogError(
+                    SettingsOfferedVersionsTooLong,
+                    "Too many offered versions");
+                goto VersionSettingsFail;
+            }
             VersionSettings =
                 CXPLAT_ALLOC_NONPAGED(
                     AllocSize,
@@ -1728,6 +1747,13 @@ QuicSettingsVersionSettingsToInternal(
     }
 
     InternalSettings->IsSetFlags = 0;
+
+    if (Settings->OfferedVersionsLength > QUIC_MAX_NEGOTIATION_VERSIONS) {
+        QuicTraceLogError(
+            SettingsOfferedVersionsTooLong,
+            "Too many offered versions");
+        return QUIC_STATUS_INVALID_PARAMETER;
+    }
 
     //
     // Validate the external list only contains versions which MsQuic supports.

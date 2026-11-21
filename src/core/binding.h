@@ -277,6 +277,13 @@ typedef struct QUIC_BINDING {
 
     } Stats;
 
+#if DEBUG
+    //
+    // The list entry in the global binding tracker list.
+    //
+    CXPLAT_LIST_ENTRY DbgObjectLink;
+#endif
+
 } QUIC_BINDING;
 
 //
@@ -332,6 +339,15 @@ void
 QuicBindingGetRemoteAddress(
     _In_ QUIC_BINDING* Binding,
     _Out_ QUIC_ADDR* Address
+    );
+
+//
+// Queries the QTIP settings of the binding.
+//
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+QuicBindingGetQtipEnabled(
+    _In_ const QUIC_BINDING* Binding
     );
 
 //
@@ -534,6 +550,7 @@ QuicRetryTokenDecrypt(
         return FALSE;
     }
 
+    uint64_t DecryptStart = CxPlatTimeUs64();
     QUIC_STATUS Status =
         CxPlatDecrypt(
             StatelessRetryKey,
@@ -542,6 +559,10 @@ QuicRetryTokenDecrypt(
             (uint8_t*) &Token->Authenticated,
             sizeof(Token->Encrypted) + sizeof(Token->EncryptionTag),
             (uint8_t*)&Token->Encrypted);
+    QuicPerfCounterAdd(
+        Partition,
+        QUIC_PERF_COUNTER_DECRYPT_DURATION_US,
+        (int64_t)CxPlatTimeDiff64(DecryptStart, CxPlatTimeUs64()));
 
     CxPlatDispatchLockRelease(&Partition->StatelessRetryKeysLock);
     return QUIC_SUCCEEDED(Status);

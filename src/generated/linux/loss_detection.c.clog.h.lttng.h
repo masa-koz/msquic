@@ -299,11 +299,11 @@ TRACEPOINT_EVENT(CLOG_LOSS_DETECTION_C, HandshakeConfirmedAck,
 
 /*----------------------------------------------------------
 // Decoder Ring for PathMinMtuValidated
-// [conn][%p] Path[%hhu] Minimum MTU validated
+// [conn][%p] Path[%u] Minimum MTU validated
 // QuicTraceLogConnInfo(
                 PathMinMtuValidated,
                 Connection,
-                "Path[%hhu] Minimum MTU validated",
+                "Path[%u] Minimum MTU validated",
                 Path->ID);
 // arg1 = arg1 = Connection = arg1
 // arg3 = arg3 = Path->ID = arg3
@@ -311,33 +311,10 @@ TRACEPOINT_EVENT(CLOG_LOSS_DETECTION_C, HandshakeConfirmedAck,
 TRACEPOINT_EVENT(CLOG_LOSS_DETECTION_C, PathMinMtuValidated,
     TP_ARGS(
         const void *, arg1,
-        unsigned char, arg3), 
+        unsigned int, arg3), 
     TP_FIELDS(
         ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
-        ctf_integer(unsigned char, arg3, arg3)
-    )
-)
-
-
-
-/*----------------------------------------------------------
-// Decoder Ring for PathValidationTimeout
-// [conn][%p] Path[%hhu] validation timed out
-// QuicTraceLogConnInfo(
-                        PathValidationTimeout,
-                        Connection,
-                        "Path[%hhu] validation timed out",
-                        Path->ID);
-// arg1 = arg1 = Connection = arg1
-// arg3 = arg3 = Path->ID = arg3
-----------------------------------------------------------*/
-TRACEPOINT_EVENT(CLOG_LOSS_DETECTION_C, PathValidationTimeout,
-    TP_ARGS(
-        const void *, arg1,
-        unsigned char, arg3), 
-    TP_FIELDS(
-        ctf_integer_hex(uint64_t, arg1, (uint64_t)arg1)
-        ctf_integer(unsigned char, arg3, arg3)
+        ctf_integer(unsigned int, arg3, arg3)
     )
 )
 

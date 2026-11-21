@@ -39,6 +39,7 @@ extern "C" {
 #define MS_TO_NS100(x)  ((x)*10000)
 #define NS100_TO_MS(x)  ((x)/10000)
 #define US_TO_MS(x)     ((x) / 1000)
+#define US_TO_MS_CEIL(x) (((x) + 999) / 1000)
 #define MS_TO_US(x)     ((x) * 1000)
 #define US_TO_S(x)      ((x) / (1000 * 1000))
 #define S_TO_US(x)      ((x) * 1000 * 1000)
@@ -160,8 +161,9 @@ typedef struct CXPLAT_SLIST_ENTRY {
 #define QUIC_POOL_CONN_POOL_API_TABLE       'E4cQ' // Qc4E - QUIC Connection Pool API table
 #define QUIC_POOL_DATAPATH_RSS_CONFIG       'F4cQ' // Qc4F - QUIC Datapath RSS configuration
 #define QUIC_POOL_TLS_AUX_DATA              '05cQ' // Qc50 - QUIC TLS Backing Aux data
-#define QUIC_POOL_TLS_RECORD_ENTRY          '15cQ' // Qc51 - QUIC TLS Backing Record storage
-#define QUIC_POOL_TLS_ALPN_VEC              '25cQ' // Qc52 - QUIC TLS Backing ALPN vec
+#define QUIC_POOL_XDP_MAP_CONFIG            '25cQ' // Qc52 - QUIC XDP Map Config
+#define QUIC_POOL_TLS_RECORD_ENTRY          '35cQ' // Qc53 - QUIC TLS Backing Record storage
+#define QUIC_POOL_TLS_ALPN_VEC              '45cQ' // Qc54 - QUIC TLS Backing ALPN vec
 
 typedef enum CXPLAT_THREAD_FLAGS {
     CXPLAT_THREAD_FLAG_NONE               = 0x0000,
@@ -195,6 +197,25 @@ DEFINE_ENUM_FLAG_OPERATORS(CXPLAT_THREAD_FLAGS);
 #if defined(__cplusplus)
 extern "C" {
 #endif
+
+//
+// Small Computation Helpers
+//
+
+//
+// Exponentially weighted moving average
+//
+QUIC_INLINE
+uint64_t
+CxPlatEwma(
+    _In_ uint64_t Average,
+    _In_ uint64_t Sample,
+    _In_ uint64_t Weight
+    )
+{
+    CXPLAT_DBG_ASSERT(Weight > 0);
+    return ((Weight - 1) * Average + Sample) / Weight;
+}
 
 //
 // Library Initialization
@@ -478,9 +499,28 @@ typedef struct CXPLAT_WORKER_POOL CXPLAT_WORKER_POOL;
 // Worker pool API used for driving execution contexts
 //
 
+//
+// Different references on a worker pool.
+//
+typedef enum CXPLAT_WORKER_POOL_REF {
+
+    CXPLAT_WORKER_POOL_REF_EXTERNAL,    // Created by ExecutionCreate
+    CXPLAT_WORKER_POOL_REF_LIBRARY,     // Created by MsQuic
+    CXPLAT_WORKER_POOL_REF_EPOLL,
+    CXPLAT_WORKER_POOL_REF_IOURING,
+    CXPLAT_WORKER_POOL_REF_KQUEUE,
+    CXPLAT_WORKER_POOL_REF_RAW,
+    CXPLAT_WORKER_POOL_REF_WINSOCK,
+    CXPLAT_WORKER_POOL_REF_TOOL,
+
+    CXPLAT_WORKER_POOL_REF_COUNT
+
+} CXPLAT_WORKER_POOL_REF;
+
 CXPLAT_WORKER_POOL*
 CxPlatWorkerPoolCreate(
-    _In_opt_ QUIC_GLOBAL_EXECUTION_CONFIG* Config
+    _In_opt_ QUIC_GLOBAL_EXECUTION_CONFIG* Config,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
     );
 
 _Success_(return != NULL)
@@ -493,7 +533,8 @@ CxPlatWorkerPoolCreateExternal(
 
 void
 CxPlatWorkerPoolDelete(
-    _In_opt_ CXPLAT_WORKER_POOL* WorkerPool
+    _In_opt_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
     );
 
 uint32_t
@@ -503,12 +544,14 @@ CxPlatWorkerPoolGetCount(
 
 BOOLEAN
 CxPlatWorkerPoolAddRef(
-    _In_ CXPLAT_WORKER_POOL* WorkerPool
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
     );
 
 void
 CxPlatWorkerPoolRelease(
-    _In_ CXPLAT_WORKER_POOL* WorkerPool
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
     );
 
 uint32_t

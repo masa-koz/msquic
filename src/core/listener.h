@@ -79,6 +79,13 @@ typedef struct QUIC_LISTENER {
     //
     CXPLAT_LIST_ENTRY RegistrationLink;
 
+#if DEBUG
+    //
+    // Link into the global debug object tracker.
+    //
+    CXPLAT_LIST_ENTRY DbgObjectLink;
+#endif
+
     //
     // The listener worker.
     //
@@ -293,5 +300,14 @@ QuicListenerHandleDosModeStateChange(
 _IRQL_requires_max_(PASSIVE_LEVEL)
 BOOLEAN
 QuicListenerDrainOperations(
+    _In_ QUIC_LISTENER* Listener
+    );
+
+//
+// Stops the listener asynchronously.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+QuicListenerStopAsync(
     _In_ QUIC_LISTENER* Listener
     );

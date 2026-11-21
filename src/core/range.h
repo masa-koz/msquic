@@ -228,6 +228,26 @@ QuicRangeSearch(
 
 #endif
 
+//
+// Returns the index of the subrange containing Value, or the next subrange.
+// Returns Range->UsedLength if no such subrange exists.
+//
+QUIC_INLINE
+uint32_t
+QuicRangeFindContainingOrNext(
+    _In_ const QUIC_RANGE* Range,
+    _In_ uint64_t Value
+    )
+{
+    const QUIC_RANGE_SEARCH_KEY Key = {Value, Value};
+    const int Result = QuicRangeSearch(Range, &Key);
+    // A match is already an index; an insertion result encodes the first gap.
+    return
+        IS_FIND_INDEX(Result) ?
+            (uint32_t)Result :
+            INSERT_INDEX_TO_FIND_INDEX(Result);
+}
+
 _IRQL_requires_max_(DISPATCH_LEVEL)
 void
 QuicRangeInitialize(
@@ -308,19 +328,6 @@ QuicRangeRemoveSubranges(
     _Inout_ QUIC_RANGE* Range,
     _In_ uint32_t Index,
     _In_ uint32_t Count
-    );
-
-//
-// O(n) Removes a range of values from the range object. Returns TRUE if
-// successful or FALSE on an allocation failure.
-//
-_IRQL_requires_max_(DISPATCH_LEVEL)
-_Success_(return != FALSE)
-BOOLEAN
-QuicRangeRemoveRange(
-    _Inout_ QUIC_RANGE* Range,
-    _In_ uint64_t LowValue,
-    _In_ uint64_t Count
     );
 
 //

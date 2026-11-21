@@ -46,6 +46,7 @@ QuicStreamInitialize(
     CxPlatDispatchLockAcquire(&Connection->Streams.AllStreamsLock);
     CxPlatListInsertTail(&Connection->Streams.AllStreams, &Stream->AllStreamsLink);
     CxPlatDispatchLockRelease(&Connection->Streams.AllStreamsLock);
+    QuicLibraryTrackDbgObject(QUIC_DBG_OBJECT_TYPE_STREAM, &Stream->DbgObjectLink);
 #endif
     QuicPerfCounterIncrement(Connection->Partition, QUIC_PERF_COUNTER_STRM_ACTIVE);
 
@@ -119,14 +120,23 @@ QuicStreamInitialize(
         }
     }
 
-    const uint32_t InitialRecvBufferLength = Connection->Settings.StreamRecvBufferDefault;
-
     QUIC_RECV_BUF_MODE RecvBufferMode = QUIC_RECV_BUF_MODE_CIRCULAR;
     if (Stream->Flags.UseAppOwnedRecvBuffers) {
         RecvBufferMode = QUIC_RECV_BUF_MODE_APP_OWNED;
     } else if (Stream->Flags.ReceiveMultiple) {
         RecvBufferMode = QUIC_RECV_BUF_MODE_MULTIPLE;
     }
+
+    const uint32_t FlowControlWindowSize = Stream->Flags.Unidirectional
+        ? Connection->Settings.StreamRecvWindowUnidiDefault
+        : OpenedRemotely
+            ? Connection->Settings.StreamRecvWindowBidiRemoteDefault
+            : Connection->Settings.StreamRecvWindowBidiLocalDefault;
+
+    const uint32_t InitialRecvBufferLength =
+        RecvBufferMode == QUIC_RECV_BUF_MODE_APP_OWNED
+            ? 0
+            : CXPLAT_MIN(Connection->Settings.StreamRecvBufferDefault, FlowControlWindowSize);
 
     if (InitialRecvBufferLength == QUIC_DEFAULT_STREAM_RECV_BUFFER_SIZE &&
         RecvBufferMode != QUIC_RECV_BUF_MODE_APP_OWNED) {
@@ -142,12 +152,6 @@ QuicStreamInitialize(
             (uint8_t *)(PreallocatedRecvChunk + 1),
             TRUE);
     }
-
-    const uint32_t FlowControlWindowSize = Stream->Flags.Unidirectional
-        ? Connection->Settings.StreamRecvWindowUnidiDefault
-        : OpenedRemotely
-            ? Connection->Settings.StreamRecvWindowBidiRemoteDefault
-            : Connection->Settings.StreamRecvWindowBidiLocalDefault;
 
     Status =
         QuicRecvBufferInitialize(
@@ -175,6 +179,7 @@ Exit:
     if (Stream) {
 #if DEBUG
         CXPLAT_DBG_ASSERT(!CxPlatRefDecrement(&Stream->RefTypeBiasedCount[QUIC_STREAM_REF_APP]));
+        QuicLibraryUntrackDbgObject(QUIC_DBG_OBJECT_TYPE_STREAM, &Stream->DbgObjectLink);
         CxPlatDispatchLockAcquire(&Connection->Streams.AllStreamsLock);
         CxPlatListEntryRemove(&Stream->AllStreamsLink);
         CxPlatDispatchLockRelease(&Connection->Streams.AllStreamsLock);
@@ -214,6 +219,7 @@ QuicStreamFree(
     CXPLAT_DBG_ASSERT(Stream->SendRequests == NULL);
 
 #if DEBUG
+    QuicLibraryUntrackDbgObject(QUIC_DBG_OBJECT_TYPE_STREAM, &Stream->DbgObjectLink);
     CxPlatDispatchLockAcquire(&Connection->Streams.AllStreamsLock);
     CxPlatListEntryRemove(&Stream->AllStreamsLink);
     CxPlatDispatchLockRelease(&Connection->Streams.AllStreamsLock);
@@ -467,13 +473,16 @@ QuicStreamIndicateEvent(
         // or stream is being closed because the API MUST block until all work
         // is completed, so we have to execute the event callbacks inline. There
         // is also one additional exception for start complete when StreamStart
-        // is called synchronously on an MsQuic thread.
+        // is called synchronously on an MsQuic thread. Custom executions
+        // always have InlineApiExecution set, which makes this reentrancy
+        // check unreliable, so it is skipped for custom executions.
         //
         CXPLAT_DBG_ASSERT(
             !Stream->Connection->State.InlineApiExecution ||
             Stream->Connection->State.HandleClosed ||
             Stream->Flags.HandleClosed ||
-            Event->Type == QUIC_STREAM_EVENT_START_COMPLETE);
+            Event->Type == QUIC_STREAM_EVENT_START_COMPLETE ||
+            MsQuicLib.CustomExecutions);
         Status =
             Stream->ClientCallbackHandler(
                 (HQUIC)Stream,
@@ -975,6 +984,15 @@ QuicStreamSwitchToAppOwnedBuffers(
     )
 {
     //
+    // Preserve the initial receive window size: it should not have changed
+    // since the stream's creation.
+    //
+    const uint32_t InitialControlFlow = Stream->RecvBuffer.VirtualBufferLength;
+    CXPLAT_DBG_ASSERT(
+        InitialControlFlow == Stream->Connection->Settings.StreamRecvWindowBidiRemoteDefault ||
+        InitialControlFlow == Stream->Connection->Settings.StreamRecvWindowUnidiDefault);
+
+    //
     // Reset the current receive buffer
     //
     QuicRecvBufferUninitialize(&Stream->RecvBuffer);
@@ -985,7 +1003,7 @@ QuicStreamSwitchToAppOwnedBuffers(
     (void)QuicRecvBufferInitialize(
         &Stream->RecvBuffer,
         0,
-        0,
+        InitialControlFlow,
         QUIC_RECV_BUF_MODE_APP_OWNED,
         NULL);
     Stream->Flags.UseAppOwnedRecvBuffers = TRUE;

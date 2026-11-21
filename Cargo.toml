@@ -1,6 +1,6 @@
 [package]
 name = "msquic"
-version = "2.6.0-beta"
+version = "2.7.0-beta"
 edition = "2021"
 authors = ["Microsoft"]
 description = "Microsoft implementation of the IETF QUIC protocol"
@@ -90,19 +90,20 @@ find = []
 # This feature enables quictls on windows, and has no effect on linux.
 # This feature enables openssl on windows, and has no effect on linux.
 openssl = []
+openssl_external = []
 quictls = []
-static = []
+static = ["src"]
 preview-api = []
 # Overwrite generated binding by reruning the bindgen
 overwrite = [ "dep:bindgen" ]
 
 [build-dependencies]
 cmake = { version = "0.1", optional = true }
-bindgen = { version = "0.72", optional = true }
+bindgen = { version = "0.73", optional = true }
 
 [dependencies]
 bitflags = "2.9"
 libc = "0.2"
 c-types = "6.0"
-ctor = "0.6"
+dtor = "1.0"
 socket2 = "0.6"

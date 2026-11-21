@@ -3,8 +3,11 @@
 
 set(SOURCES
     main.cpp
+    BbrTest.cpp
+    CubicTest.cpp
     FrameTest.cpp
     PacketNumberTest.cpp
+    PathTest.cpp
     PartitionTest.cpp
     RangeTest.cpp
     RecvBufferTest.cpp

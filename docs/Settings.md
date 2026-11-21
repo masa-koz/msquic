@@ -141,6 +141,7 @@ These parameters are accessed by calling [GetParam](./api/GetParam.md) or [SetPa
 | `QUIC_PARAM_GLOBAL_STATISTICS_V2_SIZES`<br> 12    | uint32_t[]               | Get-only  | Array of well-known sizes for each version of the QUIC_STATISTICS_V2 struct. The output array length is variable; pass a buffer of uint32_t and check BufferLength for the number of sizes returned. See GetParam documentation for usage details. |
 | `QUIC_PARAM_GLOBAL_VERSION_NEGOTIATION_ENABLED`<br> (preview) | uint8_t (BOOLEAN) | Both | Globally enable the version negotiation extension for all client and server connections. |
 | `QUIC_PARAM_GLOBAL_STATELESS_RETRY_CONFIG`<br> 13    | [QUIC_STATELESS_RETRY_CONFIG](./api/QUIC_STATELESS_RETRY_CONFIG.md) | Set-Only | Configure the stateless retry token secret, key algorithm, and key rotation interval. The secret length *must* match the AEAD algorithm key length. |
+| `QUIC_PARAM_GLOBAL_XDP_MAP_CONFIG`<br> 14 (preview) | QUIC_XDP_MAP_CONFIG[] | Both | Configures XDP maps per interface. If using maps, this parameter must be set prior to opening any registration. See [MsQuic over XDP](./XDP.md#api-quic_param_global_xdp_map_config). |
 
 ## Registration Parameters
 
@@ -169,7 +170,7 @@ These parameters are accessed by calling [GetParam](./api/GetParam.md) or [SetPa
 |-------------------------------------------|---------------------------|-----------|-----------------------------------------------------------|
 | `QUIC_PARAM_LISTENER_LOCAL_ADDRESS`<br> 0 | QUIC_ADDR                 | Get-only  | Get the full address tuple the server is listening on.    |
 | `QUIC_PARAM_LISTENER_STATS`<br> 1         | QUIC_LISTENER_STATISTICS  | Get-only  | Get statistics specific to this Listener instance.        |
-| `QUIC_PARAM_LISTENER_CIBIR_ID`<br> 2      | uint8_t[]                 | Both      | The CIBIR well-known idenfitier.                          |
+| `QUIC_PARAM_LISTENER_CIBIR_ID`<br> 2      | uint8_t[]                 | Both      | Sets a [CIBIR](./CIBIR.md) (CID-Based Identification and Routing) well-known identifier. |
 | `QUIC_PARAM_DOS_MODE_EVENTS`<br> 2        | BOOLEAN                   | Both      | The Listener opted in for DoS Mode event.                 |
 | `QUIC_PARAM_LISTENER_PARTITION_INDEX`<br> (preview) | uint16_t           | Both      | The partition to use for listener callback events and incoming connections. |
 

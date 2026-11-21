@@ -25,6 +25,7 @@ Environment:
 #include <ntstatus.h>
 #include <basetsd.h>
 #include <netioddk.h>
+#include <ntintsafe.h>
 
 #define QUIC_INLINE inline
 
@@ -144,6 +145,7 @@ typedef UINT64 uint64_t;
 
 typedef ADDRESS_FAMILY QUIC_ADDRESS_FAMILY;
 typedef SOCKADDR_INET QUIC_ADDR;
+typedef HANDLE QUIC_XDP_MAP_HANDLE;
 
 #define QUIC_ADDR_V4_PORT_OFFSET        FIELD_OFFSET(SOCKADDR_IN, sin_port)
 #define QUIC_ADDR_V4_IP_OFFSET          FIELD_OFFSET(SOCKADDR_IN, sin_addr)
@@ -329,13 +331,62 @@ QuicAddrFromString(
     return TRUE;
 }
 
+QUIC_INLINE
+BOOLEAN
+CxPlatIsIpLiteral(
+    _In_z_ const char* AddrStr
+    )
+{
+    const char* Terminator = NULL;
+    IN_ADDR Ipv4Addr = {0};
+    if (RtlIpv4StringToAddressA(AddrStr, TRUE, &Terminator, &Ipv4Addr) == STATUS_SUCCESS &&
+        *Terminator == '\0') {
+        return TRUE;
+    }
+
+    IN6_ADDR Ipv6Addr = {0};
+    if (RtlIpv6StringToAddressA(AddrStr, &Terminator, &Ipv6Addr) == STATUS_SUCCESS &&
+        *Terminator == '\0') {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 //
 // Represents an IP address and (optionally) port number as a string.
 //
 typedef struct QUIC_ADDR_STR {
-    char Address[64];
+    char Address[65];
 } QUIC_ADDR_STR;
 
+//
+// Formats only the IP literal, excluding the port and IPv6 brackets. For
+// example, an IPv6 address with port 443 is formatted as "2001:db8::1".
+//
+QUIC_INLINE
+BOOLEAN
+QuicAddrIpToString(
+    _In_ const QUIC_ADDR* Addr,
+    _Out_ QUIC_ADDR_STR* AddrStr
+    )
+{
+    AddrStr->Address[0] = '\0';
+    if (Addr->si_family == QUIC_ADDRESS_FAMILY_INET) {
+        RtlIpv4AddressToStringA(&Addr->Ipv4.sin_addr, AddrStr->Address);
+    } else if (Addr->si_family == QUIC_ADDRESS_FAMILY_INET6) {
+        RtlIpv6AddressToStringA(&Addr->Ipv6.sin6_addr, AddrStr->Address);
+    } else {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+//
+// Formats the complete endpoint, including a nonzero port and the brackets
+// required around IPv6 when a port is present. For example, an IPv6 address
+// with port 443 is formatted as "[2001:db8::1]:443".
+//
 QUIC_INLINE
 BOOLEAN
 QuicAddrToString(

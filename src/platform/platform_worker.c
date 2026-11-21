@@ -18,8 +18,9 @@ Abstract:
 typedef struct QUIC_CACHEALIGN CXPLAT_WORKER {
 
     //
-    // Thread used to drive the worker. Only set when the worker is created and
-    // managed internally (default case).
+    // Thread used to drive the worker, when the worker is created and
+    // managed internally (default case). In the external execution case,
+    // this thread is the cleanup thread.
     //
     CXPLAT_THREAD Thread;
 
@@ -68,6 +69,12 @@ typedef struct QUIC_CACHEALIGN CXPLAT_WORKER {
     //
     CXPLAT_SLIST_ENTRY* ExecutionContexts;
 
+    //
+    // The event for the cleanup worker to wait on to start cleanup.
+    // NULL in the internally-managed execution case.
+    //
+    CXPLAT_EVENT* CleanupEvent;
+
 #if DEBUG // Debug statistics
     uint64_t LoopCount;
     uint64_t EcPollCount;
@@ -107,7 +114,19 @@ typedef struct QUIC_CACHEALIGN CXPLAT_WORKER {
 typedef struct CXPLAT_WORKER_POOL {
 
     CXPLAT_RUNDOWN_REF Rundown;
+    CXPLAT_EVENT CleanupEvent; // Only used with external workers.
     uint32_t WorkerCount;
+    BOOLEAN External;
+
+#if DEBUG
+    //
+    // Detailed ref counts.
+    // Note: These ref counts are biased by 1, so lowest they go is 1. It is an
+    // error for them to ever be zero.
+    //
+    CXPLAT_REF_COUNT RefTypeBiasedCount[CXPLAT_WORKER_POOL_REF_COUNT];
+#endif
+
     CXPLAT_WORKER Workers[0];
 
 } CXPLAT_WORKER_POOL;
@@ -153,9 +172,10 @@ UpdatePollCompletion(
 BOOLEAN
 CxPlatWorkerPoolInitWorker(
     _Inout_ CXPLAT_WORKER* Worker,
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
     _In_ uint16_t IdealProcessor,
     _In_opt_ CXPLAT_EVENTQ* EventQ, // Only for external workers
-    _In_opt_ CXPLAT_THREAD_CONFIG* ThreadConfig // Only for internal workers
+    _In_ CXPLAT_THREAD_CONFIG* ThreadConfig
     )
 {
     CxPlatLockInitialize(&Worker->ECLock);
@@ -164,6 +184,7 @@ CxPlatWorkerPoolInitWorker(
     Worker->IdealProcessor = IdealProcessor;
     Worker->State.WaitTime = UINT32_MAX;
     Worker->State.ThreadID = UINT32_MAX;
+    Worker->CleanupEvent = WorkerPool->External ? &WorkerPool->CleanupEvent : NULL;
 
     if (EventQ != NULL) {
         Worker->EventQ = *EventQ;
@@ -255,7 +276,8 @@ CxPlatWorkerPoolDestroyWorker(
 
 CXPLAT_WORKER_POOL*
 CxPlatWorkerPoolCreate(
-    _In_opt_ QUIC_GLOBAL_EXECUTION_CONFIG* Config
+    _In_opt_ QUIC_GLOBAL_EXECUTION_CONFIG* Config,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
     )
 {
     //
@@ -291,6 +313,7 @@ CxPlatWorkerPoolCreate(
     }
     CxPlatZeroMemory(WorkerPool, WorkerPoolSize);
     WorkerPool->WorkerCount = ProcessorCount;
+    WorkerPool->External = FALSE;
 
     //
     // Build up the configuration for creating the worker threads.
@@ -327,12 +350,18 @@ CxPlatWorkerPoolCreate(
 
         CXPLAT_WORKER* Worker = &WorkerPool->Workers[i];
         if (!CxPlatWorkerPoolInitWorker(
-                Worker, IdealProcessor, NULL, &ThreadConfig)) {
+                Worker, WorkerPool, IdealProcessor, NULL, &ThreadConfig)) {
             goto Error;
         }
     }
 
     CxPlatRundownInitialize(&WorkerPool->Rundown);
+#if DEBUG
+    CxPlatRefInitializeMultiple(WorkerPool->RefTypeBiasedCount, CXPLAT_WORKER_POOL_REF_COUNT);
+    CxPlatRefIncrement(&WorkerPool->RefTypeBiasedCount[RefType]);
+#else
+    UNREFERENCED_PARAMETER(RefType);
+#endif
 
     return WorkerPool;
 
@@ -349,6 +378,21 @@ Error:
     CXPLAT_FREE(WorkerPool, QUIC_POOL_PLATFORM_WORKER);
 
     return NULL;
+}
+
+//
+// External workers are normally driven by the application. This cleanup thread
+// waits until ExecutionDelete takes ownership of the event queue, then runs the
+// normal worker loop on this thread to finish outstanding asynchronous cleanup.
+// Initialization failure also releases the wait so the thread can shut down.
+//
+CXPLAT_THREAD_CALLBACK(CxPlatExecutionCleanupThread, Context)
+{
+    CXPLAT_WORKER* Worker = (CXPLAT_WORKER*)Context;
+
+    CxPlatEventWaitForever(*Worker->CleanupEvent);
+
+    return CxPlatWorkerThread(Context);
 }
 
 _Success_(return != NULL)
@@ -378,6 +422,17 @@ CxPlatWorkerPoolCreateExternal(
     }
     CxPlatZeroMemory(WorkerPool, WorkerPoolSize);
     WorkerPool->WorkerCount = Count;
+    WorkerPool->External = TRUE;
+
+    CxPlatEventInitialize(&WorkerPool->CleanupEvent, TRUE, FALSE);
+
+    CXPLAT_THREAD_CONFIG ThreadConfig = {
+        CXPLAT_THREAD_FLAG_SET_IDEAL_PROC,
+        0,
+        "cxplat_exec_cleanup",
+        CxPlatExecutionCleanupThread,
+        NULL
+    };
 
     //
     // Set up each worker thread with the configuration initialized above. Also
@@ -390,7 +445,7 @@ CxPlatWorkerPoolCreateExternal(
 
         CXPLAT_WORKER* Worker = &WorkerPool->Workers[i];
         if (!CxPlatWorkerPoolInitWorker(
-                Worker, IdealProcessor, Configs[i].EventQ, NULL)) {
+                Worker, WorkerPool, IdealProcessor, Configs[i].EventQ, &ThreadConfig)) {
             goto Error;
         }
         Executions[i] = (QUIC_EXECUTION*)Worker;
@@ -398,9 +453,16 @@ CxPlatWorkerPoolCreateExternal(
 
     CxPlatRundownInitialize(&WorkerPool->Rundown);
 
+#if DEBUG
+    CxPlatRefInitializeMultiple(WorkerPool->RefTypeBiasedCount, CXPLAT_WORKER_POOL_REF_COUNT);
+    CxPlatRefIncrement(&WorkerPool->RefTypeBiasedCount[CXPLAT_WORKER_POOL_REF_EXTERNAL]);
+#endif
+
     return WorkerPool;
 
 Error:
+
+    CxPlatEventSet(WorkerPool->CleanupEvent);
 
     //
     // On failure, clean up all the workers that did get started.
@@ -410,6 +472,7 @@ Error:
         CxPlatWorkerPoolDestroyWorker(Worker);
     }
 
+    CxPlatEventUninitialize(WorkerPool->CleanupEvent);
     CXPLAT_FREE(WorkerPool, QUIC_POOL_PLATFORM_WORKER);
 
     return NULL;
@@ -417,11 +480,34 @@ Error:
 
 void
 CxPlatWorkerPoolDelete(
-    _In_opt_ CXPLAT_WORKER_POOL* WorkerPool
+    _In_opt_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
     )
 {
     if (WorkerPool != NULL) {
+#if DEBUG
+        CXPLAT_DBG_ASSERT(!CxPlatRefDecrement(&WorkerPool->RefTypeBiasedCount[RefType]));
+#else
+        UNREFERENCED_PARAMETER(RefType);
+#endif
+
+        if (WorkerPool->External) {
+            //
+            // In the case of external execution, it's possible for ExecutionDelete
+            // to run before all the queues have been drained of internal cleanup work.
+            // By calling ExecutionDelete, the app has indicated it is done with MsQuic,
+            // so take ownership of the workers and allow them to run on cleanup threads
+            // until there's nothing left to do.
+            //
+            CxPlatEventSet(WorkerPool->CleanupEvent);
+        }
         CxPlatRundownReleaseAndWait(&WorkerPool->Rundown);
+
+#if DEBUG
+        for (uint32_t i = 0; i < CXPLAT_WORKER_POOL_REF_COUNT; i++) {
+            CXPLAT_DBG_ASSERT(WorkerPool->RefTypeBiasedCount[i] == 1);
+        }
+#endif
 
         for (uint32_t i = 0; i < WorkerPool->WorkerCount; ++i) {
             CXPLAT_WORKER* Worker = &WorkerPool->Workers[i];
@@ -429,6 +515,9 @@ CxPlatWorkerPoolDelete(
         }
 
         CxPlatRundownUninitialize(&WorkerPool->Rundown);
+        if (WorkerPool->External) {
+            CxPlatEventUninitialize(WorkerPool->CleanupEvent);
+        }
         CXPLAT_FREE(WorkerPool, QUIC_POOL_PLATFORM_WORKER);
     }
 }
@@ -443,17 +532,32 @@ CxPlatWorkerPoolGetCount(
 
 BOOLEAN
 CxPlatWorkerPoolAddRef(
-    _In_ CXPLAT_WORKER_POOL* WorkerPool
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
     )
 {
-    return CxPlatRundownAcquire(&WorkerPool->Rundown);
+    BOOLEAN Result = CxPlatRundownAcquire(&WorkerPool->Rundown);
+#if DEBUG
+    if (Result) {
+        CxPlatRefIncrement(&WorkerPool->RefTypeBiasedCount[RefType]);
+    }
+#else
+    UNREFERENCED_PARAMETER(RefType);
+#endif
+    return Result;
 }
 
 void
 CxPlatWorkerPoolRelease(
-    _In_ CXPLAT_WORKER_POOL* WorkerPool
+    _In_ CXPLAT_WORKER_POOL* WorkerPool,
+    _In_ CXPLAT_WORKER_POOL_REF RefType
     )
 {
+#if DEBUG
+    CXPLAT_DBG_ASSERT(!CxPlatRefDecrement(&WorkerPool->RefTypeBiasedCount[RefType]));
+#else
+    UNREFERENCED_PARAMETER(RefType);
+#endif
     CxPlatRundownRelease(&WorkerPool->Rundown);
 }
 

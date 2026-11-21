@@ -289,11 +289,11 @@ tracepoint(CLOG_LOSS_DETECTION_C, HandshakeConfirmedAck , arg1);\
 
 /*----------------------------------------------------------
 // Decoder Ring for PathMinMtuValidated
-// [conn][%p] Path[%hhu] Minimum MTU validated
+// [conn][%p] Path[%u] Minimum MTU validated
 // QuicTraceLogConnInfo(
                 PathMinMtuValidated,
                 Connection,
-                "Path[%hhu] Minimum MTU validated",
+                "Path[%u] Minimum MTU validated",
                 Path->ID);
 // arg1 = arg1 = Connection = arg1
 // arg3 = arg3 = Path->ID = arg3
@@ -301,26 +301,6 @@ tracepoint(CLOG_LOSS_DETECTION_C, HandshakeConfirmedAck , arg1);\
 #ifndef _clog_4_ARGS_TRACE_PathMinMtuValidated
 #define _clog_4_ARGS_TRACE_PathMinMtuValidated(uniqueId, arg1, encoded_arg_string, arg3)\
 tracepoint(CLOG_LOSS_DETECTION_C, PathMinMtuValidated , arg1, arg3);\
-
-#endif
-
-
-
-
-/*----------------------------------------------------------
-// Decoder Ring for PathValidationTimeout
-// [conn][%p] Path[%hhu] validation timed out
-// QuicTraceLogConnInfo(
-                        PathValidationTimeout,
-                        Connection,
-                        "Path[%hhu] validation timed out",
-                        Path->ID);
-// arg1 = arg1 = Connection = arg1
-// arg3 = arg3 = Path->ID = arg3
-----------------------------------------------------------*/
-#ifndef _clog_4_ARGS_TRACE_PathValidationTimeout
-#define _clog_4_ARGS_TRACE_PathValidationTimeout(uniqueId, arg1, encoded_arg_string, arg3)\
-tracepoint(CLOG_LOSS_DETECTION_C, PathValidationTimeout , arg1, arg3);\
 
 #endif
 

@@ -105,9 +105,9 @@ TRACEPOINT_EVENT(CLOG_CRYPTO_C, HandshakeConfirmedServer,
 // [conn][%p] Custom cert validation succeeded
 // QuicTraceLogConnInfo(
             CustomCertValidationSuccess,
-            QuicCryptoGetConnection(Crypto),
+            Connection,
             "Custom cert validation succeeded");
-// arg1 = arg1 = QuicCryptoGetConnection(Crypto) = arg1
+// arg1 = arg1 = Connection = arg1
 ----------------------------------------------------------*/
 TRACEPOINT_EVENT(CLOG_CRYPTO_C, CustomCertValidationSuccess,
     TP_ARGS(
@@ -596,14 +596,14 @@ TRACEPOINT_EVENT(CLOG_CRYPTO_C, ConnHandshakeComplete,
 // Decoder Ring for ConnSourceCidRemoved
 // [conn][%p] (SeqNum=%llu) Removed Source CID: %!CID!
 // QuicTraceEvent(
-                ConnSourceCidRemoved,
-                "[conn][%p] (SeqNum=%llu) Removed Source CID: %!CID!",
-                Connection,
-                InitialSourceCid->CID.SequenceNumber,
-                CASTED_CLOG_BYTEARRAY(InitialSourceCid->CID.Length, InitialSourceCid->CID.Data));
+                        ConnSourceCidRemoved,
+                        "[conn][%p] (SeqNum=%llu) Removed Source CID: %!CID!",
+                        Connection,
+                        CidEntry->CID.SequenceNumber,
+                        CASTED_CLOG_BYTEARRAY(CidEntry->CID.Length, CidEntry->CID.Data));
 // arg2 = arg2 = Connection = arg2
-// arg3 = arg3 = InitialSourceCid->CID.SequenceNumber = arg3
-// arg4 = arg4 = CASTED_CLOG_BYTEARRAY(InitialSourceCid->CID.Length, InitialSourceCid->CID.Data) = arg4
+// arg3 = arg3 = CidEntry->CID.SequenceNumber = arg3
+// arg4 = arg4 = CASTED_CLOG_BYTEARRAY(CidEntry->CID.Length, CidEntry->CID.Data) = arg4
 ----------------------------------------------------------*/
 TRACEPOINT_EVENT(CLOG_CRYPTO_C, ConnSourceCidRemoved,
     TP_ARGS(

@@ -1021,6 +1021,18 @@ Error:
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatDataPathGetLocalAddressForRemote(
+    _In_ const QUIC_ADDR* RemoteAddress,
+    _Out_ QUIC_ADDR* LocalAddress
+    )
+{
+    UNREFERENCED_PARAMETER(RemoteAddress);
+    UNREFERENCED_PARAMETER(LocalAddress);
+    return QUIC_STATUS_NOT_SUPPORTED;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
 _Success_(QUIC_SUCCEEDED(return))
 QUIC_STATUS
 CxPlatDataPathGetGatewayAddresses(
@@ -2606,7 +2618,11 @@ CxPlatSendDataAllocDataBuffer(
     _In_ CXPLAT_POOL* BufferPool
     )
 {
-    CXPLAT_DATAPATH_SEND_BUFFER* SendBuffer = CxPlatPoolAlloc(BufferPool);
+    //
+    // Use the *PoolAllocUninitialized method here to preserve the MDL
+    // pre-initializations (the default *PoolAlloc method zero-inits).
+    //
+    CXPLAT_DATAPATH_SEND_BUFFER* SendBuffer = CxPlatPoolAllocUninitialized(BufferPool);
     if (SendBuffer == NULL) {
         return NULL;
     }

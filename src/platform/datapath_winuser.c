@@ -546,7 +546,7 @@ CxPlatDataPathQuerySockoptSupport(
     // Test ToS support with IPv6, because IPv4 just fails silently.
     //
     SOCKET Udpv6Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-    if (UdpSocket == INVALID_SOCKET) {
+    if (Udpv6Socket == INVALID_SOCKET) {
         int WsaError = WSAGetLastError();
         QuicTraceLogWarning(
             DatapathOpenUdpv6SocketFailed,
@@ -755,7 +755,7 @@ DataPathInitialize(
             i);
     }
 
-    CXPLAT_FRE_ASSERT(CxPlatWorkerPoolAddRef(WorkerPool));
+    CXPLAT_FRE_ASSERT(CxPlatWorkerPoolAddRef(WorkerPool, CXPLAT_WORKER_POOL_REF_WINSOCK));
     *NewDatapath = Datapath;
     Status = QUIC_STATUS_SUCCESS;
 
@@ -782,7 +782,11 @@ CxPlatDataPathRelease(
         CXPLAT_DBG_ASSERT(Datapath->Uninitialized);
         Datapath->Freed = TRUE;
         WSACleanup();
-        CxPlatWorkerPoolRelease(Datapath->WorkerPool);
+        CxPlatWorkerPoolRelease(Datapath->WorkerPool, CXPLAT_WORKER_POOL_REF_WINSOCK);
+        QuicTraceLogVerbose(
+            WinUserDataPathReleased,
+            "[data][%p] Datapath Freed",
+            Datapath);
         CXPLAT_FREE(Datapath, QUIC_POOL_DATAPATH);
     }
 }
@@ -796,6 +800,10 @@ CxPlatProcessorContextRelease(
     if (CxPlatRefDecrement(&DatapathProc->RefCount)) {
         CXPLAT_DBG_ASSERT(!DatapathProc->Uninitialized);
         DatapathProc->Uninitialized = TRUE;
+        QuicTraceLogVerbose(
+            WinUserProcessorContextRelease,
+            "[data][%p] Processor Context Destroyed",
+            DatapathProc);
         CxPlatPoolUninitialize(&DatapathProc->SendDataPool);
         CxPlatPoolUninitialize(&DatapathProc->SendBufferPool);
         CxPlatPoolUninitialize(&DatapathProc->LargeSendBufferPool);
@@ -961,6 +969,40 @@ Exit:
         CXPLAT_FREE(AdapterAddresses, QUIC_POOL_DATAPATH_ADDRESSES);
     }
 
+    return Status;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatDataPathGetLocalAddressForRemote(
+    _In_ const QUIC_ADDR* RemoteAddress,
+    _Out_ QUIC_ADDR* LocalAddress
+    )
+{
+    QUIC_STATUS Status = QUIC_STATUS_SUCCESS;
+    SOCKET Socket = socket(RemoteAddress->si_family, SOCK_DGRAM, IPPROTO_UDP);
+    if (Socket == INVALID_SOCKET) {
+        return HRESULT_FROM_WIN32(WSAGetLastError());
+    }
+
+    const int RemoteAddressLength =
+        RemoteAddress->si_family == AF_INET ?
+            sizeof(RemoteAddress->Ipv4) :
+            sizeof(RemoteAddress->Ipv6);
+    if (connect(Socket, (PSOCKADDR)RemoteAddress, RemoteAddressLength) == SOCKET_ERROR) {
+        Status = HRESULT_FROM_WIN32(WSAGetLastError());
+        goto Error;
+    }
+
+    CxPlatZeroMemory(LocalAddress, sizeof(*LocalAddress));
+    int LocalAddressLength = sizeof(*LocalAddress);
+    if (getsockname(Socket, (PSOCKADDR)LocalAddress, &LocalAddressLength) == SOCKET_ERROR) {
+        Status = HRESULT_FROM_WIN32(WSAGetLastError());
+        goto Error;
+    }
+
+Error:
+    closesocket(Socket);
     return Status;
 }
 
@@ -1219,7 +1261,12 @@ SocketCreateUdp(
     int Result, Option;
 
     CXPLAT_DBG_ASSERT(Datapath->UdpHandlers.Receive != NULL || Config->Flags & CXPLAT_SOCKET_FLAG_PCP);
-    CXPLAT_DBG_ASSERT(IsServerSocket || Config->PartitionIndex < Datapath->PartitionCount);
+    //
+    // In raw-only mode PartitionCount is 0 (no WinSock init), so skip the
+    // partition index bounds check.
+    //
+    CXPLAT_DBG_ASSERT(CxPlatDpRawIsRawDatapathOnly(Datapath->RawDataPath) || IsServerSocket || Config->PartitionIndex < Datapath->PartitionCount);
+    CXPLAT_DBG_ASSERT(Config->CibirIdLength <= sizeof(Config->CibirId));
 
     const uint32_t RawSocketLength = CxPlatGetRawSocketSize() + SocketCount * sizeof(CXPLAT_SOCKET_PROC);
     CXPLAT_SOCKET_RAW* RawSocket = CXPLAT_ALLOC_PAGED(RawSocketLength, QUIC_POOL_SOCKET);
@@ -1247,7 +1294,7 @@ SocketCreateUdp(
     Socket->NumPerProcessorSockets = NumPerProcessorSockets;
     Socket->HasFixedRemoteAddress = (Config->RemoteAddress != NULL);
     Socket->Type = CXPLAT_SOCKET_UDP;
-    Socket->ReserveAuxTcpSock = Config->Flags & CXPLAT_SOCKET_FLAG_QTIP ? TRUE : FALSE;
+    Socket->ReserveAuxTcpSockForQtip = Config->Flags & CXPLAT_SOCKET_FLAG_QTIP ? TRUE : FALSE;
 
     if (Config->LocalAddress) {
         CxPlatConvertToMappedV6(Config->LocalAddress, &Socket->LocalAddress);
@@ -1261,19 +1308,92 @@ SocketCreateUdp(
     //
     // Servers always initialize per-proc UDP sockets.
     //
-    CxPlatRefInitializeEx(&Socket->RefCount, (Socket->ReserveAuxTcpSock && !IsServerSocket) ? 1 : SocketCount);
-
-    if (Socket->ReserveAuxTcpSock && !IsServerSocket) {
-        //
-        // Client will skip normal socket settings to use AuxSocket in raw socket.
-        //
-        goto Skip;
-    }
+    CxPlatRefInitializeEx(&Socket->RefCount, (Socket->ReserveAuxTcpSockForQtip && !IsServerSocket) ? 1 : SocketCount);
 
     Socket->RecvBufLen =
         (Datapath->Features & CXPLAT_DATAPATH_FEATURE_RECV_COALESCING) ?
             MAX_URO_PAYLOAD_LENGTH :
             Socket->Mtu - CXPLAT_MIN_IPV4_HEADER_SIZE - CXPLAT_UDP_HEADER_SIZE;
+
+    if (CxPlatDpRawIsRawDatapathOnly(Datapath->RawDataPath)) {
+        //
+        // There is no OS native datapath in raw-only mode. The application
+        // must specify the local port. Skip OS socket creation entirely and
+        // defer to the raw (XDP) datapath.
+        //
+        CXPLAT_DBG_ASSERT(Datapath->RawDataPath != NULL);
+        Socket->SkipCreatingOsSockets = TRUE;
+        CxPlatRefInitializeEx(&Socket->RefCount, 1);
+        if (Config->LocalAddress == NULL || Config->LocalAddress->Ipv4.sin_port == 0) {
+            QuicTraceEvent(
+                DatapathErrorStatus,
+                "[data][%p] ERROR, %u, %s.",
+                Socket,
+                (uint32_t)QUIC_STATUS_INVALID_PARAMETER,
+                "Raw-only datapath requires an explicit local port");
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            goto Error;
+        }
+        //
+        // Client (connected) sockets are demuxed on local IP + port. In
+        // raw-only mode there is no OS bind to resolve a wildcard local IP
+        // into the concrete bound address, so a wildcard local IP would never
+        // match inbound packets and would silently black-hole all RX. Require
+        // a concrete local IP for connected sockets. Listeners legitimately
+        // stay wildcard and are demuxed on port alone.
+        //
+        if (!IsServerSocket && QuicAddrIsWildCard(Config->LocalAddress)) {
+            QuicTraceEvent(
+                DatapathErrorStatus,
+                "[data][%p] ERROR, %u, %s.",
+                Socket,
+                (uint32_t)QUIC_STATUS_INVALID_PARAMETER,
+                "Raw-only datapath requires an explicit local IP for connected sockets");
+            Status = QUIC_STATUS_INVALID_PARAMETER;
+            goto Error;
+        }
+        goto Skip;
+    }
+
+    if (Socket->ReserveAuxTcpSockForQtip && !IsServerSocket) {
+        //
+        // QTIP clients will skip normal UDP socket reservation to use AuxSocket (TCP socket reservation) in raw socket.
+        //
+        goto Skip;
+    }
+
+    if (Config->CibirIdLength > 0 && IsServerSocket) {
+        BOOLEAN XdpEnabled = Config->Flags & CXPLAT_SOCKET_FLAG_XDP;
+        BOOLEAN XdpAvailable = Datapath->RawDataPath != NULL;
+        if (XdpEnabled && XdpAvailable) {
+            //
+            // CIBIR with XDP: skip OS port reservation so multiple processes
+            // can share the same UDP port. XDP handles demuxing via CIBIR ID.
+            //
+            Socket->SkipCreatingOsSockets = TRUE;
+            CxPlatRefInitializeEx(&Socket->RefCount, 1);
+            if (Config->LocalAddress == NULL || Config->LocalAddress->Ipv4.sin_port == 0) {
+                QuicTraceEvent(
+                    DatapathErrorStatus,
+                    "[data][%p] ERROR, %u, %s.",
+                    Socket,
+                    (uint32_t)QUIC_STATUS_INVALID_PARAMETER,
+                    "CIBIR server socket with XDP requires an explicit local port");
+                Status = QUIC_STATUS_INVALID_PARAMETER;
+                goto Error;
+            }
+            QuicTraceLogWarning(
+                DatapathCibirWarning,
+                "[data][%p] CIBIR detected, %s",
+                Socket,
+                "Skipping OS port reservation for this server socket.");
+            goto Skip;
+        }
+        //
+        // CIBIR without XDP: fall through to normal socket creation.
+        // Transport parameter negotiation still works, just no port sharing.
+        //
+    }
 
     for (uint16_t i = 0; i < SocketCount; i++) {
         CxPlatRefInitialize(&Socket->PerProcSockets[i].RefCount);
@@ -1819,9 +1939,20 @@ SocketCreateUdp(
         }
     }
 
+Skip:
+
     CxPlatConvertFromMappedV6(&Socket->LocalAddress, &Socket->LocalAddress);
 
-Skip:
+    if (Config->CibirIdLength > 0) {
+        QuicTraceLogWarning(
+            DatapathCibirIdUsed,
+            "[data][%p] Using CIBIR ID (len %hhu, id 0x%llx)",
+            Socket,
+            Config->CibirIdLength,
+            (unsigned long long)QuicCibirIdToUint64(
+                Config->CibirId,
+                Config->CibirIdLength));
+    }
 
     if (Config->RemoteAddress != NULL) {
         Socket->RemoteAddress = *Config->RemoteAddress;
@@ -1835,7 +1966,7 @@ Skip:
     //
     *NewSocket = Socket;
 
-    if (!Socket->ReserveAuxTcpSock) {
+    if (!Socket->ReserveAuxTcpSockForQtip && !Socket->SkipCreatingOsSockets) {
         for (uint16_t i = 0; i < SocketCount; i++) {
             CxPlatDataPathStartReceiveAsync(&Socket->PerProcSockets[i]);
             Socket->PerProcSockets[i].IoStarted = TRUE;
@@ -2372,8 +2503,12 @@ SocketDelete(
     CXPLAT_DBG_ASSERT(!Socket->Uninitialized);
     Socket->Uninitialized = TRUE;
 
-    if (Socket->ReserveAuxTcpSock && Socket->HasFixedRemoteAddress) {
-        // QTIP did not initialize PerProcSockets only for Client sockets.
+    if ((Socket->ReserveAuxTcpSockForQtip && Socket->HasFixedRemoteAddress) ||
+        Socket->SkipCreatingOsSockets) {
+        //
+        // QTIP client or CIBIR skip: PerProcSockets were not initialized
+        // (or already cleaned up). Just release the socket directly.
+        //
         CxPlatSocketRelease(Socket);
     } else {
         const uint16_t SocketCount =
@@ -2466,7 +2601,7 @@ CxPlatSocketContextUninitialize(
         //
         // For TCP sockets, we should shutdown the socket before closing it.
         //
-        SocketProc->Parent->DisconnectIndicated = TRUE;
+        InterlockedExchange(&SocketProc->Parent->DisconnectIndicated, TRUE);
         if (shutdown(SocketProc->Socket, SD_BOTH) == SOCKET_ERROR) {
             int WsaError = WSAGetLastError();
             if (WsaError != WSAENOTCONN) {
@@ -2493,6 +2628,10 @@ CxPlatSocketContextUninitialize(
     // processing of those completions will release their references on the
     // context.
     //
+    QuicTraceLogVerbose(
+        WinUserSocketContextUnitialize,
+        "[data][%p] Socket Context queueing for destruction",
+        SocketProc);
     if (closesocket(SocketProc->Socket) == SOCKET_ERROR) {
         int WsaError = WSAGetLastError();
         QuicTraceEvent(
@@ -2655,8 +2794,13 @@ CxPlatDataPathSocketProcessAcceptCompletion(
             0,
             "AcceptEx Completed!");
 
-
+        //
+        // Mark IO Started before taking a rundown reference,
+        // otherwise the cleanup might not wait for the rundown.
+        //
+        AcceptSocketProc->IoStarted = TRUE;
         if (!CxPlatRundownAcquire(&AcceptSocketProc->RundownRef)) {
+            AcceptSocketProc = NULL;
             goto Error;
         }
 
@@ -2724,8 +2868,6 @@ CxPlatDataPathSocketProcessAcceptCompletion(
         }
 
         ListenerSocketProc->AcceptSocket = NULL;
-
-        AcceptSocketProc->IoStarted = TRUE;
         CxPlatDataPathStartReceiveAsync(AcceptSocketProc);
 
     } else {
@@ -3269,8 +3411,8 @@ CxPlatDataPathTcpRecvComplete(
         // Error from shutdown, silently ignore. Return immediately so the
         // receive doesn't get reposted.
         //
-        if (!SocketProc->Parent->DisconnectIndicated) {
-            SocketProc->Parent->DisconnectIndicated = TRUE;
+        if (InterlockedCompareExchange(
+                &SocketProc->Parent->DisconnectIndicated, TRUE, FALSE) == FALSE) {
             SocketProc->Parent->Datapath->TcpHandlers.Connect(
                 SocketProc->Parent,
                 SocketProc->Parent->ClientContext,
@@ -3283,8 +3425,8 @@ CxPlatDataPathTcpRecvComplete(
     } else if (IoResult == QUIC_STATUS_SUCCESS) {
 
         if (NumberOfBytesTransferred == 0) {
-            if (!SocketProc->Parent->DisconnectIndicated) {
-                SocketProc->Parent->DisconnectIndicated = TRUE;
+            if (InterlockedCompareExchange(
+                    &SocketProc->Parent->DisconnectIndicated, TRUE, FALSE) == FALSE) {
                 SocketProc->Parent->Datapath->TcpHandlers.Connect(
                     SocketProc->Parent,
                     SocketProc->Parent->ClientContext,
@@ -3437,9 +3579,10 @@ CxPlatDataPathSocketProcessReceive(
     if (!CxPlatRundownAcquire(&SocketProc->RundownRef)) {
         //
         // Even though we can't process the completion (because the socket is
-        // cleaning up) we still need to release the reference it has on the
-        // context.
+        // cleaning up) we still need to free the receive block and release the
+        // reference it has on the context.
         //
+        CxPlatSocketFreeRxIoBlock(IoBlock);
         CxPlatSocketContextRelease(SocketProc);
         return;
     }

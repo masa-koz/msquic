@@ -25,6 +25,7 @@ uint32_t MaxRuntime = 0;
 QUIC_EXECUTION_PROFILE PerfDefaultExecutionProfile = QUIC_EXECUTION_PROFILE_LOW_LATENCY;
 TCP_EXECUTION_PROFILE TcpDefaultExecutionProfile = TCP_EXECUTION_PROFILE_LOW_LATENCY;
 QUIC_CONGESTION_CONTROL_ALGORITHM PerfDefaultCongestionControl = QUIC_CONGESTION_CONTROL_ALGORITHM_CUBIC;
+uint8_t PerfDefaultHyStartEnabled = false;
 uint8_t PerfDefaultEcnEnabled = false;
 uint8_t PerfDefaultQeoAllowed = false;
 uint8_t PerfDefaultHighPriority = false;
@@ -130,6 +131,7 @@ PrintHelp(
         "                            - {lowlat, maxtput, scavenger, realtime}.\n"
         "  -cc:<algo>               Congestion control algorithm to use.\n"
         "                            - {cubic, bbr}.\n"
+        "  -hystart:<0/1>           Disables/enables HyStart++ when using CUBIC. (def:0)\n"
         "  -pollidle:<time_us>      Amount of time to poll while idle before sleeping (default: 0).\n"
         "  -ecn:<0/1>               Enables/disables sender-side ECN support. (def:0)\n"
         "  -qeo:<0/1>               Allows/disallowes QUIC encryption offload. (def:0)\n"
@@ -289,6 +291,7 @@ QuicMainStart(
     }
 
     TryGetValue(argc, argv, "ecn", &PerfDefaultEcnEnabled);
+    TryGetValue(argc, argv, "hystart", &PerfDefaultHyStartEnabled);
     TryGetValue(argc, argv, "qeo", &PerfDefaultQeoAllowed);
     TryGetValue(argc, argv, "dscp", &PerfDefaultDscpValue);
     if (PerfDefaultDscpValue > CXPLAT_MAX_DSCP) {
@@ -302,7 +305,7 @@ QuicMainStart(
     }
 
 #ifndef _KERNEL_MODE
-    WorkerPool = CxPlatWorkerPoolCreate(nullptr);
+    WorkerPool = CxPlatWorkerPoolCreate(nullptr, CXPLAT_WORKER_POOL_REF_TOOL);
 #endif
 
     const CXPLAT_UDP_DATAPATH_CALLBACKS DatapathCallbacks = {
@@ -313,7 +316,7 @@ QuicMainStart(
     Status = CxPlatDataPathInitialize(0, &DatapathCallbacks, &TcpEngine::TcpCallbacks, WorkerPool, &InitConfig, &Datapath);
     if (QUIC_FAILED(Status)) {
 #ifndef _KERNEL_MODE
-        CxPlatWorkerPoolDelete(WorkerPool);
+        CxPlatWorkerPoolDelete(WorkerPool, CXPLAT_WORKER_POOL_REF_TOOL);
 #endif
         WriteOutput("Datapath for shutdown failed to initialize: %d\n", Status);
         return Status;
@@ -359,7 +362,7 @@ QuicMainFree(
     if (Datapath) {
         CxPlatDataPathUninitialize(Datapath);
 #ifndef _KERNEL_MODE
-        CxPlatWorkerPoolDelete(WorkerPool);
+        CxPlatWorkerPoolDelete(WorkerPool, CXPLAT_WORKER_POOL_REF_TOOL);
 #endif
         Datapath = nullptr;
     }
@@ -389,8 +392,8 @@ const uint64_t SizeMult[] = { 1000 * 1000 * 1000, 1000 * 1000, 1000, 1 };
 const char* CountUnits[] = { "cpu" };
 uint64_t CountMult[] = { 1 };
 
-_Success_(return != false)
 template <typename T>
+_Success_(return != false)
 bool
 TryGetVariableUnitValue(
     _In_ int argc,
@@ -448,8 +451,8 @@ TryGetVariableUnitValue(
     return true;
 }
 
-_Success_(return != false)
 template <typename T>
+_Success_(return != false)
 bool
 TryGetVariableUnitValue(
     _In_ int argc,
@@ -466,8 +469,8 @@ TryGetVariableUnitValue(
 /// <summary>
 /// Explicit template instantiation
 /// </summary>
-_Success_(return != false)
 template
+_Success_(return != false)
 bool
 TryGetVariableUnitValue<uint32_t>(
     _In_ int argc,
@@ -477,8 +480,8 @@ TryGetVariableUnitValue<uint32_t>(
     _Out_opt_ bool* isTimed
     );
 
-_Success_(return != false)
 template
+_Success_(return != false)
 bool
 TryGetVariableUnitValue<uint64_t>(
     _In_ int argc,

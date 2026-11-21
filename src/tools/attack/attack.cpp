@@ -103,7 +103,7 @@ ResolveRouteComplete(
     _When_(Succeeded == FALSE, _Reserved_)
     _When_(Succeeded == TRUE, _In_reads_bytes_(6))
         const uint8_t* PhysicalAddress,
-    _In_ uint8_t PathId,
+    _In_ uint32_t PathId,
     _In_ BOOLEAN Succeeded
     )
 {
@@ -437,7 +437,7 @@ main(
         };
         CxPlatSystemLoad();
         CxPlatInitialize();
-        CXPLAT_WORKER_POOL* WorkerPool = CxPlatWorkerPoolCreate(nullptr);
+        CXPLAT_WORKER_POOL* WorkerPool = CxPlatWorkerPoolCreate(nullptr, CXPLAT_WORKER_POOL_REF_TOOL);
         CXPLAT_DATAPATH_INIT_CONFIG InitConfig = {0};
         CxPlatDataPathInitialize(
             0,
@@ -487,7 +487,7 @@ main(
 
         Error:
         CxPlatDataPathUninitialize(Datapath);
-        CxPlatWorkerPoolDelete(WorkerPool);
+        CxPlatWorkerPoolDelete(WorkerPool, CXPLAT_WORKER_POOL_REF_TOOL);
         CxPlatUninitialize();
         CxPlatSystemUnload();
     }

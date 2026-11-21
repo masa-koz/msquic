@@ -138,6 +138,7 @@ constexpr _Ty&& CxPlatForward(
 }
 
 #ifdef __GNUC__
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmultichar" // Multi-character constant used intentionally for the tag
 #endif
 template<typename T, uint32_t Tag = 'lPxC', bool Paged = false>
@@ -162,6 +163,9 @@ public:
         }
     }
 };
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #ifdef CXPLAT_HASH_MIN_SIZE
 
@@ -204,8 +208,8 @@ struct CxPlatHashTable {
 
 class CxPlatThread {
     CXPLAT_THREAD Thread {0};
-    bool Initialized : 1;
-    bool WaitOnDelete : 1;
+    bool Initialized{};
+    bool WaitOnDelete{};
 public:
     CxPlatThread(bool WaitOnDelete = true) noexcept : Initialized(false), WaitOnDelete(WaitOnDelete) { }
     ~CxPlatThread() noexcept {
@@ -726,6 +730,7 @@ public:
     MsQuicSettings& SetDestCidUpdateIdleTimeoutMs(uint32_t Value) { DestCidUpdateIdleTimeoutMs = Value; IsSet.DestCidUpdateIdleTimeoutMs = TRUE; return *this; }
     MsQuicSettings& SetGreaseQuicBitEnabled(bool Value) { GreaseQuicBitEnabled = Value; IsSet.GreaseQuicBitEnabled = TRUE; return *this; }
     MsQuicSettings& SetEcnEnabled(bool Value) { EcnEnabled = Value; IsSet.EcnEnabled = TRUE; return *this; }
+    MsQuicSettings& SetHyStartEnabled(bool Value) { HyStartEnabled = Value; IsSet.HyStartEnabled = TRUE; return *this; }
 #ifdef QUIC_API_ENABLE_PREVIEW_FEATURES
     MsQuicSettings& SetEncryptionOffloadAllowed(bool Value) { EncryptionOffloadAllowed = Value; IsSet.EncryptionOffloadAllowed = TRUE; return *this; }
     MsQuicSettings& SetReliableResetEnabled(bool value) { ReliableResetEnabled = value; IsSet.ReliableResetEnabled = TRUE; return *this; }
@@ -1282,6 +1287,17 @@ struct MsQuicConnection {
         ) noexcept {
         return MsQuic->ConnectionSendResumptionTicket(Handle, Flags, DataLength, ResumptionData);
     }
+
+#ifdef QUIC_API_ENABLE_PREVIEW_FEATURES
+    QUIC_STATUS
+    ExportKeyingMaterial(
+        _In_ const QUIC_KEYING_MATERIAL_CONFIG* Config,
+        _Out_writes_bytes_(Config->OutputLength)
+            uint8_t* Output
+        ) noexcept {
+        return MsQuic->ConnectionExportKeyingMaterial(Handle, Config, Output);
+    }
+#endif // QUIC_API_ENABLE_PREVIEW_FEATURES
 
     QUIC_STATUS
     SetParam(

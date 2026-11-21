@@ -3,6 +3,7 @@
 
 set(SOURCES
     main.cpp
+    AllocTest.cpp
     CryptTest.cpp
     DataPathTest.cpp
     PlatformTest.cpp
@@ -10,6 +11,10 @@ set(SOURCES
     ToeplitzTest.cpp
     TlsTest.cpp
 )
+
+if(QUIC_TLS_LIB STREQUAL "openssl")
+    list(APPEND SOURCES TlsOpenSslTest.cpp)
+endif()
 
 add_executable(msquicplatformtest ${SOURCES})
 

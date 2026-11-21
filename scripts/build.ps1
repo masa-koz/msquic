@@ -60,9 +60,6 @@ This script provides helpers for building msquic.
 .PARAMETER PGO
     Builds msquic with profile guided optimization support (Windows-only).
 
-.PARAMETER UseXdp
-    Enables XDP support (Linux-only).
-
 .PARAMETER UseIoUring
     Enables io_uring support (Linux-only).
 
@@ -94,7 +91,13 @@ This script provides helpers for building msquic.
     Enables telemetry asserts in release builds.
 
 .PARAMETER UseSystemOpenSSLCrypto
-    Use system provided OpenSSL libcrypto rather then statically linked. Only affects OpenSSL Linux builds
+    Use system provided OpenSSL crypto libraries. On Linux OpenSSL builds, both libssl and libcrypto are dynamically linked.
+
+.PARAMETER UseExternalOpenSSL
+    Link against an external/system OpenSSL (3.5.0+) instead of building OpenSSL from the submodules. Only valid with '-Tls openssl'. Both libssl and libcrypto are dynamically linked from the system.
+
+.PARAMETER OpenSSLRootDir
+    Path to the root directory of an external OpenSSL installation to use (implies -UseExternalOpenSSL). Passed to CMake as QUIC_OPENSSL_ROOT_DIR. Only needed when OpenSSL is not in a default system location. Only valid with '-Tls openssl'.
 
 .PARAMETER EnableHighResolutionTimers
     Configures the system to use high resolution timers.
@@ -111,6 +114,9 @@ This script provides helpers for building msquic.
 .PARAMETER OneBranch
     Build is occuring from Onebranch pipeline.
 
+.PARAMETER EnableGCov
+    Builds with code coverage instrumentation enabled (Linux-only, uses gcov).
+
 .EXAMPLE
     build.ps1
 
@@ -119,7 +125,7 @@ This script provides helpers for building msquic.
 
 #>
 
-#Requires -Version 7.2
+#Requires -Version 7.0
 
 param (
     [Parameter(Mandatory = $false)]
@@ -181,9 +187,6 @@ param (
     [switch]$PGO = $false,
 
     [Parameter(Mandatory = $false)]
-    [switch]$UseXdp = $false,
-
-    [Parameter(Mandatory = $false)]
     [switch]$UseIoUring = $false,
 
     [Parameter(Mandatory = $false)]
@@ -220,6 +223,12 @@ param (
     [switch]$UseSystemOpenSSLCrypto = $false,
 
     [Parameter(Mandatory = $false)]
+    [switch]$UseExternalOpenSSL = $false,
+
+    [Parameter(Mandatory = $false)]
+    [string]$OpenSSLRootDir = "",
+
+    [Parameter(Mandatory = $false)]
     [switch]$EnableHighResolutionTimers = $false,
 
     [Parameter(Mandatory = $false)]
@@ -235,7 +244,10 @@ param (
     [switch]$OneBranch = $false,
 
     [Parameter(Mandatory = $false)]
-    [string]$ToolchainFile = ""
+    [string]$ToolchainFile = "",
+
+    [Parameter(Mandatory = $false)]
+    [switch]$EnableGCov = $false
 )
 
 Set-StrictMode -Version 'Latest'
@@ -260,7 +272,7 @@ if ($Generator -eq "") {
     if (!$IsWindows) {
         $Generator = "Unix Makefiles"
     } else {
-        $Generator = "Visual Studio 17 2022"
+        $Generator = "Visual Studio 18 2026"
     }
 }
 
@@ -288,9 +300,14 @@ if ($Arch -eq "arm64ec") {
     }
 }
 
-if ($IsLinux -And $Arch -ne "x64") {
-    if ($UseXdp) {
-        Write-Error "Linux XDP is supported only on x64 platforms"
+# External OpenSSL selection is only supported by the 'openssl' TLS provider.
+$UseExternalOpenSSLRequested = $UseExternalOpenSSL -Or ($OpenSSLRootDir -ne "")
+if ($UseExternalOpenSSLRequested) {
+    if ($Tls -ne "openssl") {
+        Write-Error "External OpenSSL selection (-UseExternalOpenSSL/-OpenSSLRootDir) requires '-Tls openssl'. The 'quictls' provider must be built from submodules."
+    }
+    if ($UseSystemOpenSSLCrypto) {
+        Write-Error "-UseSystemOpenSSLCrypto is incompatible with external OpenSSL selection. External OpenSSL already dynamically links both libssl and libcrypto from the system; -UseSystemOpenSSLCrypto only applies to the bundled submodule build."
     }
 }
 
@@ -446,6 +463,13 @@ function CMake-Generate {
     $Arguments += " -DQUIC_TLS_LIB=" + $Tls
     $Arguments += " -DQUIC_OUTPUT_DIR=""$ArtifactsDir"""
 
+    if ($UseExternalOpenSSLRequested) {
+        $Arguments += " -DQUIC_USE_EXTERNAL_OPENSSL=on"
+        if ($OpenSSLRootDir -ne "") {
+            $Arguments += " -DQUIC_OPENSSL_ROOT_DIR=""$OpenSSLRootDir"""
+        }
+    }
+
     if (!$DisableLogs) {
         $Arguments += " -DQUIC_ENABLE_LOGGING=on"
     }
@@ -490,9 +514,6 @@ function CMake-Generate {
     if ($PGO) {
         $Arguments += " -DQUIC_PGO=on"
     }
-    if ($UseXdp) {
-        $Arguments += " -DQUIC_LINUX_XDP_ENABLED=on"
-    }
     if ($UseIoUring) {
         $Arguments += " -DQUIC_LINUX_IOURING_ENABLED=on"
     }
@@ -527,6 +548,13 @@ function CMake-Generate {
     }
     if ($EnableHighResolutionTimers) {
         $Arguments += " -DQUIC_HIGH_RES_TIMERS=on"
+    }
+    if ($EnableGCov) {
+        if ($IsLinux) {
+            $Arguments += " -DCMAKE_C_FLAGS=--coverage -DCMAKE_CXX_FLAGS=--coverage"
+        } else {
+            Write-Warning "-EnableGCov is only supported on Linux systems. Ignoring flag."
+        } 
     }
     if ($Platform -eq "android") {
         $NDK = $env:ANDROID_NDK_LATEST_HOME

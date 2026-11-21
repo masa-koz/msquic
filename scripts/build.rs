@@ -2,10 +2,6 @@
 // Licensed under the MIT License.
 
 fn main() {
-    if cfg!(feature = "static") {
-        assert!(cfg!(feature = "src"), "static requires build for src");
-    }
-
     #[cfg(all(feature = "src", feature = "find"))]
     panic!("feature src and find are mutually exclusive");
 
@@ -24,24 +20,29 @@ fn cmake_build() {
     use cmake::Config;
     use std::env;
     use std::path::Path;
-    let path_extra = "lib";
     let mut logging_enabled = "off";
     if cfg!(windows) {
         logging_enabled = "on";
     }
 
     let target = env::var("TARGET").unwrap().replace("\\", "/");
-    let out_dir = env::var("OUT_DIR").unwrap().replace("\\", "/");
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
+    let out_dir = env::var("OUT_DIR").unwrap();
     // The output directory for the native MsQuic library.
-    let libdir = "/lib";
-    let full_out_dir = [out_dir, libdir.to_string()].join("");
-    let quic_output_dir = Path::new(&full_out_dir);
+    let quic_output_dir = if cfg!(windows) {
+        Path::new(&out_dir).join("lib")
+    } else {
+        Path::new(&out_dir).join("artifacts")
+    };
 
     // Builds the native MsQuic and installs it into $OUT_DIR.
     let mut config = Config::new(".");
     config
         .define("QUIC_ENABLE_LOGGING", logging_enabled)
-        .define("QUIC_OUTPUT_DIR", quic_output_dir.to_str().unwrap());
+        .define(
+            "QUIC_OUTPUT_DIR",
+            quic_output_dir.to_str().unwrap().replace('\\', "/"),
+        );
 
     // Disable parallel builds on Windows, as they seems to break manifest builds.
     if cfg!(windows) {
@@ -54,6 +55,28 @@ fn cmake_build() {
         config.define("QUIC_TLS_LIB", "quictls");
     } else if cfg!(feature = "openssl") {
         config.define("QUIC_TLS_LIB", "openssl");
+    } else if cfg!(feature = "openssl_external") {
+        config
+            .define("QUIC_TLS_LIB", "openssl")
+            .define("QUIC_USE_EXTERNAL_OPENSSL", "on");
+        if let Ok(openssl_dir) = std::env::var("OPENSSL_ROOT_DIR") {
+            config.define("QUIC_OPENSSL_ROOT_DIR", openssl_dir);
+        } else {
+            match (
+                std::env::var("OPENSSL_INCLUDE_DIR"),
+                std::env::var("OPENSSL_LIB_DIR"),
+            ) {
+                (Ok(include_dir), Ok(lib_dir)) => {
+                    config
+                        .define("QUIC_OPENSSL_INCLUDE_DIR", include_dir)
+                        .define("QUIC_OPENSSL_LIB_DIR", lib_dir);
+                }
+                (Ok(_), Err(_)) | (Err(_), Ok(_)) => {
+                    panic!("both OPENSSL_INCLUDE_DIR and OPENSSL_LIB_DIR must be set")
+                }
+                (Err(_), Err(_)) => {}
+            }
+        }
     } else if cfg!(windows) {
         config.define("QUIC_TLS_LIB", "schannel");
     } else {
@@ -80,10 +103,23 @@ fn cmake_build() {
     };
 
     let dst = config.build();
-    let lib_path = Path::join(Path::new(&dst), Path::new(path_extra));
-    println!("cargo:rustc-link-search=native={}", lib_path.display());
+    // The native MsQuic library is installed via CMake's GNUInstallDirs, which
+    // resolves CMAKE_INSTALL_LIBDIR to "lib" on Debian/Ubuntu-style systems and to
+    // "lib64" on many 64-bit distros (Fedora, RHEL, SUSE, ...). Add a link search
+    // path for every candidate that exists.
+    let mut found_lib_dir = false;
+    for lib_subdir in ["lib", "lib64"] {
+        let lib_path = Path::join(Path::new(&dst), Path::new(lib_subdir));
+        if lib_path.is_dir() {
+            println!("cargo:rustc-link-search=native={}", lib_path.display());
+            found_lib_dir = true;
+        }
+    }
+    if !found_lib_dir {
+        panic!("no lib or lib64 directory found under {}", dst.display());
+    }
     if cfg!(feature = "static") {
-        if cfg!(target_os = "linux") {
+        if target_os == "linux" {
             let numa_lib_path = match target.as_str() {
                 "x86_64-unknown-linux-gnu" => "/usr/lib/x86_64-linux-gnu",
                 "aarch64-unknown-linux-gnu" => "/usr/lib/aarch64-linux-gnu",
@@ -91,9 +127,23 @@ fn cmake_build() {
             };
             println!("cargo:rustc-link-search=native={numa_lib_path}");
             println!("cargo:rustc-link-lib=static:+whole-archive=numa");
-        } else if cfg!(target_os = "macos") {
+        } else if target_os == "macos" {
             println!("cargo:rustc-link-lib=framework=CoreFoundation");
             println!("cargo:rustc-link-lib=framework=Security");
+        } else if target_os == "windows" {
+            // Windows system libraries that the static msquic.lib depends on.
+            // These are excluded from the monolithic archive (via the inc/base_link
+            // EXCLUDE_LIST in CMake) and must be linked explicitly by the consumer.
+            for lib in [
+                "ws2_32", "ntdll", "bcrypt", "ncrypt", "crypt32", "iphlpapi", "advapi32",
+                "schannel",
+            ] {
+                println!("cargo:rustc-link-lib={lib}");
+            }
+            if cfg!(feature = "openssl") || cfg!(feature = "quictls") {
+                // OpenSSL references user32 symbols (MessageBoxW, etc.)
+                println!("cargo:rustc-link-lib=user32");
+            }
         }
     }
 }

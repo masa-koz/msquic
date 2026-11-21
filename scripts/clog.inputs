@@ -19,14 +19,10 @@
 ../src/platform/datapath_linux.c
 ../src/platform/datapath_unix.c
 ../src/platform/datapath_xplat.c
-../src/platform/datapath_raw_dpdk.c
 ../src/platform/datapath_raw_socket.c
 ../src/platform/datapath_raw_socket_win.c
-../src/platform/datapath_raw_socket_linux.c
 ../src/platform/datapath_raw_xdp_win.c
-../src/platform/datapath_raw_xdp_linux.c
 ../src/platform/datapath_raw_win.c
-../src/platform/datapath_raw_linux.c
 ../src/platform/datapath_raw.c
 ../src/platform/crypt_bcrypt.c
 ../src/platform/platform_winuser.c
@@ -87,6 +83,7 @@
 ../src/core/stream.h
 ../src/core/connection.h
 ../src/test/lib/TestHelpers.h
+../src/test/lib/TestUtility.h
 ../src/test/lib/TestStream.cpp
 ../src/test/lib/DataTest.cpp
 ../src/test/lib/PathTest.cpp
@@ -110,6 +107,8 @@
 ../src/core/unittest/SlidingWindowExtremumTest.cpp
 ../src/core/unittest/RangeTest.cpp
 ../src/core/unittest/RecvBufferTest.cpp
+../src/core/unittest/CubicTest.cpp
+../src/core/unittest/BbrTest.cpp
 ../src/core/unittest/VarIntTest.cpp
 ../src/core/unittest/CMakeLists.txt
 ../src/core/unittest/FrameTest.cpp
