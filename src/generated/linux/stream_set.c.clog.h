@@ -225,5 +225,5 @@ tracepoint(CLOG_STREAM_SET_C, ConnError , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_stream_set.c.clog.h.c"
+#include "quic_stream_set.c.clog.h.c"
 #endif

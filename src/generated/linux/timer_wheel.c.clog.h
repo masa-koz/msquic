@@ -170,5 +170,5 @@ tracepoint(CLOG_TIMER_WHEEL_C, AllocFailure , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_timer_wheel.c.clog.h.c"
+#include "quic_timer_wheel.c.clog.h.c"
 #endif

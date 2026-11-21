@@ -391,5 +391,5 @@ tracepoint(CLOG_STREAM_SEND_C, StreamWriteFrames , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_stream_send.c.clog.h.c"
+#include "quic_stream_send.c.clog.h.c"
 #endif

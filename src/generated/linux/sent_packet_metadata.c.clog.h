@@ -8,5 +8,5 @@ extern "C" {
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_sent_packet_metadata.c.clog.h.c"
+#include "quic_sent_packet_metadata.c.clog.h.c"
 #endif

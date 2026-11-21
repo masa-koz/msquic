@@ -229,5 +229,5 @@ tracepoint(CLOG_CUBIC_C, ConnOutFlowStatsV2 , arg2, arg3, arg4, arg5, arg6, arg7
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_cubic.c.clog.h.c"
+#include "quic_cubic.c.clog.h.c"
 #endif

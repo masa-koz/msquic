@@ -1425,5 +1425,5 @@ tracepoint(CLOG_CRYPTO_TLS_C, ConnErrorStatus , arg2, arg3, arg4);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_crypto_tls.c.clog.h.c"
+#include "quic_crypto_tls.c.clog.h.c"
 #endif

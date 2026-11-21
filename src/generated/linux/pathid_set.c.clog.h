@@ -129,5 +129,5 @@ tracepoint(CLOG_PATHID_SET_C, ConnPathIDAdd , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_pathid_set.c.clog.h.c"
+#include "quic_pathid_set.c.clog.h.c"
 #endif

@@ -103,5 +103,5 @@ tracepoint(CLOG_CONNECTION_POOL_C, ApiExitStatus , arg2);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_connection_pool.c.clog.h.c"
+#include "quic_connection_pool.c.clog.h.c"
 #endif

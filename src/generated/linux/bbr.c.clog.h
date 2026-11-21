@@ -185,5 +185,5 @@ tracepoint(CLOG_BBR_C, ConnPersistentCongestion , arg2);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_bbr.c.clog.h.c"
+#include "quic_bbr.c.clog.h.c"
 #endif

@@ -1039,6 +1039,22 @@ tracepoint(CLOG_SETTINGS_C, SettingXdpDisabledInMapMode );\
 
 
 /*----------------------------------------------------------
+// Decoder Ring for SettingsOfferedVersionsTooLong
+// Too many offered versions
+// QuicTraceLogError(
+                    SettingsOfferedVersionsTooLong,
+                    "Too many offered versions");
+----------------------------------------------------------*/
+#ifndef _clog_2_ARGS_TRACE_SettingsOfferedVersionsTooLong
+#define _clog_2_ARGS_TRACE_SettingsOfferedVersionsTooLong(uniqueId, encoded_arg_string)\
+tracepoint(CLOG_SETTINGS_C, SettingsOfferedVersionsTooLong );\
+
+#endif
+
+
+
+
+/*----------------------------------------------------------
 // Decoder Ring for SettingsLoadInvalidAcceptableVersion
 // Invalid AcceptableVersion loaded from storage! 0x%x at position %d
 // QuicTraceLogError(
@@ -1182,5 +1198,5 @@ tracepoint(CLOG_SETTINGS_C, AllocFailure , arg2, arg3);\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_settings.c.clog.h.c"
+#include "quic_settings.c.clog.h.c"
 #endif

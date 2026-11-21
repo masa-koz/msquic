@@ -760,5 +760,5 @@ tracepoint(CLOG_LIBRARY_C, ApiExit );\
 }
 #endif
 #ifdef CLOG_INLINE_IMPLEMENTATION
-#include "quic.clog_library.c.clog.h.c"
+#include "quic_library.c.clog.h.c"
 #endif
