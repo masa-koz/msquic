@@ -164,6 +164,7 @@ typedef struct CXPLAT_SLIST_ENTRY {
 #define QUIC_POOL_XDP_MAP_CONFIG            '25cQ' // Qc52 - QUIC XDP Map Config
 #define QUIC_POOL_TLS_RECORD_ENTRY          '35cQ' // Qc53 - QUIC TLS Backing Record storage
 #define QUIC_POOL_TLS_ALPN_VEC              '45cQ' // Qc54 - QUIC TLS Backing ALPN vec
+#define QUIC_POOL_TLS_CERT_DER              '55cQ' // Qc55 - QUIC TLS Backing DER certificate
 
 typedef enum CXPLAT_THREAD_FLAGS {
     CXPLAT_THREAD_FLAG_NONE               = 0x0000,
