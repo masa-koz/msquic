@@ -100,7 +100,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>submodules\picotls\deps\cifra\src\ext;src\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>submodules\picotls\picotlsvs\picotls;submodules\picotls\deps\cifra\src;submodules\picotls\deps\cifra\src\ext;src\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalOptions Condition="'$(Platform)'!='x64'">/Gw /kernel /ZH:SHA_256</AdditionalOptions>
@@ -109,10 +109,6 @@
     <Lib>
       <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
-    <PreBuildEvent>
-      <Command>mkdir $(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc
-mc.exe -um -h $(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc -r $(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc $(SolutionDir)src\manifest\MsQuicEtw.man</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>

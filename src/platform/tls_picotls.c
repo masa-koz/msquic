@@ -1528,7 +1528,7 @@ CxPlatTlsExportKeyingMaterial(
             "[ tls][%p] ERROR, %s.",
             TlsContext->Connection,
             "ptls_export_secret failed");
-        return QUIC_STATUS_TLS_ERROR;
+        return QUIC_STATUS_INTERNAL_ERROR;
     }
 
     return QUIC_STATUS_SUCCESS;
