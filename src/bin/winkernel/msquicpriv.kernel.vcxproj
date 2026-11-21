@@ -34,10 +34,27 @@
     <ProjectReference Include="..\..\core\core.kernel.vcxproj">
       <Project>{E862BE76-298B-4021-8105-A3E115FA2900}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\platform\platform.kernel.vcxproj">
+    <ProjectReference Condition="'$(QuicTls)'=='schannel'" Include="..\..\platform\platform.kernel.vcxproj">
       <Project>{5f99f713-bf5f-44eb-90fe-fea03906bba9}</Project>
     </ProjectReference>
+    <ProjectReference Condition="'$(QuicTls)'=='picotls'" Include="..\..\..\src\platform\platform-picotls.kernel.vcxproj">
+      <Project>{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}</Project>
+    </ProjectReference>
+    <ProjectReference Condition="'$(QuicTls)'=='picotls'" Include="..\..\..\picotls-minicrypto.kernel.vcxproj">
+      <Project>{7D94BD9D-6867-4C61-BEE4-9B11360541CD}</Project>
+    </ProjectReference>
+    <ProjectReference Condition="'$(QuicTls)'=='picotls'" Include="..\..\..\cifra.kernel.vcxproj">
+      <Project>{56ECEC7B-2232-475A-8371-33517967F0F3}</Project>
+    </ProjectReference>
   </ItemGroup>
+  <PropertyGroup>
+    <!-- TLS provider of this build: schannel (default) or picotls. -->
+    <QuicTls Condition="'$(QuicTls)'==''">schannel</QuicTls>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(QuicTls)'=='schannel'">
+    <!-- The PGO profile was trained on the Schannel build. -->
+    <QuicPgoLinkOptions>/FORCE:PGOREPRO /USEPROFILE:PGD=$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\priv\msquic.pgd</QuicPgoLinkOptions>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{e2ddb0a8-594d-424d-9add-4ef211f7fc3f}</ProjectGuid>
     <TemplateGuid>{1bc93793-694f-48fe-9372-81e2b05556fd}</TemplateGuid>
@@ -80,8 +97,8 @@
     <TargetName>msquicpriv</TargetName>
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <EnableInf2cat>false</EnableInf2cat>
-    <OutDir>$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_schannel\</OutDir>
-    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\obj\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\</OutDir>
+    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\obj\$(ProjectName)\</IntDir>
     <SignMode>Off</SignMode>
   </PropertyGroup>
   <PropertyGroup>
@@ -92,7 +109,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalOptions Condition="'$(Platform)'!='x64'">/Gw /kernel /ZH:SHA_256</AdditionalOptions>
@@ -106,7 +123,7 @@
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\inc;$(UM_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;$(UM_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -121,7 +138,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalOptions>%(AdditionalOptions) /FORCE:PGOREPRO /USEPROFILE:PGD=$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_schannel\priv\msquic.pgd</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) $(QuicPgoLinkOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -155,7 +172,7 @@
     <Error Condition="!Exists('..\..\..\packages\Microsoft.SourceLink.AzureRepos.Git.1.0.0\build\Microsoft.SourceLink.AzureRepos.Git.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Microsoft.SourceLink.AzureRepos.Git.1.0.0\build\Microsoft.SourceLink.AzureRepos.Git.targets'))" />
   </Target>
   <Target Name="CopyPgd" BeforeTargets="PrepareForBuild">
-    <Copy DestinationFolder="$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_schannel\priv"
+    <Copy DestinationFolder="$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\priv"
       SourceFiles="$(SolutionDir)src\bin\winkernel\pgo_x64\msquic.pgd" />
   </Target>
 </Project>

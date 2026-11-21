@@ -70,6 +70,29 @@ jobs:
       ref: ${{ inputs.ref || '' }}
       repo: ${{ github.repository }}
 
+  # Separate from build-windows-kernel so that a picotls failure doesn't skip the
+  # Schannel kernel BVT. Build-only for now: picotls has no Windows/kernel server
+  # certificate support yet, so there is no BVT Kernel entry for it.
+  build-windows-kernel-picotls:
+    name: Build WinKernel (picotls)
+    strategy:
+      fail-fast: false
+      matrix:
+        vec: [
+          { config: "Debug", plat: "winkernel", os: "windows-2022", arch: "x64", tls: "picotls", build: "-Test" },
+          { config: "Release", plat: "winkernel", os: "windows-2022", arch: "x64", tls: "picotls", build: "-Test" }
+        ]
+    uses: ./.github/workflows/build-reuse-winkernel.yml
+    with:
+      config: ${{ matrix.vec.config }}
+      plat: ${{ matrix.vec.plat }}
+      os: ${{ matrix.vec.os }}
+      arch: ${{ matrix.vec.arch }}
+      tls: ${{ matrix.vec.tls }}
+      build: ${{ matrix.vec.build }}
+      ref: ${{ inputs.ref || '' }}
+      repo: ${{ github.repository }}
+
   build-windows:
     name: Build WinUser
     strategy:
@@ -118,6 +141,8 @@ jobs:
           { config: "Debug", plat: "linux", os: "ubuntu-26.04", arch: "x64", tls: "openssl", systemcrypto: "-UseSystemOpenSSLCrypto", build: "-Test", iouring: "-UseIoUring" },
           { config: "Debug", plat: "linux", os: "ubuntu-26.04", arch: "x64", tls: "openssl", systemcrypto: "-UseSystemOpenSSLCrypto", sanitize: "-SanitizeAddress", build: "-Test", iouring: "-UseIoUring" },
           { config: "Release", plat: "linux", os: "ubuntu-26.04", arch: "x64", tls: "openssl", systemcrypto: "-UseSystemOpenSSLCrypto", build: "-Test", iouring: "-UseIoUring" },
+          { config: "Debug", plat: "linux", os: "ubuntu-24.04", arch: "x64", tls: "picotls", sanitize: "-SanitizeAddress", build: "-Test" },
+          { config: "Release", plat: "linux", os: "ubuntu-24.04", arch: "x64", tls: "picotls", build: "-Test" },
         ]
     uses: ./.github/workflows/build-reuse-unix.yml
     with:
@@ -156,6 +181,12 @@ jobs:
           { config: "Release", plat: "linux", os: "ubuntu-26.04", arch: "x64", tls: "openssl", systemcrypto: "-UseSystemOpenSSLCrypto", build: "-Test"  },
           { config: "Debug", plat: "linux", os: "ubuntu-26.04", arch: "x64", tls: "openssl", systemcrypto: "-UseSystemOpenSSLCrypto", build: "-Test", iouring: "-UseIoUring"  },
           { config: "Release", plat: "linux", os: "ubuntu-26.04", arch: "x64", tls: "openssl", systemcrypto: "-UseSystemOpenSSLCrypto", build: "-Test", iouring: "-UseIoUring"  },
+          # picotls: the filter excludes features tls_picotls.c doesn't implement yet: TLS params
+          # (CxPlatTlsParamGet), session resumption / 0-RTT / ticket keys, client certificates,
+          # certificate validation by the client, allowed cipher suites, provider-specific
+          # credential flags, and client shutdown during the handshake.
+          { config: "Debug", plat: "linux", os: "ubuntu-24.04", arch: "x64", tls: "picotls", sanitize: "-SanitizeAddress", build: "-Test", filter: "-*ClientCertificate*:TlsTest.HandshakeParam*:TlsTest.HandshakeResumption*:TlsTest.CertificateError:TlsTest.CustomCertificateValidationAllow:TlsTest.CustomCertificateValidationReject:TlsTest.DeferredCertificateValidation*:TlsTest.ExtraCertificateValidation:TlsTest.InProc*CertificateValidation:TlsTest.PortableCertificateValidation:TlsTest.CipherSuiteMismatch:TlsTest.CipherSuiteInvalid:TlsTest.PlatformSpecificFlags*:AppData/*Send0Rtt*:AppData/*Reject0Rtt*:Handshake/*Resume*:*SendLarge/1:*SendLarge/3:*SendLarge/5:*SendLarge/7:*LoadBalanced*:*CustomTicketValidation*:*CustomServerCertificateValidation/0:*CustomServerCertificateValidation/1:*CertValidationAfterShutdown*:CredValidation.*:*ValidateTlsHandshakeInfo*:*.ValidateTlsParam:*.ValidateConfiguration:*ValidateConnectionEvents/2:*ShutdownDuringHandshake/1" },
+          { config: "Release", plat: "linux", os: "ubuntu-24.04", arch: "x64", tls: "picotls", build: "-Test", filter: "-*ClientCertificate*:TlsTest.HandshakeParam*:TlsTest.HandshakeResumption*:TlsTest.CertificateError:TlsTest.CustomCertificateValidationAllow:TlsTest.CustomCertificateValidationReject:TlsTest.DeferredCertificateValidation*:TlsTest.ExtraCertificateValidation:TlsTest.InProc*CertificateValidation:TlsTest.PortableCertificateValidation:TlsTest.CipherSuiteMismatch:TlsTest.CipherSuiteInvalid:TlsTest.PlatformSpecificFlags*:AppData/*Send0Rtt*:AppData/*Reject0Rtt*:Handshake/*Resume*:*SendLarge/1:*SendLarge/3:*SendLarge/5:*SendLarge/7:*LoadBalanced*:*CustomTicketValidation*:*CustomServerCertificateValidation/0:*CustomServerCertificateValidation/1:*CertValidationAfterShutdown*:CredValidation.*:*ValidateTlsHandshakeInfo*:*.ValidateTlsParam:*.ValidateConfiguration:*ValidateConnectionEvents/2:*ShutdownDuringHandshake/1" },
           { config: "Debug", plat: "windows", os: "windows-2022", arch: "x64", tls: "schannel", sanitize: "-SanitizeAddress", build: "-Test", log: "Full.Verbose" },
           { config: "Debug", plat: "windows", os: "windows-2022", arch: "x64", tls: "schannel", xdp: "xdp-v1.4", sanitize: "-SanitizeAddress", build: "-Test" },
           { config: "Debug", plat: "windows", os: "windows-2022", arch: "x64", tls: "schannel", xdp: "xdp-v1.4", qtip: "-UseQtip", sanitize: "-SanitizeAddress", build: "-Test" },
@@ -336,7 +367,7 @@ jobs:
   Complete:
     name: BVT Complete
     if: always()
-    needs: [bvt, bvt-kernel, interop]
+    needs: [bvt, bvt-kernel, interop, build-windows-kernel-picotls]
     runs-on: ubuntu-latest
     permissions: {} # No need for any permissions.
     steps:

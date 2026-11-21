@@ -568,9 +568,16 @@ if ($ForBuild -or $ForContainerBuild) {
         git submodule init $RootDir/submodules/xdp-for-windows
     }
 
-    if ($Tls -eq "quictls") {
+    if ($Tls -eq "quictls" -or $Tls -eq "picotls") {
+        # picotls also uses quictls for crypto and certificates (non-Windows).
         Write-Host "Initializing quictls submodule"
         git submodule init $RootDir/submodules/quictls
+    }
+
+    if ($Tls -eq "picotls" -or $ForKernel) {
+        # The kernel solution always builds the picotls projects.
+        Write-Host "Initializing picotls submodule"
+        git submodule init $RootDir/submodules/picotls
     }
 
     if ($Tls -eq "openssl") {
@@ -584,6 +591,11 @@ if ($ForBuild -or $ForContainerBuild) {
     }
 
     git submodule update --jobs=8
+
+    if ($Tls -eq "picotls" -and !$ForKernel) {
+        # picotls's CMake project needs its own deps/picotest submodule.
+        git -C $RootDir/submodules/picotls submodule update --init --recursive
+    }
 }
 
 if ($IsWindows -and $ForTest) {

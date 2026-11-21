@@ -22,8 +22,17 @@
     <ClCompile Include="drvmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\platform\platform.kernel.vcxproj">
+    <ProjectReference Condition="'$(QuicTls)'=='schannel'" Include="..\..\platform\platform.kernel.vcxproj">
       <Project>{5f99f713-bf5f-44eb-90fe-fea03906bba9}</Project>
+    </ProjectReference>
+    <ProjectReference Condition="'$(QuicTls)'=='picotls'" Include="..\..\..\src\platform\platform-picotls.kernel.vcxproj">
+      <Project>{BE1979FB-6B0E-4BBB-815C-532E8B649AC9}</Project>
+    </ProjectReference>
+    <ProjectReference Condition="'$(QuicTls)'=='picotls'" Include="..\..\..\picotls-minicrypto.kernel.vcxproj">
+      <Project>{7D94BD9D-6867-4C61-BEE4-9B11360541CD}</Project>
+    </ProjectReference>
+    <ProjectReference Condition="'$(QuicTls)'=='picotls'" Include="..\..\..\cifra.kernel.vcxproj">
+      <Project>{56ECEC7B-2232-475A-8371-33517967F0F3}</Project>
     </ProjectReference>
     <ProjectReference Include="..\lib\perflib.kernel.vcxproj">
       <Project>{11633785-79cc-4c7d-ab6a-aecdf29a1fa7}</Project>
@@ -32,6 +41,10 @@
       <Project>{C31B028C-E91C-4CF7-A8E7-F385B2AF5F85}</Project>
     </ProjectReference>
   </ItemGroup>
+  <PropertyGroup>
+    <!-- TLS provider of this build: schannel (default) or picotls. -->
+    <QuicTls Condition="'$(QuicTls)'==''">schannel</QuicTls>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1862ccd7-31d7-4869-a409-5b9b5edf19bb}</ProjectGuid>
     <TemplateGuid>{1bc93793-694f-48fe-9372-81e2b05556fd}</TemplateGuid>
@@ -64,8 +77,8 @@
     <TargetName>secnetperfdrv</TargetName>
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <EnableInf2cat>false</EnableInf2cat>
-    <OutDir>$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_schannel\</OutDir>
-    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\obj\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\</OutDir>
+    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\obj\$(ProjectName)\</IntDir>
     <SignMode>Off</SignMode>
   </PropertyGroup>
   <PropertyGroup>
@@ -76,7 +89,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\lib;..\..;..\..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\lib;..\..;..\..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalOptions Condition="'$(Platform)'!='x64'">/Gw /kernel /ZH:SHA_256</AdditionalOptions>
@@ -84,7 +97,7 @@
       <DisableSpecificWarnings>4748;5040;4459;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_schannel\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)artifacts\bin\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\</AdditionalLibraryDirectories>
       <AdditionalDependencies>cng.lib;ksecdd.lib;msnetioid.lib;netio.lib;wdmsec.lib;uuid.lib;msquic.lib;ndis.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>

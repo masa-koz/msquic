@@ -29,12 +29,16 @@
     <ClCompile Include="pcp.c" />
     <ClCompile Include="platform_winkernel.c" />
     <ClCompile Include="storage_winkernel.c" />
-    <ClCompile Include="tls_schannel.c" />
+    <ClCompile Include="tls_$(QuicTls).c" />
     <ClCompile Include="toeplitz.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="platform_internal.h" />
   </ItemGroup>
+  <PropertyGroup>
+    <!-- TLS provider of this build: schannel (default) or picotls. -->
+    <QuicTls Condition="'$(QuicTls)'==''">schannel</QuicTls>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5f99f713-bf5f-44eb-90fe-fea03906bba9}</ProjectGuid>
     <TemplateGuid>{0a049372-4c4d-4ea0-a64e-dc6ad88ceca1}</TemplateGuid>
@@ -74,8 +78,8 @@
   </PropertyGroup>
   <PropertyGroup>
     <TargetName>platform</TargetName>
-    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\obj\$(ProjectName)\</IntDir>
-    <OutDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\bin\</OutDir>
+    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\obj\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup>
     <ExternalIncludePath />
@@ -85,7 +89,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalOptions Condition="'$(Platform)'!='x64'">/Gw /kernel /ZH:SHA_256</AdditionalOptions>
@@ -95,8 +99,8 @@
       <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
     <PreBuildEvent>
-      <Command>mkdir $(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\inc
-mc.exe -um -h $(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\inc -r $(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\inc $(SolutionDir)src\manifest\MsQuicEtw.man</Command>
+      <Command>mkdir $(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc
+mc.exe -um -h $(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc -r $(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc $(SolutionDir)src\manifest\MsQuicEtw.man</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">

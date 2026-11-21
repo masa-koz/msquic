@@ -27,6 +27,10 @@
   <ItemGroup>
     <ClInclude Include="SecNetPerf.h" />
   </ItemGroup>
+  <PropertyGroup>
+    <!-- TLS provider of this build: schannel (default) or picotls. -->
+    <QuicTls Condition="'$(QuicTls)'==''">schannel</QuicTls>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{11633785-79cc-4c7d-ab6a-aecdf29a1fa7}</ProjectGuid>
     <TemplateGuid>{0a049372-4c4d-4ea0-a64e-dc6ad88ceca1}</TemplateGuid>
@@ -57,8 +61,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <TargetName>perflib</TargetName>
-    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\obj\$(ProjectName)\</IntDir>
-    <OutDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\bin\</OutDir>
+    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\obj\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup>
     <ExternalIncludePath />
@@ -68,7 +72,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\;..\..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalOptions Condition="'$(Platform)'!='x64'">/Gw /kernel /ZH:SHA_256</AdditionalOptions>

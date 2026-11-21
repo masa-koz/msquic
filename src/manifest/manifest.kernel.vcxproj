@@ -18,6 +18,10 @@
       <Platform>ARM64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup>
+    <!-- TLS provider of this build: schannel (default) or picotls. -->
+    <QuicTls Condition="'$(QuicTls)'==''">schannel</QuicTls>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{c1adb76f-7005-4516-badb-2a60797ef912}</ProjectGuid>
     <TemplateGuid>{0a049372-4c4d-4ea0-a64e-dc6ad88ceca1}</TemplateGuid>
@@ -50,8 +54,8 @@
   </PropertyGroup>
   <PropertyGroup>
     <TargetName>core</TargetName>
-    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\obj\$(ProjectName)\</IntDir>
-    <OutDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\lib\</OutDir>
+    <IntDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\obj\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\lib\</OutDir>
   </PropertyGroup>
  <PropertyGroup>
     <ExternalIncludePath />
@@ -61,7 +65,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_schannel\inc;$(SolutionDir)build\clog;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;$(SolutionDir)build\clog;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
