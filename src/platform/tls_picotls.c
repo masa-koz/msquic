@@ -773,13 +773,17 @@ CxPlatTlsSecConfigDelete(
         CXPLAT_SEC_CONFIG* SecurityConfig
     )
 {
+#ifdef CXPLAT_PICOTLS_OPENSSL_CERTS
+    //
+    // Only CxPlatTlsSetCertificates fills the certificate list, so there is
+    // nothing to free where it isn't built.
+    //
     if (SecurityConfig->Ctx.certificates.list != NULL) {
         for (size_t i = 0; i < SecurityConfig->Ctx.certificates.count; ++i) {
             CXPLAT_FREE(SecurityConfig->Ctx.certificates.list[i].base, QUIC_POOL_TLS_CERT_DER);
         }
         CXPLAT_FREE(SecurityConfig->Ctx.certificates.list, QUIC_POOL_TLS_CERT_DER);
     }
-#ifdef CXPLAT_PICOTLS_OPENSSL_CERTS
     if (SecurityConfig->PrivateKey != NULL) {
         EVP_PKEY_free(SecurityConfig->PrivateKey);
     }

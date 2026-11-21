@@ -34,7 +34,6 @@
     <ClCompile Include="submodules\picotls\deps\cifra\src\gf128.c" />
     <ClCompile Include="submodules\picotls\deps\cifra\src\hmac.c" />
     <ClCompile Include="submodules\picotls\deps\cifra\src\modes.c" />
-    <ClCompile Include="submodules\picotls\deps\cifra\src\norx.c" />
     <ClCompile Include="submodules\picotls\deps\cifra\src\ocb.c" />
     <ClCompile Include="submodules\picotls\deps\cifra\src\pbkdf2.c" />
     <ClCompile Include="submodules\picotls\deps\cifra\src\poly1305.c" />
