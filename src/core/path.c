@@ -124,13 +124,6 @@ QuicPathGetActive(
 }
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
-void
-QuicPathSetActive(
-    _In_ QUIC_CONNECTION* Connection,
-    _In_ uint32_t PathId
-    );
-
-_IRQL_requires_max_(PASSIVE_LEVEL)
 static
 BOOLEAN
 QuicPathUpdateDestCid(
@@ -254,6 +247,7 @@ QuicPathRemove(
         Path->ID != PathSet->PendingActivePathId);
 
     size_t Index = Path - PathSet->Paths;
+    const uint32_t RemovedPathId = Path->ID;
 
     QuicTraceEvent(
         ConnPathRemoved,
@@ -427,6 +421,20 @@ QuicPathRemove(
     PathSet->Count--;
     // NOLINTNEXTLINE(clang-analyzer-security.ArrayBound): False positive: new index is valid.
     PathSet->Paths[PathSet->Count].InUse = FALSE;
+
+    //
+    // Keep upstream's deferred activation honest. PendingActivePathId may name
+    // the path just removed: under multipath nothing is promoted in its place
+    // (see above), and this fork removes paths from places that know nothing
+    // about the pending id -- a path ID abandoned, a close timer expiring, the
+    // reconciler trading a slot. QuicPathUpdateActive then looks the id up at
+    // the end of the receive batch, finds nothing, and asserts
+    // (NextActivePath != NULL). Pointed at whatever holds slot 0 now, which is
+    // what the non-multipath promotion above would have left it as.
+    //
+    if (PathSet->PendingActivePathId == RemovedPathId && PathSet->Count > 0) {
+        PathSet->PendingActivePathId = PathSet->Paths[0].ID;
+    }
 
     //
     // Without multipath every path shares one path ID, so PathID->Path is a
