@@ -312,7 +312,7 @@ QuicSendWritePathAckFrames(
     // set is arbitrary, and under room pressure the path the packet is going
     // out on is the one whose ACKs are worth the space.
     //
-    QUIC_PATHID* ActivePathID = Connection->Paths[0].PathID;
+    QUIC_PATHID* ActivePathID = Connection->Paths.Paths[0].PathID;
     for (uint8_t i = 1; i < PathIDCount; ++i) {
         if (PathIDs[i] == ActivePathID) {
             QUIC_PATHID* Swap = PathIDs[0];
@@ -642,8 +642,8 @@ QuicSendPathStatusPending(
     _In_ BOOLEAN Active
     )
 {
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-        if (QuicSendPathHasStatusToSend(&Connection->Paths[i], Active)) {
+    for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
+        if (QuicSendPathHasStatusToSend(&Connection->Paths.Paths[i], Active)) {
             return TRUE;
         }
     }
@@ -664,8 +664,8 @@ QuicSendStatelessPunchPending(
     _In_ const QUIC_CONNECTION* Connection
     )
 {
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-        if (Connection->Paths[i].SendStatelessPunch) {
+    for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
+        if (Connection->Paths.Paths[i].SendStatelessPunch) {
             return TRUE;
         }
     }
@@ -857,8 +857,8 @@ QuicSendWriteFrames(
 
     if (Send->SendFlags & QUIC_CONN_SEND_FLAG_PATH_BACKUP) {
 
-        for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-            QUIC_PATH* TempPath = &Connection->Paths[i];
+        for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
+            QUIC_PATH* TempPath = &Connection->Paths.Paths[i];
             if (!QuicSendPathHasStatusToSend(TempPath, FALSE)) {
                 continue;
             }
@@ -896,8 +896,8 @@ QuicSendWriteFrames(
 
     if (Send->SendFlags & QUIC_CONN_SEND_FLAG_PATH_AVAILABLE) {
 
-        for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-            QUIC_PATH* TempPath = &Connection->Paths[i];
+        for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
+            QUIC_PATH* TempPath = &Connection->Paths.Paths[i];
             if (!QuicSendPathHasStatusToSend(TempPath, TRUE)) {
                 continue;
             }
@@ -1166,8 +1166,8 @@ QuicSendWriteFrames(
             // So the loop writes at most one frame and stops, leaving the
             // connection flag up for the next packet to carry the next one.
             //
-            for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-                QUIC_PATH* TempPath = &Connection->Paths[i];
+            for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
+                QUIC_PATH* TempPath = &Connection->Paths.Paths[i];
                 if (!TempPath->SendStatelessPunch) {
                     continue;
                 }
@@ -1395,6 +1395,7 @@ QuicSendWriteFrames(
                 &MaxFrameLimitHit)) {
                 RanOutOfRoom = TRUE;
             }
+
             if (!HasMoreCidsToSend) {
                 Send->SendFlags &= ~QUIC_CONN_SEND_FLAG_RETIRE_CONNECTION_ID;
             }
@@ -1720,9 +1721,9 @@ QuicSendPathKeepAlives(
 
     CXPLAT_DBG_ASSERT(Connection->Crypto.TlsState.WriteKeys[QUIC_PACKET_KEY_1_RTT] != NULL);
 
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+    for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
 
-        QUIC_PATH* Path = &Connection->Paths[i];
+        QUIC_PATH* Path = &Connection->Paths.Paths[i];
         if (!Path->SendKeepAlive ||
             Path->Allowance < QuicPathGetMinSendAllowance(Path)) {
             continue;
@@ -1791,9 +1792,9 @@ QuicSendPathMtuProbes(
 
     CXPLAT_DBG_ASSERT(Connection->Crypto.TlsState.WriteKeys[QUIC_PACKET_KEY_1_RTT] != NULL);
 
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+    for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
 
-        QUIC_PATH* Path = &Connection->Paths[i];
+        QUIC_PATH* Path = &Connection->Paths.Paths[i];
         if (!Path->SendMtuProbe) {
             continue;
         }
@@ -1870,6 +1871,17 @@ QuicSendPathMtuProbes(
         // "PMTUD always happens after source addr validation", which is the
         // invariant being kept here.
         //
+        //
+        // A path with no path ID has no congestion controller to ask and no
+        // packet number space to send from, so there is nothing to probe with.
+        // The path set holds such a path on purpose while it waits for a free
+        // path ID (#213).
+        //
+        if (Path->PathID == NULL) {
+            Send->SendFlags |= QUIC_CONN_SEND_FLAG_DPLPMTUD;
+            continue;
+        }
+
         if (!Path->IsPeerValidated) {
             Send->SendFlags |= QUIC_CONN_SEND_FLAG_DPLPMTUD;
             continue;
@@ -1948,7 +1960,7 @@ QuicSendPathMtuProbes(
             QuicTraceLogConnInfo(
                 MtuProbeTruncated,
                 Connection,
-                "Path[%hhu] MTU probe of %hu not sent: peer accepts only %hu",
+                "Path[%u] MTU probe of %hu not sent: peer accepts only %hu",
                 Path->ID,
                 Intended,
                 (uint16_t)Builder.Datagram->Length);
@@ -2006,11 +2018,12 @@ QuicSendPathChallenges(
 
     CXPLAT_DBG_ASSERT(Connection->Crypto.TlsState.WriteKeys[QUIC_PACKET_KEY_1_RTT] != NULL);
 
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+    QUIC_PATH_SET* PathSet = &Connection->Paths;
+    for (uint8_t i = 0; i < PathSet->Count; ++i) {
 
-        QUIC_PATH* Path = &Connection->Paths[i];
-        if (!Connection->Paths[i].SendChallenge ||
-            Connection->Paths[i].Allowance < QuicPathGetMinSendAllowance(Path)) {
+        QUIC_PATH* Path = &Connection->Paths.Paths[i];
+        if (!Connection->Paths.Paths[i].SendChallenge ||
+            Connection->Paths.Paths[i].Allowance < QuicPathGetMinSendAllowance(Path)) {
             continue;
         }
 
@@ -2037,7 +2050,7 @@ QuicSendPathChallenges(
             QuicTraceLogConnWarning(
                 PathChallengeBuilderFailed,
                 Connection,
-                "Path[%hhu] could not start a packet for its challenge",
+                "Path[%u] could not start a packet for its challenge",
                 Path->ID);
             Send->SendFlags |= QUIC_CONN_SEND_FLAG_PATH_CHALLENGE;
             continue;
@@ -2163,9 +2176,9 @@ QuicSendObservedAddresses(
 
     CXPLAT_DBG_ASSERT(Connection->Crypto.TlsState.WriteKeys[QUIC_PACKET_KEY_1_RTT] != NULL);
 
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+    for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
 
-        QUIC_PATH* Path = &Connection->Paths[i];
+        QUIC_PATH* Path = &Connection->Paths.Paths[i];
         if (!Path->SendObservedAddress) {
             continue;
         }
@@ -2295,9 +2308,9 @@ QuicSendPathResponses(
 
     CXPLAT_DBG_ASSERT(Connection->Crypto.TlsState.WriteKeys[QUIC_PACKET_KEY_1_RTT] != NULL);
 
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
+    for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
 
-        QUIC_PATH* Path = &Connection->Paths[i];
+        QUIC_PATH* Path = &Connection->Paths.Paths[i];
         if (!Path->SendResponse ||
             Path->Allowance < QuicPathGetMinSendAllowance(Path)) {
             continue;
@@ -2549,8 +2562,8 @@ QuicSendFlush(
     // QuicSendPathMtuProbes will then send on and clear, or will itself re-raise
     // the flag for.
     //
-    for (uint8_t i = 0; i < Connection->PathsCount; ++i) {
-        if (Connection->Paths[i].SendMtuProbe && Connection->Paths[i].IsActive) {
+    for (uint8_t i = 0; i < Connection->Paths.Count; ++i) {
+        if (Connection->Paths.Paths[i].SendMtuProbe && Connection->Paths.Paths[i].IsActive) {
             Send->SendFlags |= QUIC_CONN_SEND_FLAG_DPLPMTUD;
             break;
         }
@@ -2597,8 +2610,8 @@ QuicSendFlush(
         } else {
             uint64_t ThreePtosInUs =
                 QuicLossDetectionComputeProbeTimeout(
-                    &Connection->Paths[0].PathID->LossDetection,
-                    &Connection->Paths[0],
+                    &Connection->Paths.Paths[0].PathID->LossDetection,
+                    &Connection->Paths.Paths[0],
                     QUIC_CLOSE_PTO_COUNT);
             Builder.Path->EcnTestingEndingTime = TimeNow + ThreePtosInUs;
         }
