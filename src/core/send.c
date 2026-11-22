@@ -1871,6 +1871,17 @@ QuicSendPathMtuProbes(
         // "PMTUD always happens after source addr validation", which is the
         // invariant being kept here.
         //
+        //
+        // A path with no path ID has no congestion controller to ask and no
+        // packet number space to send from, so there is nothing to probe with.
+        // The path set holds such a path on purpose while it waits for a free
+        // path ID (#213).
+        //
+        if (Path->PathID == NULL) {
+            Send->SendFlags |= QUIC_CONN_SEND_FLAG_DPLPMTUD;
+            continue;
+        }
+
         if (!Path->IsPeerValidated) {
             Send->SendFlags |= QUIC_CONN_SEND_FLAG_DPLPMTUD;
             continue;

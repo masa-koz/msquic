@@ -106,7 +106,16 @@ QuicPacketBuilderInitialize(
     Builder->EncryptionOverhead = CXPLAT_ENCRYPTION_OVERHEAD;
     Builder->TotalDatagramsLength = 0;
 
-    if (Path->PathID->SourceCids.Next == NULL) {
+    //
+    // A path with no path ID cannot send: there is no source CID to send with
+    // and no packet number space to send from. The path set can hold such a
+    // path on purpose -- QuicConnAssignPathIDs leaves one waiting when no path
+    // ID is free (#213), and a removal can shift one into slot 0, which is what
+    // the non-multipath send path picks unconditionally. The NULL used to be
+    // dereferenced right here; refusing the path hands the caller the answer it
+    // already handles for a path with no source CID.
+    //
+    if (Path->PathID == NULL || Path->PathID->SourceCids.Next == NULL) {
         QuicTraceLogConnWarning(
             NoSrcCidAvailable,
             Connection,
