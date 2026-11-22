@@ -105,7 +105,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
-      <PreprocessorDefinitions>VER_BUILD_ID=$(QUIC_VER_BUILD_ID);VER_SUFFIX=$(QUIC_VER_SUFFIX);VER_GIT_HASH=$(QUIC_VER_GIT_HASH);QUIC_EVENTS_MANIFEST_ETW;QUIC_LOGS_MANIFEST_ETW;SECURITY_KERNEL;SECURITY_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VER_BUILD_ID=$(QUIC_VER_BUILD_ID);VER_SUFFIX=$(QUIC_VER_SUFFIX);VER_GIT_HASH=$(QUIC_VER_GIT_HASH);QUIC_EVENTS_MANIFEST_ETW;QUIC_LOGS_MANIFEST_ETW;SECURITY_KERNEL;SECURITY_WIN32;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</TreatWarningAsError>
     </ClCompile>
