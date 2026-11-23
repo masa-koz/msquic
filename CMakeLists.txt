@@ -930,7 +930,7 @@ elseif(QUIC_TLS_LIB STREQUAL "picotls")
             ${PICOTLS_DIR}/lib/cifra/random.c
             ${PICOTLS_DIR}/lib/cifra/x25519.c)
         foreach(PICOTLS_TARGET picotls-core picotls-minicrypto)
-            target_include_directories(${PICOTLS_TARGET} PUBLIC ${PICOTLS_INCLUDE_DIRS})
+            target_include_directories(${PICOTLS_TARGET} PUBLIC "$<BUILD_INTERFACE:${PICOTLS_INCLUDE_DIRS}>")
             # picotls.h depends on _WINDOWS, so users must see it defined too.
             target_compile_definitions(${PICOTLS_TARGET} PUBLIC _WINDOWS PRIVATE _CRT_SECURE_NO_WARNINGS)
             # Third-party code: don't hold it to msquic's warning level.

@@ -20,6 +20,20 @@ Abstract:
 #endif
 
 //
+// The most certificates a credential may hold.
+//
+#define CXPLAT_PICOTLS_MAX_CERTIFICATES 32
+
+//
+// Silences a code analysis warning the analyzer can't see is wrong.
+//
+#ifdef _MSC_VER
+#define ANALYSIS_SUPPRESS(Warnings) __pragma(warning(suppress:Warnings))
+#else
+#define ANALYSIS_SUPPRESS(Warnings)
+#endif
+
+//
 // DER reading.
 //
 
@@ -325,6 +339,7 @@ CxPlatPicotlsFreeCertificates(
     }
     for (size_t i = 0; i < Count; ++i) {
         if (Certificates[i].base != NULL) {
+ANALYSIS_SUPPRESS(6001) // Every entry below Count is initialized.
             CXPLAT_FREE(Certificates[i].base, QUIC_POOL_TLS_CERT_DER);
         }
     }
@@ -353,6 +368,10 @@ AppendCertificate(
     )
 {
     size_t Count = Credential->CertificateCount;
+    if (Count >= CXPLAT_PICOTLS_MAX_CERTIFICATES) {
+        return Unsupported("More certificates than supported");
+    }
+    CXPLAT_ANALYSIS_ASSUME(Count < CXPLAT_PICOTLS_MAX_CERTIFICATES);
     ptls_iovec_t* List =
         CXPLAT_ALLOC_NONPAGED(sizeof(ptls_iovec_t) * (Count + 1), QUIC_POOL_TLS_CERT_DER);
     if (List == NULL) {
@@ -371,6 +390,7 @@ AppendCertificate(
     }
 
     if (Count != 0) {
+ANALYSIS_SUPPRESS(6386) // List holds Count + 1 entries.
         memcpy(List, Credential->Certificates, sizeof(ptls_iovec_t) * Count);
         CXPLAT_FREE(Credential->Certificates, QUIC_POOL_TLS_CERT_DER);
     }
@@ -514,9 +534,11 @@ PasswordInitialize(
             Result->Bmp = NULL;
             return Unsupported("Password is not UTF-8 in the Basic Multilingual Plane");
         }
+        CXPLAT_ANALYSIS_ASSUME(Out + 2 <= 2 * Utf8Length);
         Result->Bmp[Out++] = (uint8_t)(CodePoint >> 8);
         Result->Bmp[Out++] = (uint8_t)CodePoint;
     }
+    CXPLAT_ANALYSIS_ASSUME(Out <= 2 * Utf8Length);
     Result->Bmp[Out++] = 0;
     Result->Bmp[Out++] = 0;
     Result->BmpLength = Out;
@@ -572,13 +594,17 @@ Pkcs12Kdf(
     //
     // Buffer holds D || I.
     //
-    uint8_t* Buffer = CXPLAT_ALLOC_NONPAGED(v + ILength, QUIC_POOL_TLS_PFX);
+    if (u == 0 || v == 0 || SaltLength > 0xFFFF || Password->BmpLength > 0xFFFF) {
+        return Unsupported("PKCS#12 KDF parameters");
+    }
+    const size_t BufferLength = v + ILength;
+    uint8_t* Buffer = CXPLAT_ALLOC_NONPAGED(BufferLength, QUIC_POOL_TLS_PFX);
     if (Buffer == NULL) {
         QuicTraceEvent(
             AllocFailure,
             "Allocation of '%s' failed. (%llu bytes)",
             "PKCS#12 KDF",
-            (uint64_t)(v + ILength));
+            (uint64_t)BufferLength);
         return QUIC_STATUS_OUT_OF_MEMORY;
     }
     uint8_t* I = Buffer + v;
@@ -591,7 +617,7 @@ Pkcs12Kdf(
     }
 
     while (OutputLength > 0) {
-        Status = CxPlatPicotlsCryptoHash(Crypto, Hash, Buffer, v + ILength, A);
+        Status = CxPlatPicotlsCryptoHash(Crypto, Hash, Buffer, BufferLength, A);
         for (uint32_t r = 1; QUIC_SUCCEEDED(Status) && r < Iterations; ++r) {
             Status = CxPlatPicotlsCryptoHash(Crypto, Hash, A, u, A);
         }
@@ -626,7 +652,7 @@ Pkcs12Kdf(
 
     CxPlatPicotlsSecureZero(A, sizeof(A));
     CxPlatPicotlsSecureZero(B, sizeof(B));
-    FreeSecret(Buffer, v + ILength);
+    FreeSecret(Buffer, BufferLength);
     return Status;
 }
 
@@ -644,7 +670,7 @@ PbeDecrypt(
     _In_ const CXPLAT_PICOTLS_PASSWORD* Password,
     _In_reads_bytes_(DataLength) const uint8_t* Data,
     _In_ size_t DataLength,
-    _Outptr_result_buffer_(*PlaintextLength) uint8_t** Plaintext,
+    _Outptr_result_buffer_maybenull_(*PlaintextLength) uint8_t** Plaintext,
     _Out_ size_t* PlaintextLength,
     _Out_ BOOLEAN* BadPassword
     )
@@ -838,7 +864,7 @@ DecryptPrivateKeyInfo(
     _Inout_ CXPLAT_PICOTLS_CRYPTO* Crypto,
     _In_ CXPLAT_DER EncryptedPrivateKeyInfo,
     _In_ const CXPLAT_PICOTLS_PASSWORD* Password,
-    _Outptr_result_buffer_(*KeyDerLength) uint8_t** KeyDer,
+    _Outptr_result_buffer_maybenull_(*KeyDerLength) uint8_t** KeyDer,
     _Out_ size_t* KeyDerLength,
     _Out_ BOOLEAN* BadPassword
     )
@@ -889,7 +915,7 @@ static
 void
 ReadLocalKeyId(
     _In_ CXPLAT_DER Attributes,
-    _Out_writes_bytes_(PKCS12_MAX_KEY_ID_LENGTH) uint8_t* KeyId,
+    _Out_writes_bytes_to_(PKCS12_MAX_KEY_ID_LENGTH, *KeyIdLength) uint8_t* KeyId,
     _Out_ uint8_t* KeyIdLength
     )
 {
@@ -919,6 +945,10 @@ Pkcs12AddCertificate(
     )
 {
     size_t Count = State->Found.CertificateCount;
+    if (Count >= CXPLAT_PICOTLS_MAX_CERTIFICATES || KeyIdLength > PKCS12_MAX_KEY_ID_LENGTH) {
+        return Unsupported("More certificates than supported");
+    }
+    CXPLAT_ANALYSIS_ASSUME(Count < CXPLAT_PICOTLS_MAX_CERTIFICATES);
     uint8_t (*KeyIds)[PKCS12_MAX_KEY_ID_LENGTH] =
         CXPLAT_ALLOC_NONPAGED((Count + 1) * PKCS12_MAX_KEY_ID_LENGTH, QUIC_POOL_TLS_PFX);
     uint8_t* KeyIdLengths = CXPLAT_ALLOC_NONPAGED(Count + 1, QUIC_POOL_TLS_PFX);
@@ -938,13 +968,16 @@ Pkcs12AddCertificate(
     }
     if (Count != 0) {
         memcpy(KeyIds, State->CertKeyIds, Count * PKCS12_MAX_KEY_ID_LENGTH);
+ANALYSIS_SUPPRESS(6386) // KeyIdLengths holds Count + 1 entries.
         memcpy(KeyIdLengths, State->CertKeyIdLengths, Count);
         CXPLAT_FREE(State->CertKeyIds, QUIC_POOL_TLS_PFX);
         CXPLAT_FREE(State->CertKeyIdLengths, QUIC_POOL_TLS_PFX);
     }
     State->CertKeyIds = KeyIds;
     State->CertKeyIdLengths = KeyIdLengths;
+ANALYSIS_SUPPRESS(6385 6386) // Both arrays hold Count + 1 entries.
     memcpy(KeyIds[Count], KeyId, KeyIdLength);
+ANALYSIS_SUPPRESS(6386)
     KeyIdLengths[Count] = KeyIdLength;
 
     QUIC_STATUS Status = AppendCertificate(&State->Found, Der.Data, Der.Length);
@@ -1422,6 +1455,7 @@ DecodeRsaPrivateKey(
     CXPLAT_DER Sequence;
     uint32_t Version;
     ptls_iovec_t PrivateExponent;
+    CxPlatZeroMemory(Key, sizeof(*Key));
     if (!DerExpect(&Input, DER_SEQUENCE, &Sequence) ||
         !DerUint32(&Sequence, &Version)) {
         return Malformed("Malformed RSAPrivateKey");
@@ -1478,6 +1512,7 @@ DecodeEcPrivateKey(
     //
     CXPLAT_DER Sequence, PrivateKey, Field;
     uint32_t Version;
+    CxPlatZeroMemory(Key, sizeof(*Key));
     if (!DerExpect(&Input, DER_SEQUENCE, &Sequence) ||
         !DerUint32(&Sequence, &Version) ||
         Version != 1 ||
@@ -1621,7 +1656,7 @@ PemNext(
     _In_ const char* End,
     _Out_ const char** Label,
     _Out_ size_t* LabelLength,
-    _Outptr_result_buffer_(*DerLength) uint8_t** Der,
+    _Outptr_result_buffer_maybenull_(*DerLength) uint8_t** Der,
     _Out_ size_t* DerLength
     )
 {
