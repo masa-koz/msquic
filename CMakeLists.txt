@@ -898,17 +898,20 @@ elseif(QUIC_TLS_LIB STREQUAL "picotls")
     if (WIN32)
         # picotls's own CMake project needs pkg-config and builds its tests and
         # tools, which don't build with MSVC. Build just the two libraries, from
-        # the same sources as the kernel-mode projects (cifra.kernel.vcxproj and
-        # picotls-minicrypto.kernel.vcxproj).
+        # the sources of the kernel-mode projects (cifra.kernel.vcxproj and
+        # picotls-minicrypto.kernel.vcxproj) plus what user mode adds:
+        # gettimeofday and secp256r1 (micro-ecc).
         set(PICOTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/picotls)
         set(PICOTLS_INCLUDE_DIRS
             ${PICOTLS_DIR}/include
             ${PICOTLS_DIR}/picotlsvs/picotls
             ${PICOTLS_DIR}/deps/cifra/src
-            ${PICOTLS_DIR}/deps/cifra/src/ext)
+            ${PICOTLS_DIR}/deps/cifra/src/ext
+            ${PICOTLS_DIR}/deps/micro-ecc)
         add_library(picotls-core STATIC
             ${PICOTLS_DIR}/lib/hpke.c
-            ${PICOTLS_DIR}/lib/picotls.c)
+            ${PICOTLS_DIR}/lib/picotls.c
+            ${PICOTLS_DIR}/picotlsvs/picotls/wintimeofday.c)
         add_library(picotls-minicrypto STATIC
             ${PICOTLS_DIR}/deps/cifra/src/aes.c
             ${PICOTLS_DIR}/deps/cifra/src/blockwise.c
@@ -928,7 +931,9 @@ elseif(QUIC_TLS_LIB STREQUAL "picotls")
             ${PICOTLS_DIR}/lib/cifra/aes256.c
             ${PICOTLS_DIR}/lib/cifra/chacha20.c
             ${PICOTLS_DIR}/lib/cifra/random.c
-            ${PICOTLS_DIR}/lib/cifra/x25519.c)
+            ${PICOTLS_DIR}/lib/cifra/x25519.c
+            ${PICOTLS_DIR}/deps/micro-ecc/uECC.c
+            ${PICOTLS_DIR}/lib/uecc.c)
         foreach(PICOTLS_TARGET picotls-core picotls-minicrypto)
             target_include_directories(${PICOTLS_TARGET} PUBLIC "$<BUILD_INTERFACE:${PICOTLS_INCLUDE_DIRS}>")
             # picotls.h depends on _WINDOWS, so users must see it defined too.

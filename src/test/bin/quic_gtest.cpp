@@ -183,7 +183,9 @@ public:
                     ClientPfx.size());
                 ASSERT_TRUE(
                     DriverClient.Run(
-                        IOCTL_QUIC_SET_CERT_PKCS12, Buffer.data(), (uint32_t)Buffer.size()));
+                        IOCTL_QUIC_SET_CERT_PKCS12,
+                        (void*)Buffer.data(),
+                        (uint32_t)Buffer.size()));
             }
 #endif
 
