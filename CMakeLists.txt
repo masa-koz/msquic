@@ -441,6 +441,13 @@ if(QUIC_TLS_LIB STREQUAL "schannel")
     list(APPEND QUIC_COMMON_DEFINES QUIC_ENABLE_ANON_CLIENT_AUTH_TESTS)
 endif()
 
+if(QUIC_TLS_LIB STREQUAL "picotls" AND WIN32)
+    # picotls on Windows uses crypt_bcrypt.c, which, as with Schannel, can't
+    # compute ChaCha20 header protection masks.
+    message(STATUS "Disabling ChaCha20 support")
+    list(APPEND QUIC_COMMON_DEFINES QUIC_DISABLE_CHACHA20_TESTS)
+endif()
+
 if(QUIC_TLS_LIB STREQUAL "quictls" OR QUIC_TLS_LIB STREQUAL "openssl")
     message(STATUS "Enabling quictls/openssl configuration tests")
     list(APPEND QUIC_COMMON_DEFINES QUIC_TEST_OPENSSL_FLAGS=1)
