@@ -895,11 +895,56 @@ elseif(QUIC_TLS_LIB STREQUAL "picotls")
 
     include(FetchContent)
 
-    FetchContent_Declare(
-        PicoTLSSubmodule
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/picotls
-    )
-    FetchContent_MakeAvailable(PicoTLSSubmodule)
+    if (WIN32)
+        # picotls's own CMake project needs pkg-config and builds its tests and
+        # tools, which don't build with MSVC. Build just the two libraries, from
+        # the same sources as the kernel-mode projects (cifra.kernel.vcxproj and
+        # picotls-minicrypto.kernel.vcxproj).
+        set(PICOTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/picotls)
+        set(PICOTLS_INCLUDE_DIRS
+            ${PICOTLS_DIR}/include
+            ${PICOTLS_DIR}/picotlsvs/picotls
+            ${PICOTLS_DIR}/deps/cifra/src
+            ${PICOTLS_DIR}/deps/cifra/src/ext)
+        add_library(picotls-core STATIC
+            ${PICOTLS_DIR}/lib/hpke.c
+            ${PICOTLS_DIR}/lib/picotls.c)
+        add_library(picotls-minicrypto STATIC
+            ${PICOTLS_DIR}/deps/cifra/src/aes.c
+            ${PICOTLS_DIR}/deps/cifra/src/blockwise.c
+            ${PICOTLS_DIR}/deps/cifra/src/chacha20.c
+            ${PICOTLS_DIR}/deps/cifra/src/chash.c
+            ${PICOTLS_DIR}/deps/cifra/src/curve25519.c
+            ${PICOTLS_DIR}/deps/cifra/src/drbg.c
+            ${PICOTLS_DIR}/deps/cifra/src/gcm.c
+            ${PICOTLS_DIR}/deps/cifra/src/gf128.c
+            ${PICOTLS_DIR}/deps/cifra/src/hmac.c
+            ${PICOTLS_DIR}/deps/cifra/src/modes.c
+            ${PICOTLS_DIR}/deps/cifra/src/poly1305.c
+            ${PICOTLS_DIR}/deps/cifra/src/sha256.c
+            ${PICOTLS_DIR}/deps/cifra/src/sha512.c
+            ${PICOTLS_DIR}/lib/cifra.c
+            ${PICOTLS_DIR}/lib/cifra/aes128.c
+            ${PICOTLS_DIR}/lib/cifra/aes256.c
+            ${PICOTLS_DIR}/lib/cifra/chacha20.c
+            ${PICOTLS_DIR}/lib/cifra/random.c
+            ${PICOTLS_DIR}/lib/cifra/x25519.c)
+        foreach(PICOTLS_TARGET picotls-core picotls-minicrypto)
+            target_include_directories(${PICOTLS_TARGET} PUBLIC ${PICOTLS_INCLUDE_DIRS})
+            # picotls.h depends on _WINDOWS, so users must see it defined too.
+            target_compile_definitions(${PICOTLS_TARGET} PUBLIC _WINDOWS PRIVATE _CRT_SECURE_NO_WARNINGS)
+            # Third-party code: don't hold it to msquic's warning level.
+            target_compile_options(${PICOTLS_TARGET} PRIVATE /W1)
+            set_property(TARGET ${PICOTLS_TARGET} PROPERTY FOLDER "${QUIC_FOLDER_PREFIX}libraries")
+        endforeach()
+        target_link_libraries(picotls-minicrypto PUBLIC picotls-core bcrypt)
+    else()
+        FetchContent_Declare(
+            PicoTLSSubmodule
+            SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/picotls
+        )
+        FetchContent_MakeAvailable(PicoTLSSubmodule)
+    endif()
 
     add_library(OpenSSL INTERFACE)
 

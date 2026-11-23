@@ -1107,6 +1107,22 @@ typedef struct {
     QUIC_CTL_CODE(1, METHOD_BUFFERED, FILE_WRITE_DATA)
     // QUIC_RUN_CERTIFICATE_PARAMS
 
+// Set the same certificates as PKCS#12 blobs, for TLS providers that can't
+// reach the certificate store from kernel mode (picotls). Optional: sent after
+// IOCTL_QUIC_SET_CERT_PARAMS, and ignored by a driver using Schannel.
+
+#define QUIC_TEST_PKCS12_PASSWORD "msquic-test"
+
+typedef struct {
+    uint32_t ServerPfxLength;
+    uint32_t ClientPfxLength;
+    // Followed by the server PFX, then the client PFX.
+} QUIC_RUN_CERTIFICATE_PKCS12_PARAMS;
+
+#define IOCTL_QUIC_SET_CERT_PKCS12 \
+    QUIC_CTL_CODE(3, METHOD_BUFFERED, FILE_WRITE_DATA)
+    // QUIC_RUN_CERTIFICATE_PKCS12_PARAMS
+
 // Generic IOCTL for invoking functions 
 
 struct QUIC_RUN_TEST_REQUEST {

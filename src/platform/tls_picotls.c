@@ -14,6 +14,13 @@
 #include "openssl/pkcs12.h"
 #include "openssl/rsa.h"
 #include "openssl/x509.h"
+#else
+//
+// On Windows (user and kernel mode) they are loaded and used with BCrypt, or
+// NCrypt for keys held by a certificate store. See picotls_cert.h.
+//
+#define CXPLAT_PICOTLS_WINDOWS_CERTS 1
+#include "picotls_cert.h"
 #endif
 #ifdef QUIC_CLOG
 #include "tls_picotls.c.clog.h"
@@ -39,6 +46,12 @@ typedef struct CXPLAT_SEC_CONFIG {
     // Private key used to sign the CertificateVerify message.
     //
     EVP_PKEY* PrivateKey;
+#endif
+#ifdef CXPLAT_PICOTLS_WINDOWS_CERTS
+    //
+    // Signs the CertificateVerify message.
+    //
+    CXPLAT_PICOTLS_SIGNER* Signer;
 #endif
 
     //
@@ -626,6 +639,41 @@ Exit:
 
 #endif // CXPLAT_PICOTLS_OPENSSL_CERTS
 
+#ifdef CXPLAT_PICOTLS_WINDOWS_CERTS
+
+//
+// Signs the server's CertificateVerify. Signing is always synchronous, so the
+// async job slot is never used.
+//
+static
+int
+CxPlatTlsSignCertificateCallback(
+    _In_ ptls_sign_certificate_t* Self,
+    _In_ ptls_t* Tls,
+    _Inout_opt_ ptls_async_job_t** Async,
+    _Out_ uint16_t* SelectedAlgorithm,
+    _Inout_ ptls_buffer_t* Output,
+    _In_ ptls_iovec_t Input,
+    _In_reads_(NumAlgorithms) const uint16_t* Algorithms,
+    _In_ size_t NumAlgorithms
+    )
+{
+    UNREFERENCED_PARAMETER(Tls);
+    UNREFERENCED_PARAMETER(Async);
+    CXPLAT_SEC_CONFIG* SecConfig =
+        CXPLAT_CONTAINING_RECORD(Self, CXPLAT_SEC_CONFIG, SignCertificate);
+    return
+        CxPlatPicotlsSign(
+            SecConfig->Signer,
+            Input,
+            Algorithms,
+            NumAlgorithms,
+            SelectedAlgorithm,
+            Output);
+}
+
+#endif // CXPLAT_PICOTLS_WINDOWS_CERTS
+
 _IRQL_requires_max_(PASSIVE_LEVEL)
 QUIC_STATUS
 CxPlatTlsSecConfigCreate(
@@ -652,7 +700,8 @@ CxPlatTlsSecConfigCreate(
             return QUIC_STATUS_INVALID_PARAMETER; // Server requires a certificate.
         }
         break;
-#ifdef CXPLAT_PICOTLS_OPENSSL_CERTS
+#if defined(CXPLAT_PICOTLS_OPENSSL_CERTS) || \
+    (defined(CXPLAT_PICOTLS_WINDOWS_CERTS) && !defined(_KERNEL_MODE))
     case QUIC_CREDENTIAL_TYPE_CERTIFICATE_FILE:
         if (CredConfig->CertificateFile == NULL ||
             CredConfig->CertificateFile->CertificateFile == NULL ||
@@ -668,6 +717,14 @@ CxPlatTlsSecConfigCreate(
             return QUIC_STATUS_INVALID_PARAMETER;
         }
         break;
+#endif
+#if defined(CXPLAT_PICOTLS_WINDOWS_CERTS) && !defined(_KERNEL_MODE)
+    case QUIC_CREDENTIAL_TYPE_CERTIFICATE_HASH:
+    case QUIC_CREDENTIAL_TYPE_CERTIFICATE_HASH_STORE:
+    case QUIC_CREDENTIAL_TYPE_CERTIFICATE_CONTEXT:
+        break; // Checked when the certificate is looked up.
+#endif
+#if defined(CXPLAT_PICOTLS_OPENSSL_CERTS) || defined(CXPLAT_PICOTLS_WINDOWS_CERTS)
     case QUIC_CREDENTIAL_TYPE_CERTIFICATE_PKCS12:
         if (CredConfig->CertificatePkcs12 == NULL ||
             CredConfig->CertificatePkcs12->Asn1Blob == NULL ||
@@ -744,6 +801,21 @@ CxPlatTlsSecConfigCreate(
         SecurityConfig->Ctx.sign_certificate = &SecurityConfig->SignCertificate;
     }
 #endif
+#ifdef CXPLAT_PICOTLS_WINDOWS_CERTS
+    if (CredConfig->Type != QUIC_CREDENTIAL_TYPE_NONE) {
+        Status =
+            CxPlatPicotlsLoadCredential(
+                CredConfig,
+                &SecurityConfig->Ctx.certificates.list,
+                &SecurityConfig->Ctx.certificates.count,
+                &SecurityConfig->Signer);
+        if (QUIC_FAILED(Status)) {
+            goto Exit;
+        }
+        SecurityConfig->SignCertificate.cb = CxPlatTlsSignCertificateCallback;
+        SecurityConfig->Ctx.sign_certificate = &SecurityConfig->SignCertificate;
+    }
+#endif
 
     //
     // Invoke completion inline.
@@ -786,6 +858,14 @@ CxPlatTlsSecConfigDelete(
     }
     if (SecurityConfig->PrivateKey != NULL) {
         EVP_PKEY_free(SecurityConfig->PrivateKey);
+    }
+#endif
+#ifdef CXPLAT_PICOTLS_WINDOWS_CERTS
+    CxPlatPicotlsFreeCertificates(
+        SecurityConfig->Ctx.certificates.list,
+        SecurityConfig->Ctx.certificates.count);
+    if (SecurityConfig->Signer != NULL) {
+        CxPlatPicotlsSignerFree(SecurityConfig->Signer);
     }
 #endif
     CXPLAT_FREE(SecurityConfig, QUIC_POOL_TLS_SECCONF);

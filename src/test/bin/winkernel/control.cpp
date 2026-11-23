@@ -28,6 +28,8 @@ QUIC_CREDENTIAL_CONFIG ServerSelfSignedCredConfigClientAuth;
 QUIC_CREDENTIAL_CONFIG ClientCertCredConfig;
 QUIC_CERTIFICATE_HASH SelfSignedCertHash;
 QUIC_CERTIFICATE_HASH ClientCertHash;
+QUIC_CERTIFICATE_PKCS12 ServerCertPkcs12;
+QUIC_CERTIFICATE_PKCS12 ClientCertPkcs12;
 bool UseDuoNic = false;
 
 #ifdef PRIVATE_LIBRARY
@@ -243,6 +245,15 @@ QuicTestCtlUninitialize(
     }
 
     delete MsQuic;
+
+    if (ServerCertPkcs12.Asn1Blob != nullptr) {
+        CXPLAT_FREE(ServerCertPkcs12.Asn1Blob, QUIC_POOL_TEST);
+        ServerCertPkcs12.Asn1Blob = nullptr;
+    }
+    if (ClientCertPkcs12.Asn1Blob != nullptr) {
+        CXPLAT_FREE(ClientCertPkcs12.Asn1Blob, QUIC_POOL_TEST);
+        ClientCertPkcs12.Asn1Blob = nullptr;
+    }
 
     if (NmrClient != nullptr) {
         MsQuicNmrClientDeregister(&NmrClient);
@@ -816,6 +827,90 @@ QuicTestCtlEvtIoDeviceControl(
         ClientCertCredConfig.Flags = QUIC_CREDENTIAL_FLAG_CLIENT | QUIC_CREDENTIAL_FLAG_NO_CERTIFICATE_VALIDATION;
         ClientCertCredConfig.CertificateHash = &ClientCertHash;
         RtlCopyMemory(&ClientCertHash.ShaHash, &CertParams->ClientCertHash, sizeof(QUIC_CERTIFICATE_HASH));
+
+        Status = QUIC_STATUS_SUCCESS;
+        break;
+    }
+
+    case IOCTL_QUIC_SET_CERT_PKCS12:
+    {
+        QUIC_RUN_CERTIFICATE_PKCS12_PARAMS* Pkcs12Params{};
+        size_t Length{};
+        Status =
+            WdfRequestRetrieveInputBuffer(
+                Request, sizeof(*Pkcs12Params), reinterpret_cast<void**>(&Pkcs12Params), &Length);
+        if (!NT_SUCCESS(Status)) {
+            QuicTraceEvent(
+                LibraryErrorStatus,
+                "[ lib] ERROR, %u, %s.",
+                Status,
+                "WdfRequestRetrieveInputBuffer failed for IOCTL_QUIC_SET_CERT_PKCS12");
+            break;
+        }
+        if (Pkcs12Params->ServerPfxLength == 0 ||
+            Pkcs12Params->ClientPfxLength == 0 ||
+            Length - sizeof(*Pkcs12Params) <
+                (size_t)Pkcs12Params->ServerPfxLength + Pkcs12Params->ClientPfxLength) {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Only picotls uses them: Schannel finds the certificates by hash.
+        //
+        QUIC_TLS_PROVIDER Provider = QUIC_TLS_PROVIDER_SCHANNEL;
+        uint32_t ProviderLength = sizeof(Provider);
+        if (QUIC_FAILED(
+                MsQuic->GetParam(
+                    nullptr,
+                    QUIC_PARAM_GLOBAL_TLS_PROVIDER,
+                    &ProviderLength,
+                    &Provider)) ||
+            Provider != QUIC_TLS_PROVIDER_PICOTLS) {
+            Status = QUIC_STATUS_SUCCESS;
+            break;
+        }
+
+        const uint8_t* Blobs = (const uint8_t*)(Pkcs12Params + 1);
+        uint8_t* ServerBlob =
+            (uint8_t*)CXPLAT_ALLOC_NONPAGED(Pkcs12Params->ServerPfxLength, QUIC_POOL_TEST);
+        uint8_t* ClientBlob =
+            (uint8_t*)CXPLAT_ALLOC_NONPAGED(Pkcs12Params->ClientPfxLength, QUIC_POOL_TEST);
+        if (ServerBlob == nullptr || ClientBlob == nullptr) {
+            if (ServerBlob != nullptr) {
+                CXPLAT_FREE(ServerBlob, QUIC_POOL_TEST);
+            }
+            if (ClientBlob != nullptr) {
+                CXPLAT_FREE(ClientBlob, QUIC_POOL_TEST);
+            }
+            Status = STATUS_INSUFFICIENT_RESOURCES;
+            break;
+        }
+        RtlCopyMemory(ServerBlob, Blobs, Pkcs12Params->ServerPfxLength);
+        RtlCopyMemory(
+            ClientBlob,
+            Blobs + Pkcs12Params->ServerPfxLength,
+            Pkcs12Params->ClientPfxLength);
+
+        if (ServerCertPkcs12.Asn1Blob != nullptr) {
+            CXPLAT_FREE(ServerCertPkcs12.Asn1Blob, QUIC_POOL_TEST);
+        }
+        if (ClientCertPkcs12.Asn1Blob != nullptr) {
+            CXPLAT_FREE(ClientCertPkcs12.Asn1Blob, QUIC_POOL_TEST);
+        }
+        ServerCertPkcs12.Asn1Blob = ServerBlob;
+        ServerCertPkcs12.Asn1BlobLength = Pkcs12Params->ServerPfxLength;
+        ServerCertPkcs12.PrivateKeyPassword = QUIC_TEST_PKCS12_PASSWORD;
+        ClientCertPkcs12.Asn1Blob = ClientBlob;
+        ClientCertPkcs12.Asn1BlobLength = Pkcs12Params->ClientPfxLength;
+        ClientCertPkcs12.PrivateKeyPassword = QUIC_TEST_PKCS12_PASSWORD;
+
+        ServerSelfSignedCredConfig.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_PKCS12;
+        ServerSelfSignedCredConfig.CertificatePkcs12 = &ServerCertPkcs12;
+        ServerSelfSignedCredConfigClientAuth.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_PKCS12;
+        ServerSelfSignedCredConfigClientAuth.CertificatePkcs12 = &ServerCertPkcs12;
+        ClientCertCredConfig.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_PKCS12;
+        ClientCertCredConfig.CertificatePkcs12 = &ClientCertPkcs12;
 
         Status = QUIC_STATUS_SUCCESS;
         break;
