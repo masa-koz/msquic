@@ -21,9 +21,9 @@ Abstract:
 
 #include "platform_internal.h"
 #include "picotls_cert.h"
+#include <limits.h>
 #ifndef _KERNEL_MODE
 #include <wincrypt.h>
-#include "quic_cert.h"
 #endif
 #ifdef QUIC_CLOG
 #include "picotls_cert_win.c.clog.h"
@@ -143,7 +143,7 @@ HashData(
     BCRYPT_HASH_HANDLE Hash = NULL;
     NTSTATUS Status;
 
-    if (DataLength > MAXULONG) {
+    if (DataLength > ULONG_MAX) {
         return QUIC_STATUS_INVALID_PARAMETER;
     }
 
@@ -206,7 +206,7 @@ CxPlatPicotlsCryptoHmac(
     _Out_writes_bytes_(64) uint8_t* Output
     )
 {
-    if (KeyLength > MAXULONG) {
+    if (KeyLength > ULONG_MAX) {
         return QUIC_STATUS_INVALID_PARAMETER;
     }
     QUIC_STATUS Status =
@@ -236,7 +236,7 @@ CxPlatPicotlsCryptoPbkdf2(
 {
     static UCHAR Empty = 0;
 
-    if (PasswordLength > MAXULONG || SaltLength > MAXULONG || OutputLength > MAXULONG) {
+    if (PasswordLength > ULONG_MAX || SaltLength > ULONG_MAX || OutputLength > ULONG_MAX) {
         return QUIC_STATUS_INVALID_PARAMETER;
     }
     QUIC_STATUS Status =
@@ -287,7 +287,7 @@ CxPlatPicotlsCryptoCbcDecrypt(
     ULONG Result = 0;
     NTSTATUS NtStatus;
 
-    if (KeyLength > 32 || IvLength > sizeof(IvCopy) || Length > MAXULONG) {
+    if (KeyLength > 32 || IvLength > sizeof(IvCopy) || Length > ULONG_MAX) {
         return QUIC_STATUS_INVALID_PARAMETER;
     }
 

@@ -394,6 +394,7 @@ ANALYSIS_SUPPRESS(6386) // List holds Count + 1 entries.
         memcpy(List, Credential->Certificates, sizeof(ptls_iovec_t) * Count);
         CXPLAT_FREE(Credential->Certificates, QUIC_POOL_TLS_CERT_DER);
     }
+ANALYSIS_SUPPRESS(6386) // List holds Count + 1 entries.
     List[Count] = ptls_iovec_init(Copy, Length);
     Credential->Certificates = List;
     Credential->CertificateCount = Count + 1;
@@ -538,8 +539,13 @@ PasswordInitialize(
         Result->Bmp[Out++] = (uint8_t)(CodePoint >> 8);
         Result->Bmp[Out++] = (uint8_t)CodePoint;
     }
-    CXPLAT_ANALYSIS_ASSUME(Out <= 2 * Utf8Length);
+    //
+    // Each character takes at most as many bytes in UTF-16 as in UTF-8, so
+    // Out <= 2 * Utf8Length here.
+    //
+ANALYSIS_SUPPRESS(6386)
     Result->Bmp[Out++] = 0;
+ANALYSIS_SUPPRESS(6386)
     Result->Bmp[Out++] = 0;
     Result->BmpLength = Out;
     return QUIC_STATUS_SUCCESS;
@@ -608,6 +614,7 @@ Pkcs12Kdf(
         return QUIC_STATUS_OUT_OF_MEMORY;
     }
     uint8_t* I = Buffer + v;
+ANALYSIS_SUPPRESS(6386) // BufferLength is v + ILength.
     memset(Buffer, Id, v);
     for (size_t i = 0; i < SLength; ++i) {
         I[i] = Salt[i % SaltLength];
@@ -1772,7 +1779,7 @@ CxPlatPicotlsParsePemCertificates(
         if (QUIC_FAILED(Status)) {
             return Status;
         }
-        if (LabelIs(Label, LabelLength, "CERTIFICATE")) {
+        if (Der != NULL && LabelIs(Label, LabelLength, "CERTIFICATE")) {
             Status = AppendCertificate(Credential, Der, DerLength);
         }
         FreeSecret(Der, DerLength);
