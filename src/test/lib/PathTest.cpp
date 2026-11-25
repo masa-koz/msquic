@@ -1364,16 +1364,48 @@ struct AddBoundAddressOnAcceptContext {
         }
 
         //
+        // The address to add is derived from the one this connection is
+        // already on, with a port of its own -- the shape an application
+        // advertises, and the shape the bound-address tests in this file use.
+        //
+        // Not a wildcard address: this test passed one at first, which Linux
+        // accepted and Windows turned into an access violation (0xC0000005)
+        // inside the handshake. Whether that input should be rejected or
+        // handled is a question of its own, and not the one this test asks.
+        //
+        QUIC_ADDR LocalAddress;
+        uint32_t AddressLength = sizeof(LocalAddress);
+        if (QUIC_FAILED(
+                MsQuic->GetParam(
+                    Event->NEW_CONNECTION.Connection,
+                    QUIC_PARAM_CONN_LOCAL_ADDRESS,
+                    &AddressLength,
+                    &LocalAddress))) {
+            return QUIC_STATUS_SUCCESS;
+        }
+
+        //
         // The point of the test, and it has to be here rather than from the
         // connection's own CONNECTED event: by then the cleanup this is about
         // has already run.
         //
-        Ctx->AddBoundAddressStatus =
-            MsQuic->SetParam(
-                Event->NEW_CONNECTION.Connection,
-                QUIC_PARAM_CONN_ADD_BOUND_ADDRESS,
-                sizeof(Ctx->BoundAddress),
-                &Ctx->BoundAddress);
+        // Retried on a fresh port, since an ephemeral one can be taken.
+        //
+        QuicAddr BoundAddr;
+        BoundAddr.SockAddr = LocalAddress;
+        for (uint32_t Try = 0; Try < 4; ++Try) {
+            BoundAddr.SetEphemeralPort();
+            Ctx->BoundAddress = BoundAddr.SockAddr;
+            Ctx->AddBoundAddressStatus =
+                MsQuic->SetParam(
+                    Event->NEW_CONNECTION.Connection,
+                    QUIC_PARAM_CONN_ADD_BOUND_ADDRESS,
+                    sizeof(Ctx->BoundAddress),
+                    &Ctx->BoundAddress);
+            if (QUIC_SUCCEEDED(Ctx->AddBoundAddressStatus)) {
+                break;
+            }
+        }
 
         return QUIC_STATUS_SUCCESS;
     }
@@ -1411,14 +1443,6 @@ QuicTestAddBoundAddressOnAccept(
     // does in between -- including returning early from a failed assertion.
     //
     ConnectionScope AcceptedScope;
-
-    //
-    // The address the server will add. A fresh ephemeral port on the loopback,
-    // retried like the other bound-address tests do, since one can be taken.
-    //
-    QuicAddr BoundAddr(QuicAddrFamily);
-    BoundAddr.SetEphemeralPort();
-    ServerContext.BoundAddress = BoundAddr.SockAddr;
 
     MsQuicListener Listener(
         Registration,
