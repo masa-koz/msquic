@@ -220,6 +220,13 @@ QuicConnAlloc(
         }
         SourceCid->CID.IsInitial = TRUE;
         SourceCid->CID.UsedByPeer = TRUE;
+        //
+        // This is the one the handshake-confirmed cleanup in
+        // QuicCryptoProcessTlsCompletion goes looking for, and here is the only
+        // place that knows which it is: Packet is the Initial that created the
+        // connection, whatever came before it.
+        //
+        SourceCid->CID.IsClientChosen = TRUE;
         QuicPathIDAddSourceCID(PathID, SourceCid, TRUE);
 
         //

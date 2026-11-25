@@ -604,6 +604,7 @@ ExecuteTestRequest(
     RegisterTestFunction(QuicTestAddressDiscovery);
     RegisterTestFunction(QuicTestServerProbePath);
     RegisterTestFunction(QuicTestServerMigration);
+    RegisterTestFunction(QuicTestAddBoundAddressOnAccept);
     RegisterTestFunction(QuicTestMultipath);
     RegisterTestFunction(QuicTestMultipathUnsharedBinding);
     RegisterTestFunction(QuicTestMultipathPathDeath);

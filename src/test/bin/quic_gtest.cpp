@@ -950,6 +950,15 @@ TEST_P(WithFamilyArgs, LocalPathChanges) {
 }
 
 #ifdef QUIC_API_ENABLE_PREVIEW_FEATURES
+TEST_P(WithFamilyArgs, AddBoundAddressOnAccept) {
+    TestLoggerT<ParamType> Logger("QuicTestAddBoundAddressOnAccept", GetParam());
+    if (TestingKernelMode) {
+        ASSERT_TRUE(InvokeKernelTest(FUNC(QuicTestAddBoundAddressOnAccept), GetParam()));
+    } else {
+        QuicTestAddBoundAddressOnAccept(GetParam());
+    }
+}
+
 TEST_P(WithFamilyArgs, Multipath) {
     TestLoggerT<ParamType> Logger("QuicTestMultipath", GetParam());
     if (TestingKernelMode) {

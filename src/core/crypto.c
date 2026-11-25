@@ -1677,44 +1677,42 @@ QuicCryptoProcessTlsCompletion(
             // upstream's #6476 replaced the equivalent assumption after a
             // 0-RTT handshake could leave another CID ahead of this one.
             //
-            // **Identified by the CID the client actually chose, because
-            // nothing about its registrations identifies it on this fork.**
-            // Upstream can say "the one marked IsInitial and absent from the
-            // lookup table": there the client-chosen CID is never registered.
-            // Here it can be. An application that adds a bound address to a
-            // connection sharing its binding has every source CID of the
-            // connection registered on the new binding
-            // (QuicBindingAddAllSourceConnectionIDs), the client-chosen one
-            // included -- and QUIC_PARAM_CONN_ADD_BOUND_ADDRESS is called on a
-            // freshly accepted connection, so it races this cleanup. Testing
-            // the registrations then found nothing at all: a debug build
-            // asserted here, and a release build left the CID in the list and
-            // in the lookup table for the life of the connection.
+            // Identified by the flag QuicConnAlloc sets on it, because nothing
+            // about the entry itself identifies it on this fork. Upstream can
+            // say "the one marked IsInitial and absent from the lookup table":
+            // there the client-chosen CID is never registered. Here it can be.
+            // An application that adds a bound address to a connection sharing
+            // its binding has every source CID of the connection registered on
+            // the new binding (QuicBindingAddAllSourceConnectionIDs), the
+            // client-chosen one included -- and
+            // QUIC_PARAM_CONN_ADD_BOUND_ADDRESS is called on a freshly
+            // accepted connection, so it races this cleanup. Testing the
+            // registrations then found nothing at all: a debug build asserted
+            // here, and a release build left the CID in the list and in the
+            // lookup table for the life of the connection.
             //
-            // OrigDestCID is the client's own first destination CID, kept for
-            // the transport parameter and freed only with the connection, so it
-            // answers the question this code is actually asking. It also cannot
-            // match the server's own first CID, which is what the upstream test
-            // would have matched here -- freeing that one out from under the
-            // binding's lookup table leaks a QUIC_CONN_REF_LOOKUP_TABLE and the
-            // connection with it.
+            // IsInitial alone will not do either: the server's own first CID
+            // carries it too (QuicPathIDInitialize), and freeing that one out
+            // from under the binding's lookup table leaks a
+            // QUIC_CONN_REF_LOOKUP_TABLE and the connection with it.
+            //
+            // Nor will comparing against Connection->OrigDestCID, which is
+            // this CID only until a Retry: the token then replaces OrigDestCID
+            // with the client's pre-retry CID, while the connection was
+            // created -- and this CID adopted -- from the Initial that came
+            // after it. VersionNegotiationRetry catches exactly that.
             //
             QUIC_PATHID* InitialPathID = QuicPathGetActive(&Connection->Paths)->PathID;
             CXPLAT_DBG_ASSERT(InitialPathID != NULL);
             CXPLAT_SLIST_ENTRY** PrevLink = &InitialPathID->SourceCids.Next;
             BOOLEAN Found = FALSE;
-            while (Connection->OrigDestCID != NULL && *PrevLink != NULL) {
+            while (*PrevLink != NULL) {
                 QUIC_CID_SLIST_ENTRY* CidEntry =
                     CXPLAT_CONTAINING_RECORD(
                         *PrevLink,
                         QUIC_CID_SLIST_ENTRY,
                         Link);
-                if (CidEntry->CID.IsInitial &&
-                    CidEntry->CID.Length == Connection->OrigDestCID->Length &&
-                    memcmp(
-                        CidEntry->CID.Data,
-                        Connection->OrigDestCID->Data,
-                        CidEntry->CID.Length) == 0) {
+                if (CidEntry->CID.IsClientChosen) {
                     *PrevLink = (*PrevLink)->Next;
                     QuicTraceEvent(
                         ConnSourceCidRemoved,
