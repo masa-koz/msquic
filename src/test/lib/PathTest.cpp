@@ -1368,11 +1368,6 @@ struct AddBoundAddressOnAcceptContext {
         // already on, with a port of its own -- the shape an application
         // advertises, and the shape the bound-address tests in this file use.
         //
-        // Not a wildcard address: this test passed one at first, which Linux
-        // accepted and Windows turned into an access violation (0xC0000005)
-        // inside the handshake. Whether that input should be rejected or
-        // handled is a question of its own, and not the one this test asks.
-        //
         QUIC_ADDR LocalAddress;
         uint32_t AddressLength = sizeof(LocalAddress);
         if (QUIC_FAILED(
@@ -1382,6 +1377,19 @@ struct AddBoundAddressOnAcceptContext {
                     &AddressLength,
                     &LocalAddress))) {
             return QUIC_STATUS_SUCCESS;
+        }
+
+        //
+        // Clear the scope id first. The local address of a server connection
+        // is read off the arriving packet, and the datapath records the
+        // interface it arrived on in the scope id (ipi6_ifindex). Windows
+        // will not bind an IPv6 address that is not link-local and carries
+        // one -- bind fails with WSAEADDRNOTAVAIL -- while an address an
+        // application enumerated for itself has no scope id to begin with,
+        // which is the shape this test is standing in for.
+        //
+        if (QuicAddrGetFamily(&LocalAddress) == QUIC_ADDRESS_FAMILY_INET6) {
+            LocalAddress.Ipv6.sin6_scope_id = 0;
         }
 
         //
