@@ -1448,8 +1448,11 @@ DerListFree(
     _Inout_ CXPLAT_PICOTLS_DER_LIST* List
     )
 {
-    for (size_t i = 0; i < List->Count; ++i) {
-        CXPLAT_FREE(List->Items[i].base, QUIC_POOL_TLS_CERT_DER);
+    for (size_t i = 0; List->Items != NULL && i < List->Count; ++i) {
+        if (List->Items[i].base != NULL) {
+ANALYSIS_SUPPRESS(6001) // Every entry below the count is initialized.
+            CXPLAT_FREE(List->Items[i].base, QUIC_POOL_TLS_CERT_DER);
+        }
     }
     if (List->Items != NULL) {
         CXPLAT_FREE(List->Items, QUIC_POOL_TLS_CERT_DER);
@@ -1480,6 +1483,7 @@ DerListAppend(
                 (uint64_t)(NewCapacity * sizeof(ptls_iovec_t)));
             return QUIC_STATUS_OUT_OF_MEMORY;
         }
+        CxPlatZeroMemory(NewItems, NewCapacity * sizeof(ptls_iovec_t));
         if (List->Count != 0) {
             memcpy(NewItems, List->Items, List->Count * sizeof(ptls_iovec_t));
         }
@@ -1663,13 +1667,19 @@ TrustStoreFree(
 {
     if (TrustStore->Anchors != NULL) {
         for (size_t i = 0; i < TrustStore->AnchorCount; ++i) {
-            CXPLAT_FREE((void*)TrustStore->Anchors[i].Der.base, QUIC_POOL_TLS_CERT_DER);
+            if (TrustStore->Anchors[i].Der.base != NULL) {
+ANALYSIS_SUPPRESS(6001) // Every entry below the count is initialized.
+                CXPLAT_FREE((void*)TrustStore->Anchors[i].Der.base, QUIC_POOL_TLS_CERT_DER);
+            }
         }
         CXPLAT_FREE(TrustStore->Anchors, QUIC_POOL_TLS_CERT_DER);
     }
     if (TrustStore->Disallowed != NULL) {
         for (size_t i = 0; i < TrustStore->DisallowedCount; ++i) {
-            CXPLAT_FREE(TrustStore->Disallowed[i].base, QUIC_POOL_TLS_CERT_DER);
+            if (TrustStore->Disallowed[i].base != NULL) {
+ANALYSIS_SUPPRESS(6001) // Every entry below the count is initialized.
+                CXPLAT_FREE(TrustStore->Disallowed[i].base, QUIC_POOL_TLS_CERT_DER);
+            }
         }
         CXPLAT_FREE(TrustStore->Disallowed, QUIC_POOL_TLS_CERT_DER);
     }
@@ -1715,6 +1725,7 @@ TrustStoreLoad(
             Status = QUIC_STATUS_OUT_OF_MEMORY;
             goto Exit;
         }
+        CxPlatZeroMemory(TrustStore->Anchors, Roots.Count * sizeof(CXPLAT_PICOTLS_X509));
     }
 
     //
@@ -1916,6 +1927,10 @@ VerifyChainCapi(
     }
     if (Verifier->Flags & QUIC_CREDENTIAL_FLAG_DISABLE_AIA) {
         CertFlags |= CERT_CHAIN_DISABLE_AIA;
+    }
+
+    if (Leaf == NULL) {
+        goto Exit; // CertificateCount is never 0 here.
     }
 
     uint32_t Error = 0;

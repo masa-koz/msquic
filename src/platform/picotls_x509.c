@@ -491,13 +491,15 @@ ReadExtensions(
         } else if (DER_IS_OID(&Oid, OidExtendedKeyUsage)) {
             Ok = (BOOLEAN)(!Certificate->HasExtendedKeyUsage && ReadExtendedKeyUsage(Value, Certificate));
         } else if (DER_IS_OID(&Oid, OidSubjectAltName)) {
-            CXPLAT_DER Names;
+            CXPLAT_DER Names = { NULL, 0 };
             Ok =
                 (BOOLEAN)(!Certificate->HasSubjectAltName &&
                           DerExpect(&Value, DER_SEQUENCE, &Names) &&
                           Value.Length == 0);
-            Certificate->HasSubjectAltName = TRUE;
-            Certificate->SubjectAltName = ToIovec(&Names);
+            if (Ok) {
+                Certificate->HasSubjectAltName = TRUE;
+                Certificate->SubjectAltName = ToIovec(&Names);
+            }
         } else if (IsCritical && !DER_IS_OID(&Oid, OidCertificatePolicies)) {
             Certificate->UnhandledCriticalExtension = TRUE;
         }
@@ -715,6 +717,7 @@ ParseIpv4(
     )
 {
     size_t Part = 0, i = 0;
+    CxPlatZeroMemory(Address, 4);
     while (Part < 4) {
         uint32_t Value = 0;
         size_t Digits = 0;
@@ -780,7 +783,7 @@ ParseIpv6(
             return FALSE;
         }
         Groups[GroupCount++] = (uint16_t)Value;
-        if (i == Length) {
+        if (i >= Length) {
             break;
         }
         if (Text[i] != ':') {

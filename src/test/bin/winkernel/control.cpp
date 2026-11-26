@@ -266,8 +266,10 @@ QuicTestCtlUninitialize(
         ClientCertPkcs12.Asn1Blob = nullptr;
     }
     for (uint32_t i = 0; i < TestPkcs12CertificateCount; ++i) {
-        CXPLAT_FREE(TestPkcs12Certificates[i].Pkcs12.Asn1Blob, QUIC_POOL_TEST);
-        TestPkcs12Certificates[i].Pkcs12.Asn1Blob = nullptr;
+        if (TestPkcs12Certificates[i].Pkcs12.Asn1Blob != nullptr) {
+            CXPLAT_FREE(TestPkcs12Certificates[i].Pkcs12.Asn1Blob, QUIC_POOL_TEST);
+            TestPkcs12Certificates[i].Pkcs12.Asn1Blob = nullptr;
+        }
     }
     TestPkcs12CertificateCount = 0;
 
