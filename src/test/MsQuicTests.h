@@ -1123,6 +1123,21 @@ typedef struct {
     QUIC_CTL_CODE(3, METHOD_BUFFERED, FILE_WRITE_DATA)
     // QUIC_RUN_CERTIFICATE_PKCS12_PARAMS
 
+// Add a PKCS#12 copy of a test certificate that tests name by its hash
+// (QUIC_CREDENTIAL_BLOB with CERTIFICATE_HASH or CERTIFICATE_HASH_STORE). A
+// picotls driver runs those tests with the copy. Optional, and ignored by a
+// driver using Schannel.
+
+typedef struct {
+    QUIC_CERTIFICATE_HASH CertHash;
+    uint32_t PfxLength;
+    // Followed by the PFX, protected with QUIC_TEST_PKCS12_PASSWORD.
+} QUIC_ADD_CERTIFICATE_PKCS12_PARAMS;
+
+#define IOCTL_QUIC_ADD_CERT_PKCS12 \
+    QUIC_CTL_CODE(4, METHOD_BUFFERED, FILE_WRITE_DATA)
+    // QUIC_ADD_CERTIFICATE_PKCS12_PARAMS
+
 // Generic IOCTL for invoking functions 
 
 struct QUIC_RUN_TEST_REQUEST {

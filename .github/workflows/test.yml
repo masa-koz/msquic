@@ -333,7 +333,9 @@ jobs:
         name: BVT-Kernel-${{ matrix.vec.config }}-${{ matrix.vec.plat }}-${{ matrix.vec.os }}-${{ matrix.vec.arch }}-${{ matrix.vec.tls }}
         path: artifacts
 
-  # The filter excludes what tls_picotls.c doesn't implement yet, as for Linux.
+  # The filter excludes what tls_picotls.c doesn't implement yet, as for Linux,
+  # except the server certificate validation tests: on Windows the client
+  # validates the server's certificate (CertificateError, CredValidation).
   bvt-windows-picotls:
     name: BVT (picotls)
     needs: [build-windows-picotls]
@@ -369,7 +371,7 @@ jobs:
     - name: Test
       shell: pwsh
       timeout-minutes: 120
-      run: scripts/test.ps1 -Config ${{ matrix.vec.config }} -Arch ${{ matrix.vec.arch }} -Tls ${{ matrix.vec.tls }} -OsRunner ${{ matrix.vec.os }} -GHA -LogProfile ${{ inputs.log_level || 'Full.Light' }} -GenerateXmlResults -Filter -*ClientCertificate*:TlsTest.HandshakeParam*:TlsTest.HandshakeResumption*:TlsTest.CertificateError:TlsTest.CustomCertificateValidationAllow:TlsTest.CustomCertificateValidationReject:TlsTest.DeferredCertificateValidation*:TlsTest.ExtraCertificateValidation:TlsTest.InProc*CertificateValidation:TlsTest.PortableCertificateValidation:TlsTest.CipherSuiteMismatch:TlsTest.CipherSuiteInvalid:TlsTest.PlatformSpecificFlags*:AppData/*Send0Rtt*:AppData/*Reject0Rtt*:Handshake/*Resume*:*SendLarge/1:*SendLarge/3:*SendLarge/5:*SendLarge/7:*LoadBalanced*:*CustomTicketValidation*:*CustomServerCertificateValidation/0:*CustomServerCertificateValidation/1:*CertValidationAfterShutdown*:CredValidation.*:*ValidateTlsHandshakeInfo*:*.ValidateTlsParam:*.ValidateConfiguration:*ValidateConnectionEvents/2:*ShutdownDuringHandshake/1
+      run: scripts/test.ps1 -Config ${{ matrix.vec.config }} -Arch ${{ matrix.vec.arch }} -Tls ${{ matrix.vec.tls }} -OsRunner ${{ matrix.vec.os }} -GHA -LogProfile ${{ inputs.log_level || 'Full.Light' }} -GenerateXmlResults -Filter -*ClientCertificate*:TlsTest.HandshakeParam*:TlsTest.HandshakeResumption*:TlsTest.CustomCertificateValidationAllow:TlsTest.CustomCertificateValidationReject:TlsTest.DeferredCertificateValidation*:TlsTest.ExtraCertificateValidation:TlsTest.InProc*CertificateValidation:TlsTest.PortableCertificateValidation:TlsTest.CipherSuiteMismatch:TlsTest.CipherSuiteInvalid:TlsTest.PlatformSpecificFlags*:AppData/*Send0Rtt*:AppData/*Reject0Rtt*:Handshake/*Resume*:*SendLarge/1:*SendLarge/3:*SendLarge/5:*SendLarge/7:*LoadBalanced*:*CustomTicketValidation*:*CustomServerCertificateValidation/0:*CustomServerCertificateValidation/1:*CertValidationAfterShutdown*:*ValidateTlsHandshakeInfo*:*.ValidateTlsParam:*.ValidateConfiguration:*ValidateConnectionEvents/2:*ShutdownDuringHandshake/1
     - name: Upload on Failure or Cancellation
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       if: failure() || cancelled()
@@ -381,7 +383,10 @@ jobs:
   # The user-mode side of a kernel test run only drives the driver, so it runs the
   # Schannel build of msquictest.exe, and a WinUser picotls build failure doesn't
   # hide the kernel results. The filter adds to the Linux one what picotls can't do
-  # in kernel mode: certificate hash/store credentials (ValidateTlsConfig).
+  # in kernel mode: certificate hash/store credentials (ValidateTlsConfig). The
+  # CredValidation tests name their certificates by hash, so the driver also gets
+  # those as PKCS#12 (IOCTL_QUIC_ADD_CERT_PKCS12); their client validates the
+  # server's certificate against the machine's root store, read from the registry.
   bvt-kernel-picotls:
     name: BVT Kernel (picotls)
     needs: [build-windows, build-windows-kernel-picotls]
@@ -425,7 +430,7 @@ jobs:
     - name: Test
       shell: pwsh
       timeout-minutes: 120
-      run: scripts/test.ps1 -Config ${{ matrix.vec.config }} -Arch ${{ matrix.vec.arch }} -Tls ${{ matrix.vec.tls }} -OsRunner ${{ matrix.vec.os }} -GHA -LogProfile ${{ inputs.log_level || 'Full.Light' }} -GenerateXmlResults -Kernel -Filter -*ClientCertificate*:*ValidateConfiguration:*ValidAlpnLengths:*ResumeRejection*:*LoadBalanced*:*ValidateTlsConfig*:AppData/*Send0Rtt*:AppData/*Reject0Rtt*:Handshake/*Resume*:*SendLarge/1:*SendLarge/3:*SendLarge/5:*SendLarge/7:*CustomTicketValidation*:*CustomServerCertificateValidation/0:*CustomServerCertificateValidation/1:*CertValidationAfterShutdown*:CredValidation.*:*ValidateTlsHandshakeInfo*:*.ValidateTlsParam:*ValidateConnectionEvents/2:*ShutdownDuringHandshake/1
+      run: scripts/test.ps1 -Config ${{ matrix.vec.config }} -Arch ${{ matrix.vec.arch }} -Tls ${{ matrix.vec.tls }} -OsRunner ${{ matrix.vec.os }} -GHA -LogProfile ${{ inputs.log_level || 'Full.Light' }} -GenerateXmlResults -Kernel -Filter -*ClientCertificate*:*ValidateConfiguration:*ValidAlpnLengths:*ResumeRejection*:*LoadBalanced*:*ValidateTlsConfig*:AppData/*Send0Rtt*:AppData/*Reject0Rtt*:Handshake/*Resume*:*SendLarge/1:*SendLarge/3:*SendLarge/5:*SendLarge/7:*CustomTicketValidation*:*CustomServerCertificateValidation/0:*CustomServerCertificateValidation/1:*CertValidationAfterShutdown*:*ValidateTlsHandshakeInfo*:*.ValidateTlsParam:*ValidateConnectionEvents/2:*ShutdownDuringHandshake/1
     - name: Upload on Failure or Cancellation
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       if: failure() || cancelled()

@@ -30,6 +30,17 @@ QUIC_CERTIFICATE_HASH SelfSignedCertHash;
 QUIC_CERTIFICATE_HASH ClientCertHash;
 QUIC_CERTIFICATE_PKCS12 ServerCertPkcs12;
 QUIC_CERTIFICATE_PKCS12 ClientCertPkcs12;
+
+//
+// PKCS#12 copies of the test certificates that tests name by hash, for a
+// picotls build (IOCTL_QUIC_ADD_CERT_PKCS12).
+//
+struct QUIC_TEST_PKCS12_CERTIFICATE {
+    QUIC_CERTIFICATE_HASH CertHash;
+    QUIC_CERTIFICATE_PKCS12 Pkcs12;
+};
+QUIC_TEST_PKCS12_CERTIFICATE TestPkcs12Certificates[8];
+uint32_t TestPkcs12CertificateCount = 0;
 bool UseDuoNic = false;
 
 #ifdef PRIVATE_LIBRARY
@@ -254,6 +265,11 @@ QuicTestCtlUninitialize(
         CXPLAT_FREE(ClientCertPkcs12.Asn1Blob, QUIC_POOL_TEST);
         ClientCertPkcs12.Asn1Blob = nullptr;
     }
+    for (uint32_t i = 0; i < TestPkcs12CertificateCount; ++i) {
+        CXPLAT_FREE(TestPkcs12Certificates[i].Pkcs12.Asn1Blob, QUIC_POOL_TEST);
+        TestPkcs12Certificates[i].Pkcs12.Asn1Blob = nullptr;
+    }
+    TestPkcs12CertificateCount = 0;
 
     if (NmrClient != nullptr) {
         MsQuicNmrClientDeregister(&NmrClient);
@@ -425,6 +441,70 @@ QUIC_STATUS InvokeTestFunction(void(*func)(const Arg&), const uint8_t* argBuffer
 
     const Arg& arg = *reinterpret_cast<const Arg*>(argBuffer);
     func(arg);
+    return QUIC_STATUS_SUCCESS;
+}
+
+static
+bool
+IsPicotls(
+    void
+    )
+{
+    QUIC_TLS_PROVIDER Provider = QUIC_TLS_PROVIDER_SCHANNEL;
+    uint32_t ProviderLength = sizeof(Provider);
+    return
+        QUIC_SUCCEEDED(
+            MsQuic->GetParam(
+                nullptr,
+                QUIC_PARAM_GLOBAL_TLS_PROVIDER,
+                &ProviderLength,
+                &Provider)) &&
+        Provider == QUIC_TLS_PROVIDER_PICOTLS;
+}
+
+//
+// For functions taking a credential: picotls can't reach the certificate
+// store, so a certificate named by hash is replaced with its PKCS#12 copy.
+//
+QUIC_STATUS InvokeTestFunction(void(*func)(const QUIC_CREDENTIAL_BLOB&), const uint8_t* argBuffer, uint32_t argBufferSize) {
+    if (sizeof(QUIC_CREDENTIAL_BLOB) != argBufferSize) {
+        QuicTraceEvent(
+            LibraryError,
+            "[ lib] ERROR, %s.",
+            "Invalid parameter size for test function");
+        return QUIC_STATUS_INVALID_PARAMETER;
+    }
+
+    QUIC_CREDENTIAL_BLOB Blob;
+    RtlCopyMemory(&Blob, argBuffer, sizeof(Blob));
+    if ((Blob.CredConfig.Type == QUIC_CREDENTIAL_TYPE_CERTIFICATE_HASH ||
+         Blob.CredConfig.Type == QUIC_CREDENTIAL_TYPE_CERTIFICATE_HASH_STORE) &&
+        IsPicotls()) {
+        const uint8_t* Hash =
+            Blob.CredConfig.Type == QUIC_CREDENTIAL_TYPE_CERTIFICATE_HASH ?
+                Blob.Storage.CertHash.ShaHash :
+                Blob.Storage.CertHashStore.ShaHash;
+        uint32_t i;
+        for (i = 0; i < TestPkcs12CertificateCount; ++i) {
+            if (memcmp(
+                    TestPkcs12Certificates[i].CertHash.ShaHash,
+                    Hash,
+                    sizeof(TestPkcs12Certificates[i].CertHash.ShaHash)) == 0) {
+                break;
+            }
+        }
+        if (i == TestPkcs12CertificateCount) {
+            QuicTraceEvent(
+                LibraryError,
+                "[ lib] ERROR, %s.",
+                "No PKCS#12 copy of the test certificate");
+            return QUIC_STATUS_NOT_FOUND;
+        }
+        Blob.CredConfig.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_PKCS12;
+        Blob.CredConfig.CertificatePkcs12 = &TestPkcs12Certificates[i].Pkcs12;
+    }
+
+    func(Blob);
     return QUIC_STATUS_SUCCESS;
 }
 
@@ -858,15 +938,7 @@ QuicTestCtlEvtIoDeviceControl(
         //
         // Only picotls uses them: Schannel finds the certificates by hash.
         //
-        QUIC_TLS_PROVIDER Provider = QUIC_TLS_PROVIDER_SCHANNEL;
-        uint32_t ProviderLength = sizeof(Provider);
-        if (QUIC_FAILED(
-                MsQuic->GetParam(
-                    nullptr,
-                    QUIC_PARAM_GLOBAL_TLS_PROVIDER,
-                    &ProviderLength,
-                    &Provider)) ||
-            Provider != QUIC_TLS_PROVIDER_PICOTLS) {
+        if (!IsPicotls()) {
             Status = QUIC_STATUS_SUCCESS;
             break;
         }
@@ -911,6 +983,52 @@ QuicTestCtlEvtIoDeviceControl(
         ServerSelfSignedCredConfigClientAuth.CertificatePkcs12 = &ServerCertPkcs12;
         ClientCertCredConfig.Type = QUIC_CREDENTIAL_TYPE_CERTIFICATE_PKCS12;
         ClientCertCredConfig.CertificatePkcs12 = &ClientCertPkcs12;
+
+        Status = QUIC_STATUS_SUCCESS;
+        break;
+    }
+
+    case IOCTL_QUIC_ADD_CERT_PKCS12:
+    {
+        QUIC_ADD_CERTIFICATE_PKCS12_PARAMS* AddParams{};
+        size_t Length{};
+        Status =
+            WdfRequestRetrieveInputBuffer(
+                Request, sizeof(*AddParams), reinterpret_cast<void**>(&AddParams), &Length);
+        if (!NT_SUCCESS(Status)) {
+            QuicTraceEvent(
+                LibraryErrorStatus,
+                "[ lib] ERROR, %u, %s.",
+                Status,
+                "WdfRequestRetrieveInputBuffer failed for IOCTL_QUIC_ADD_CERT_PKCS12");
+            break;
+        }
+        if (AddParams->PfxLength == 0 ||
+            Length - sizeof(*AddParams) < AddParams->PfxLength) {
+            Status = STATUS_INVALID_PARAMETER;
+            break;
+        }
+        if (!IsPicotls()) {
+            Status = QUIC_STATUS_SUCCESS; // Schannel finds the certificates by hash.
+            break;
+        }
+        if (TestPkcs12CertificateCount == ARRAYSIZE(TestPkcs12Certificates)) {
+            Status = STATUS_INSUFFICIENT_RESOURCES;
+            break;
+        }
+
+        uint8_t* Blob = (uint8_t*)CXPLAT_ALLOC_NONPAGED(AddParams->PfxLength, QUIC_POOL_TEST);
+        if (Blob == nullptr) {
+            Status = STATUS_INSUFFICIENT_RESOURCES;
+            break;
+        }
+        RtlCopyMemory(Blob, AddParams + 1, AddParams->PfxLength);
+
+        QUIC_TEST_PKCS12_CERTIFICATE* Entry = &TestPkcs12Certificates[TestPkcs12CertificateCount++];
+        Entry->CertHash = AddParams->CertHash;
+        Entry->Pkcs12.Asn1Blob = Blob;
+        Entry->Pkcs12.Asn1BlobLength = AddParams->PfxLength;
+        Entry->Pkcs12.PrivateKeyPassword = QUIC_TEST_PKCS12_PASSWORD;
 
         Status = QUIC_STATUS_SUCCESS;
         break;

@@ -15,6 +15,7 @@ Abstract:
 
 #include "platform_internal.h"
 #include "picotls_cert.h"
+#include "picotls_der.h"
 #ifdef QUIC_CLOG
 #include "picotls_pkcs12.c.clog.h"
 #endif
@@ -25,41 +26,15 @@ Abstract:
 #define CXPLAT_PICOTLS_MAX_CERTIFICATES 32
 
 //
-// Silences a code analysis warning the analyzer can't see is wrong.
+// DER reading, shared with picotls_x509.c (see picotls_der.h).
 //
-#ifdef _MSC_VER
-#define ANALYSIS_SUPPRESS(Warnings) __pragma(warning(suppress:Warnings))
-#else
-#define ANALYSIS_SUPPRESS(Warnings)
-#endif
-
-//
-// DER reading.
-//
-
-#define DER_INTEGER             0x02
-#define DER_BIT_STRING          0x03
-#define DER_OCTET_STRING        0x04
-#define DER_NULL                0x05
-#define DER_OID                 0x06
-#define DER_SEQUENCE            0x30
-#define DER_SET                 0x31
-#define DER_CONTEXT_0           0xA0    // [0], constructed
-#define DER_CONTEXT_1           0xA1    // [1], constructed
-#define DER_CONTEXT_0_PRIMITIVE 0x80    // [0] IMPLICIT, primitive
-
-typedef struct CXPLAT_DER {
-    const uint8_t* Data;
-    size_t Length;
-} CXPLAT_DER;
 
 //
 // Reads one TLV. Value receives the contents, and Whole (if given) the whole
 // encoding including tag and length.
 //
-static
 BOOLEAN
-DerRead(
+CxPlatPicotlsDerRead(
     _Inout_ CXPLAT_DER* In,
     _Out_ uint8_t* Tag,
     _Out_ CXPLAT_DER* Value,
@@ -110,9 +85,8 @@ DerRead(
 //
 // Reads one TLV that must have tag Tag. In is left as it was on failure.
 //
-static
 BOOLEAN
-DerExpect(
+CxPlatPicotlsDerExpect(
     _Inout_ CXPLAT_DER* In,
     _In_ uint8_t Tag,
     _Out_ CXPLAT_DER* Value
@@ -129,9 +103,8 @@ DerExpect(
     return TRUE;
 }
 
-static
 BOOLEAN
-DerPeek(
+CxPlatPicotlsDerPeek(
     _In_ const CXPLAT_DER* In,
     _In_ uint8_t Tag
     )
@@ -142,9 +115,8 @@ DerPeek(
 //
 // Reads a non-negative INTEGER that fits in 32 bits.
 //
-static
 BOOLEAN
-DerUint32(
+CxPlatPicotlsDerUint32(
     _Inout_ CXPLAT_DER* In,
     _Out_ uint32_t* Value
     )
@@ -174,9 +146,8 @@ DerUint32(
 //
 // Reads a positive INTEGER of any size, without its leading zero bytes.
 //
-static
 BOOLEAN
-DerBigInteger(
+CxPlatPicotlsDerBigInteger(
     _Inout_ CXPLAT_DER* In,
     _Out_ ptls_iovec_t* Value
     )
@@ -199,9 +170,8 @@ DerBigInteger(
     return TRUE;
 }
 
-static
 BOOLEAN
-DerIsOid(
+CxPlatPicotlsDerIsOid(
     _In_ const CXPLAT_DER* Oid,
     _In_reads_bytes_(ExpectedLength) const uint8_t* Expected,
     _In_ size_t ExpectedLength
@@ -211,8 +181,6 @@ DerIsOid(
         Oid->Length == ExpectedLength &&
         memcmp(Oid->Data, Expected, ExpectedLength) == 0;
 }
-
-#define DER_IS_OID(Oid, Expected) DerIsOid(Oid, Expected, sizeof(Expected))
 
 //
 // Object identifiers, as the contents of their DER encoding.

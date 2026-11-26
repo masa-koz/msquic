@@ -52,6 +52,13 @@ typedef struct CXPLAT_SEC_CONFIG {
     // Signs the CertificateVerify message.
     //
     CXPLAT_PICOTLS_SIGNER* Signer;
+
+    //
+    // Verifies the server's certificate (client only, unless
+    // QUIC_CREDENTIAL_FLAG_NO_CERTIFICATE_VALIDATION is set).
+    //
+    ptls_verify_certificate_t VerifyCertificate;
+    CXPLAT_PICOTLS_VERIFIER* Verifier;
 #endif
 
     //
@@ -672,6 +679,37 @@ CxPlatTlsSignCertificateCallback(
             Output);
 }
 
+//
+// Validates the server's certificate chain and name, and returns the callback
+// that checks the CertificateVerify signature.
+//
+static
+int
+CxPlatTlsVerifyCertificateCallback(
+    _In_ ptls_verify_certificate_t* Self,
+    _In_ ptls_t* Tls,
+    _In_opt_z_ const char* ServerName,
+    _Out_ int (**VerifySign)(void* VerifyContext, uint16_t Algorithm, ptls_iovec_t Data, ptls_iovec_t Signature),
+    _Out_ void** VerifyContext,
+    _In_reads_(CertificateCount) ptls_iovec_t* Certificates,
+    _In_ size_t CertificateCount
+    )
+{
+    CXPLAT_SEC_CONFIG* SecConfig =
+        CXPLAT_CONTAINING_RECORD(Self, CXPLAT_SEC_CONFIG, VerifyCertificate);
+    CXPLAT_TLS* TlsContext = *ptls_get_data_ptr(Tls);
+
+    TlsContext->PeerCertReceived = CertificateCount != 0;
+    return
+        CxPlatPicotlsVerifyCertificate(
+            SecConfig->Verifier,
+            ServerName,
+            Certificates,
+            CertificateCount,
+            VerifySign,
+            VerifyContext);
+}
+
 #endif // CXPLAT_PICOTLS_WINDOWS_CERTS
 
 _IRQL_requires_max_(PASSIVE_LEVEL)
@@ -815,6 +853,16 @@ CxPlatTlsSecConfigCreate(
         SecurityConfig->SignCertificate.cb = CxPlatTlsSignCertificateCallback;
         SecurityConfig->Ctx.sign_certificate = &SecurityConfig->SignCertificate;
     }
+
+    if (IsClient && !(CredConfigFlags & QUIC_CREDENTIAL_FLAG_NO_CERTIFICATE_VALIDATION)) {
+        Status = CxPlatPicotlsVerifierCreate(CredConfigFlags, &SecurityConfig->Verifier);
+        if (QUIC_FAILED(Status)) {
+            goto Exit;
+        }
+        SecurityConfig->VerifyCertificate.cb = CxPlatTlsVerifyCertificateCallback;
+        SecurityConfig->VerifyCertificate.algos = CxPlatPicotlsVerifyAlgorithms;
+        SecurityConfig->Ctx.verify_certificate = &SecurityConfig->VerifyCertificate;
+    }
 #endif
 
     //
@@ -866,6 +914,9 @@ CxPlatTlsSecConfigDelete(
         SecurityConfig->Ctx.certificates.count);
     if (SecurityConfig->Signer != NULL) {
         CxPlatPicotlsSignerFree(SecurityConfig->Signer);
+    }
+    if (SecurityConfig->Verifier != NULL) {
+        CxPlatPicotlsVerifierFree(SecurityConfig->Verifier);
     }
 #endif
     CXPLAT_FREE(SecurityConfig, QUIC_POOL_TLS_SECCONF);
@@ -1493,6 +1544,13 @@ CxPlatTlsProcessData(
             "[ tls][%p] ERROR, %s.",
             TlsContext->Connection,
             "ptls_handle_message failed");
+        if (Ret < PTLS_ERROR_CLASS_PEER_ALERT) {
+            //
+            // An alert picotls raised itself: the connection is closed with
+            // it (RFC 9001, Section 4.8).
+            //
+            State->AlertCode = (uint16_t)Ret;
+        }
         TlsContext->ResultFlags |= CXPLAT_TLS_RESULT_ERROR;
         goto Exit;
     }

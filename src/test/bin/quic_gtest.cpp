@@ -110,6 +110,55 @@ static bool ExportTestCertificatePkcs12(
 }
 #endif
 
+#ifdef _WIN32
+//
+// Sends the driver a PKCS#12 copy of a test certificate from the machine store,
+// keyed by its hash. Best effort: the certificate may not be installed.
+//
+static void AddTestCertificatePkcs12(
+    _In_ CXPLAT_TEST_CERT_TYPE CertType
+    )
+{
+    QUIC_CREDENTIAL_CONFIG CredConfig;
+    if (!CxPlatGetTestCertificate(
+            CertType,
+            CXPLAT_SELF_SIGN_CERT_MACHINE,
+            QUIC_CREDENTIAL_TYPE_CERTIFICATE_CONTEXT,
+            &CredConfig,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr)) {
+        return;
+    }
+
+    QUIC_ADD_CERTIFICATE_PKCS12_PARAMS Params = {};
+    DWORD HashLength = sizeof(Params.CertHash.ShaHash);
+    std::vector<uint8_t> Pfx;
+    if (CertGetCertificateContextProperty(
+            (PCCERT_CONTEXT)CredConfig.CertificateContext,
+            CERT_HASH_PROP_ID,
+            Params.CertHash.ShaHash,
+            &HashLength) &&
+        HashLength == sizeof(Params.CertHash.ShaHash) &&
+        ExportTestCertificatePkcs12(&CredConfig, Pfx)) {
+        Params.PfxLength = (uint32_t)Pfx.size();
+        std::vector<uint8_t> Buffer(sizeof(Params) + Pfx.size());
+        memcpy(Buffer.data(), &Params, sizeof(Params));
+        memcpy(Buffer.data() + sizeof(Params), Pfx.data(), Pfx.size());
+        if (!DriverClient.Run(
+                IOCTL_QUIC_ADD_CERT_PKCS12,
+                (void*)Buffer.data(),
+                (uint32_t)Buffer.size())) {
+            printf("Sending a test certificate as PKCS#12 failed\n");
+        }
+    }
+    CxPlatFreeTestCert(&CredConfig);
+}
+#endif
+
 class QuicTestEnvironment : public ::testing::Environment {
     QuicDriverService DriverService;
     const QUIC_CREDENTIAL_CONFIG* SelfSignedCertParams;
@@ -186,6 +235,13 @@ public:
                         IOCTL_QUIC_SET_CERT_PKCS12,
                         (void*)Buffer.data(),
                         (uint32_t)Buffer.size()));
+
+                //
+                // And the certificates the CredValidation tests name by hash.
+                //
+                for (auto CertType : { CXPLAT_TEST_CERT_VALID_SERVER, CXPLAT_TEST_CERT_EXPIRED_SERVER }) {
+                    AddTestCertificatePkcs12(CertType);
+                }
             }
 #endif
 

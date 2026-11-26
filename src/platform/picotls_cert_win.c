@@ -17,10 +17,16 @@ Abstract:
     ecdsa_secp256r1_sha256, ecdsa_secp384r1_sha384 and ecdsa_secp521r1_sha512
     for EC keys on the matching curve.
 
+    Server certificate verification (client side): the chain is validated
+    with CertGetCertificateChain in user mode, and in kernel mode with
+    picotls_x509.c against the machine's root store, read from the registry.
+    The CertificateVerify signature is then checked with BCrypt.
+
 --*/
 
 #include "platform_internal.h"
 #include "picotls_cert.h"
+#include "picotls_der.h"
 #include <limits.h>
 #ifndef _KERNEL_MODE
 #include <wincrypt.h>
@@ -44,6 +50,14 @@ struct CXPLAT_PICOTLS_CRYPTO {
     BCRYPT_ALG_HANDLE Hmac[4];
     BCRYPT_ALG_HANDLE Aes;
     BCRYPT_ALG_HANDLE TripleDes;
+
+    //
+    // For signature verification.
+    //
+    BCRYPT_ALG_HANDLE Rsa;
+    BCRYPT_ALG_HANDLE EcdsaP256;
+    BCRYPT_ALG_HANDLE EcdsaP384;
+    BCRYPT_ALG_HANDLE EcdsaP521;
 };
 
 static
@@ -122,6 +136,10 @@ CryptoClose(
     }
     CloseAlgorithm(&Crypto->Aes);
     CloseAlgorithm(&Crypto->TripleDes);
+    CloseAlgorithm(&Crypto->Rsa);
+    CloseAlgorithm(&Crypto->EcdsaP256);
+    CloseAlgorithm(&Crypto->EcdsaP384);
+    CloseAlgorithm(&Crypto->EcdsaP521);
 }
 
 //
@@ -1147,5 +1165,941 @@ CxPlatPicotlsSign(
     }
 
     *SelectedAlgorithm = Algorithms[i];
+    return 0;
+}
+
+//
+// Signature verification.
+//
+
+QUIC_STATUS
+CxPlatPicotlsCryptoVerifySignature(
+    _Inout_ CXPLAT_PICOTLS_CRYPTO* Crypto,
+    _In_ const CXPLAT_PICOTLS_PUBLIC_KEY* Key,
+    _In_ const CXPLAT_PICOTLS_SIGNATURE_ALGORITHM* Algorithm,
+    _In_reads_bytes_(DataLength) const uint8_t* Data,
+    _In_ size_t DataLength,
+    _In_reads_bytes_(SignatureLength) const uint8_t* Signature,
+    _In_ size_t SignatureLength
+    )
+{
+    uint8_t Hash[64];
+    uint8_t RawSignature[2 * 66];
+    uint8_t* Blob = NULL;
+    size_t BlobLength;
+    LPCWSTR BlobType;
+    BCRYPT_ALG_HANDLE* KeyAlgorithm;
+    LPCWSTR KeyAlgorithmName;
+    BCRYPT_KEY_HANDLE KeyHandle = NULL;
+    QUIC_STATUS Status;
+
+    if (Algorithm->Hash == CXPLAT_PICOTLS_HASH_SHA1 ||
+        SignatureLength > ULONG_MAX ||
+        (Key->Type == CXPLAT_PICOTLS_KEY_RSA) ==
+            (Algorithm->Padding == CXPLAT_PICOTLS_PADDING_ECDSA)) {
+        return QUIC_STATUS_NOT_SUPPORTED;
+    }
+    const ULONG HashLength = HashAlgorithmLength(Algorithm->Hash);
+    Status = CxPlatPicotlsCryptoHash(Crypto, Algorithm->Hash, Data, DataLength, Hash);
+    if (QUIC_FAILED(Status)) {
+        return Status;
+    }
+
+    if (Key->Type == CXPLAT_PICOTLS_KEY_RSA) {
+        //
+        // BCRYPT_RSAKEY_BLOB, then PublicExponent and Modulus, big-endian.
+        //
+        if (Key->Modulus.len == 0 || Key->Modulus.len > 2048 ||
+            Key->PublicExponent.len == 0 || Key->PublicExponent.len > 8) {
+            return QUIC_STATUS_NOT_SUPPORTED;
+        }
+        BlobLength = sizeof(BCRYPT_RSAKEY_BLOB) + Key->PublicExponent.len + Key->Modulus.len;
+        Blob = CXPLAT_ALLOC_NONPAGED(BlobLength, QUIC_POOL_TLS_CERT_DER);
+        if (Blob == NULL) {
+            QuicTraceEvent(
+                AllocFailure,
+                "Allocation of '%s' failed. (%llu bytes)",
+                "RSA public key blob",
+                (uint64_t)BlobLength);
+            return QUIC_STATUS_OUT_OF_MEMORY;
+        }
+        uint32_t LeadingZeroBits = 0;
+        while (LeadingZeroBits < 8 && !(Key->Modulus.base[0] & (0x80 >> LeadingZeroBits))) {
+            LeadingZeroBits++;
+        }
+        BCRYPT_RSAKEY_BLOB* Header = (BCRYPT_RSAKEY_BLOB*)Blob;
+        CxPlatZeroMemory(Header, sizeof(*Header));
+        Header->Magic = BCRYPT_RSAPUBLIC_MAGIC;
+        Header->BitLength = (ULONG)(Key->Modulus.len * 8 - LeadingZeroBits);
+        Header->cbPublicExp = (ULONG)Key->PublicExponent.len;
+        Header->cbModulus = (ULONG)Key->Modulus.len;
+        memcpy(Blob + sizeof(*Header), Key->PublicExponent.base, Key->PublicExponent.len);
+        memcpy(
+            Blob + sizeof(*Header) + Key->PublicExponent.len,
+            Key->Modulus.base,
+            Key->Modulus.len);
+        BlobType = BCRYPT_RSAPUBLIC_BLOB;
+        KeyAlgorithm = &Crypto->Rsa;
+        KeyAlgorithmName = BCRYPT_RSA_ALGORITHM;
+
+    } else {
+        //
+        // BCRYPT_ECCKEY_BLOB, then X and Y.
+        //
+        ULONG Magic;
+        switch (Key->CurveBits) {
+        case 256:
+            Magic = BCRYPT_ECDSA_PUBLIC_P256_MAGIC;
+            KeyAlgorithm = &Crypto->EcdsaP256;
+            KeyAlgorithmName = BCRYPT_ECDSA_P256_ALGORITHM;
+            break;
+        case 384:
+            Magic = BCRYPT_ECDSA_PUBLIC_P384_MAGIC;
+            KeyAlgorithm = &Crypto->EcdsaP384;
+            KeyAlgorithmName = BCRYPT_ECDSA_P384_ALGORITHM;
+            break;
+        case 521:
+            Magic = BCRYPT_ECDSA_PUBLIC_P521_MAGIC;
+            KeyAlgorithm = &Crypto->EcdsaP521;
+            KeyAlgorithmName = BCRYPT_ECDSA_P521_ALGORITHM;
+            break;
+        default:
+            return QUIC_STATUS_NOT_SUPPORTED;
+        }
+        const size_t FieldLength = (Key->CurveBits + 7) / 8;
+        if (Key->PublicPoint.len != 1 + 2 * FieldLength || Key->PublicPoint.base[0] != 0x04) {
+            return QUIC_STATUS_NOT_SUPPORTED;
+        }
+
+        //
+        // TLS and X.509 carry Ecdsa-Sig-Value ::= SEQUENCE { r, s }; CNG
+        // wants r || s, each the size of the field.
+        //
+        CXPLAT_DER In = { Signature, SignatureLength };
+        CXPLAT_DER Sequence;
+        ptls_iovec_t R, S;
+        if (!DerExpect(&In, DER_SEQUENCE, &Sequence) || In.Length != 0 ||
+            !DerBigInteger(&Sequence, &R) || !DerBigInteger(&Sequence, &S) ||
+            Sequence.Length != 0 ||
+            R.len > FieldLength || S.len > FieldLength) {
+            return QUIC_STATUS_INVALID_PARAMETER;
+        }
+        CxPlatZeroMemory(RawSignature, sizeof(RawSignature));
+        memcpy(RawSignature + FieldLength - R.len, R.base, R.len);
+        memcpy(RawSignature + 2 * FieldLength - S.len, S.base, S.len);
+        Signature = RawSignature;
+        SignatureLength = 2 * FieldLength;
+
+        BlobLength = sizeof(BCRYPT_ECCKEY_BLOB) + 2 * FieldLength;
+        Blob = CXPLAT_ALLOC_NONPAGED(BlobLength, QUIC_POOL_TLS_CERT_DER);
+        if (Blob == NULL) {
+            QuicTraceEvent(
+                AllocFailure,
+                "Allocation of '%s' failed. (%llu bytes)",
+                "EC public key blob",
+                (uint64_t)BlobLength);
+            return QUIC_STATUS_OUT_OF_MEMORY;
+        }
+        BCRYPT_ECCKEY_BLOB* Header = (BCRYPT_ECCKEY_BLOB*)Blob;
+        Header->dwMagic = Magic;
+        Header->cbKey = (ULONG)FieldLength;
+        memcpy(Blob + sizeof(*Header), Key->PublicPoint.base + 1, 2 * FieldLength);
+        BlobType = BCRYPT_ECCPUBLIC_BLOB;
+    }
+
+    Status = OpenAlgorithm(KeyAlgorithm, KeyAlgorithmName, 0);
+    if (QUIC_FAILED(Status)) {
+        goto Exit;
+    }
+    NTSTATUS NtStatus =
+        BCryptImportKeyPair(
+            *KeyAlgorithm,
+            NULL,
+            BlobType,
+            &KeyHandle,
+            Blob,
+            (ULONG)BlobLength,
+            0);
+    if (!NT_SUCCESS(NtStatus)) {
+        KeyHandle = NULL;
+        QuicTraceEvent(
+            LibraryErrorStatus,
+            "[ lib] ERROR, %u, %s.",
+            NtStatus,
+            "BCryptImportKeyPair (public key) failed");
+        Status = NtStatusToQuicStatus(NtStatus);
+        goto Exit;
+    }
+
+    BCRYPT_PKCS1_PADDING_INFO Pkcs1 = { HashAlgorithmName(Algorithm->Hash) };
+    BCRYPT_PSS_PADDING_INFO Pss = { HashAlgorithmName(Algorithm->Hash), Algorithm->SaltLength };
+    void* PaddingInfo = NULL;
+    ULONG Flags = 0;
+    if (Algorithm->Padding == CXPLAT_PICOTLS_PADDING_RSA_PKCS1) {
+        PaddingInfo = &Pkcs1;
+        Flags = BCRYPT_PAD_PKCS1;
+    } else if (Algorithm->Padding == CXPLAT_PICOTLS_PADDING_RSA_PSS) {
+        PaddingInfo = &Pss;
+        Flags = BCRYPT_PAD_PSS;
+    }
+    NtStatus =
+        BCryptVerifySignature(
+            KeyHandle,
+            PaddingInfo,
+            Hash,
+            HashLength,
+            (PUCHAR)Signature,
+            (ULONG)SignatureLength,
+            Flags);
+    if (!NT_SUCCESS(NtStatus)) {
+        QuicTraceEvent(
+            LibraryErrorStatus,
+            "[ lib] ERROR, %u, %s.",
+            NtStatus,
+            "BCryptVerifySignature failed");
+        Status = QUIC_STATUS_INVALID_PARAMETER;
+        goto Exit;
+    }
+    Status = QUIC_STATUS_SUCCESS;
+
+Exit:
+
+    if (KeyHandle != NULL) {
+        BCryptDestroyKey(KeyHandle);
+    }
+    CXPLAT_FREE(Blob, QUIC_POOL_TLS_CERT_DER);
+    return Status;
+}
+
+//
+// Server certificate verification.
+//
+
+struct CXPLAT_PICOTLS_VERIFIER {
+    QUIC_CREDENTIAL_FLAGS Flags;
+
+    //
+    // Every algorithm is opened up front, so that connections sharing the
+    // verifier only read it.
+    //
+    CXPLAT_PICOTLS_CRYPTO Crypto;
+
+#ifdef _KERNEL_MODE
+    //
+    // Anchors[i].Der and Disallowed[i].base are allocated with
+    // QUIC_POOL_TLS_CERT_DER, from paged pool.
+    //
+    CXPLAT_PICOTLS_TRUST_STORE TrustStore;
+#endif
+};
+
+const uint16_t CxPlatPicotlsVerifyAlgorithms[] = {
+    PTLS_SIGNATURE_ECDSA_SECP256R1_SHA256,
+    PTLS_SIGNATURE_ECDSA_SECP384R1_SHA384,
+    PTLS_SIGNATURE_ECDSA_SECP521R1_SHA512,
+    PTLS_SIGNATURE_RSA_PSS_RSAE_SHA256,
+    PTLS_SIGNATURE_RSA_PSS_RSAE_SHA384,
+    PTLS_SIGNATURE_RSA_PSS_RSAE_SHA512,
+    //
+    // Only for the signatures in certificates (RFC 8446, Section 4.2.3):
+    // the CertificateVerify can't use them.
+    //
+    PTLS_SIGNATURE_RSA_PKCS1_SHA256,
+    0x0501, // rsa_pkcs1_sha384
+    0x0601, // rsa_pkcs1_sha512
+    UINT16_MAX
+};
+
+#ifdef _KERNEL_MODE
+
+//
+// The registry keys of the stores CryptoAPI combines into the machine's Root
+// store, and those it combines into its Disallowed store.
+//
+static const PCWSTR RootStoreKeys[] = {
+    L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\SystemCertificates\\ROOT\\Certificates",
+    L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\SystemCertificates\\AuthRoot\\Certificates",
+    L"\\Registry\\Machine\\SOFTWARE\\Policies\\Microsoft\\SystemCertificates\\Root\\Certificates",
+    L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\EnterpriseCertificates\\Root\\Certificates",
+};
+
+static const PCWSTR DisallowedStoreKeys[] = {
+    L"\\Registry\\Machine\\SOFTWARE\\Microsoft\\SystemCertificates\\Disallowed\\Certificates",
+    L"\\Registry\\Machine\\SOFTWARE\\Policies\\Microsoft\\SystemCertificates\\Disallowed\\Certificates",
+};
+
+#define CXPLAT_PICOTLS_MAX_STORE_CERTIFICATES 4096
+#define CXPLAT_PICOTLS_MAX_STORE_BLOB (64 * 1024)
+
+//
+// The property of a serialized certificate that holds its encoding.
+//
+#define CERT_CERT_PROP_ID 32
+
+typedef struct CXPLAT_PICOTLS_DER_LIST {
+    ptls_iovec_t* Items;
+    size_t Count;
+    size_t Capacity;
+} CXPLAT_PICOTLS_DER_LIST;
+
+static
+void
+DerListFree(
+    _Inout_ CXPLAT_PICOTLS_DER_LIST* List
+    )
+{
+    for (size_t i = 0; i < List->Count; ++i) {
+        CXPLAT_FREE(List->Items[i].base, QUIC_POOL_TLS_CERT_DER);
+    }
+    if (List->Items != NULL) {
+        CXPLAT_FREE(List->Items, QUIC_POOL_TLS_CERT_DER);
+    }
+    CxPlatZeroMemory(List, sizeof(*List));
+}
+
+static
+QUIC_STATUS
+DerListAppend(
+    _Inout_ CXPLAT_PICOTLS_DER_LIST* List,
+    _In_reads_bytes_(Length) const uint8_t* Der,
+    _In_ size_t Length
+    )
+{
+    if (List->Count == CXPLAT_PICOTLS_MAX_STORE_CERTIFICATES) {
+        return QUIC_STATUS_SUCCESS; // Ignore the rest.
+    }
+    if (List->Count == List->Capacity) {
+        const size_t NewCapacity = List->Capacity == 0 ? 64 : List->Capacity * 2;
+        ptls_iovec_t* NewItems =
+            CXPLAT_ALLOC_PAGED(NewCapacity * sizeof(ptls_iovec_t), QUIC_POOL_TLS_CERT_DER);
+        if (NewItems == NULL) {
+            QuicTraceEvent(
+                AllocFailure,
+                "Allocation of '%s' failed. (%llu bytes)",
+                "Trust store list",
+                (uint64_t)(NewCapacity * sizeof(ptls_iovec_t)));
+            return QUIC_STATUS_OUT_OF_MEMORY;
+        }
+        if (List->Count != 0) {
+            memcpy(NewItems, List->Items, List->Count * sizeof(ptls_iovec_t));
+        }
+        if (List->Items != NULL) {
+            CXPLAT_FREE(List->Items, QUIC_POOL_TLS_CERT_DER);
+        }
+        List->Items = NewItems;
+        List->Capacity = NewCapacity;
+    }
+    uint8_t* Copy = CXPLAT_ALLOC_PAGED(Length, QUIC_POOL_TLS_CERT_DER);
+    if (Copy == NULL) {
+        QuicTraceEvent(
+            AllocFailure,
+            "Allocation of '%s' failed. (%llu bytes)",
+            "Trust store certificate",
+            (uint64_t)Length);
+        return QUIC_STATUS_OUT_OF_MEMORY;
+    }
+    memcpy(Copy, Der, Length);
+    ANALYSIS_SUPPRESS(6386) // Items holds Capacity > Count entries.
+    List->Items[List->Count++] = ptls_iovec_init(Copy, Length);
+    return QUIC_STATUS_SUCCESS;
+}
+
+//
+// Finds the encoded certificate in a serialized certificate (the "Blob" value
+// of a certificate in the registry): a sequence of properties, each a 32-bit
+// ID, a 32-bit reserved field and a 32-bit length (little-endian), then the
+// value.
+//
+static
+BOOLEAN
+FindEncodedCertificate(
+    _In_reads_bytes_(Length) const uint8_t* Blob,
+    _In_ size_t Length,
+    _Out_ ptls_iovec_t* Der
+    )
+{
+    *Der = ptls_iovec_init(NULL, 0);
+    while (Length >= 12) {
+        const uint32_t Id =
+            (uint32_t)Blob[0] | ((uint32_t)Blob[1] << 8) |
+            ((uint32_t)Blob[2] << 16) | ((uint32_t)Blob[3] << 24);
+        const uint32_t ValueLength =
+            (uint32_t)Blob[8] | ((uint32_t)Blob[9] << 8) |
+            ((uint32_t)Blob[10] << 16) | ((uint32_t)Blob[11] << 24);
+        if (ValueLength > Length - 12) {
+            return FALSE;
+        }
+        if (Id == CERT_CERT_PROP_ID) {
+            *Der = ptls_iovec_init(Blob + 12, ValueLength);
+            return ValueLength != 0;
+        }
+        Blob += 12 + (size_t)ValueLength;
+        Length -= 12 + (size_t)ValueLength;
+    }
+    return FALSE;
+}
+
+//
+// Adds the certificates of one registry store (a key with a subkey, named by
+// the thumbprint, per certificate) to List. A store that doesn't exist is
+// empty.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+QUIC_STATUS
+LoadRegistryStore(
+    _In_z_ PCWSTR Path,
+    _Inout_ CXPLAT_PICOTLS_DER_LIST* List
+    )
+{
+    UNICODE_STRING KeyName;
+    OBJECT_ATTRIBUTES Attributes;
+    HANDLE StoreKey = NULL;
+    uint8_t* Value = NULL;
+    const ULONG ValueAllocLength =
+        FIELD_OFFSET(KEY_VALUE_PARTIAL_INFORMATION, Data) + CXPLAT_PICOTLS_MAX_STORE_BLOB;
+    QUIC_STATUS Status = QUIC_STATUS_SUCCESS;
+    DECLARE_CONST_UNICODE_STRING(BlobName, L"Blob");
+
+    RtlInitUnicodeString(&KeyName, Path);
+    InitializeObjectAttributes(
+        &Attributes,
+        &KeyName,
+        OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+        NULL,
+        NULL);
+    NTSTATUS NtStatus = ZwOpenKey(&StoreKey, KEY_READ, &Attributes);
+    if (!NT_SUCCESS(NtStatus)) {
+        return QUIC_STATUS_SUCCESS;
+    }
+
+    Value = CXPLAT_ALLOC_PAGED(ValueAllocLength, QUIC_POOL_TLS_CERT_DER);
+    if (Value == NULL) {
+        QuicTraceEvent(
+            AllocFailure,
+            "Allocation of '%s' failed. (%llu bytes)",
+            "Registry certificate blob",
+            (uint64_t)ValueAllocLength);
+        Status = QUIC_STATUS_OUT_OF_MEMORY;
+        goto Exit;
+    }
+
+    for (ULONG Index = 0; ; ++Index) {
+        union {
+            KEY_BASIC_INFORMATION Info;
+            uint8_t Buffer[sizeof(KEY_BASIC_INFORMATION) + 256 * sizeof(WCHAR)];
+        } SubkeyInfo;
+        ULONG ResultLength = 0;
+        NtStatus =
+            ZwEnumerateKey(
+                StoreKey,
+                Index,
+                KeyBasicInformation,
+                &SubkeyInfo,
+                sizeof(SubkeyInfo),
+                &ResultLength);
+        if (NtStatus == STATUS_NO_MORE_ENTRIES) {
+            break;
+        }
+        if (!NT_SUCCESS(NtStatus) ||
+            SubkeyInfo.Info.NameLength > 256 * sizeof(WCHAR)) {
+            continue; // A name too long for a thumbprint.
+        }
+
+        UNICODE_STRING SubkeyName;
+        SubkeyName.Buffer = SubkeyInfo.Info.Name;
+        SubkeyName.Length = (USHORT)SubkeyInfo.Info.NameLength;
+        SubkeyName.MaximumLength = (USHORT)SubkeyInfo.Info.NameLength;
+        InitializeObjectAttributes(
+            &Attributes,
+            &SubkeyName,
+            OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+            StoreKey,
+            NULL);
+        HANDLE CertificateKey = NULL;
+        if (!NT_SUCCESS(ZwOpenKey(&CertificateKey, KEY_READ, &Attributes))) {
+            continue;
+        }
+        NtStatus =
+            ZwQueryValueKey(
+                CertificateKey,
+                (PUNICODE_STRING)&BlobName,
+                KeyValuePartialInformation,
+                Value,
+                ValueAllocLength,
+                &ResultLength);
+        ZwClose(CertificateKey);
+        if (!NT_SUCCESS(NtStatus)) {
+            continue;
+        }
+
+        const KEY_VALUE_PARTIAL_INFORMATION* Partial =
+            (const KEY_VALUE_PARTIAL_INFORMATION*)Value;
+        ptls_iovec_t Der;
+        if (Partial->Type == REG_BINARY &&
+            Partial->DataLength <= CXPLAT_PICOTLS_MAX_STORE_BLOB &&
+            FindEncodedCertificate(Partial->Data, Partial->DataLength, &Der)) {
+            Status = DerListAppend(List, Der.base, Der.len);
+            if (QUIC_FAILED(Status)) {
+                goto Exit;
+            }
+        }
+    }
+
+Exit:
+
+    if (Value != NULL) {
+        CXPLAT_FREE(Value, QUIC_POOL_TLS_CERT_DER);
+    }
+    ZwClose(StoreKey);
+    return Status;
+}
+
+static
+void
+TrustStoreFree(
+    _Inout_ CXPLAT_PICOTLS_TRUST_STORE* TrustStore
+    )
+{
+    if (TrustStore->Anchors != NULL) {
+        for (size_t i = 0; i < TrustStore->AnchorCount; ++i) {
+            CXPLAT_FREE((void*)TrustStore->Anchors[i].Der.base, QUIC_POOL_TLS_CERT_DER);
+        }
+        CXPLAT_FREE(TrustStore->Anchors, QUIC_POOL_TLS_CERT_DER);
+    }
+    if (TrustStore->Disallowed != NULL) {
+        for (size_t i = 0; i < TrustStore->DisallowedCount; ++i) {
+            CXPLAT_FREE(TrustStore->Disallowed[i].base, QUIC_POOL_TLS_CERT_DER);
+        }
+        CXPLAT_FREE(TrustStore->Disallowed, QUIC_POOL_TLS_CERT_DER);
+    }
+    CxPlatZeroMemory(TrustStore, sizeof(*TrustStore));
+}
+
+//
+// Reads the machine's Root and Disallowed stores from the registry.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static
+QUIC_STATUS
+TrustStoreLoad(
+    _Out_ CXPLAT_PICOTLS_TRUST_STORE* TrustStore
+    )
+{
+    CXPLAT_PICOTLS_DER_LIST Roots, Disallowed;
+    QUIC_STATUS Status = QUIC_STATUS_SUCCESS;
+
+    CxPlatZeroMemory(TrustStore, sizeof(*TrustStore));
+    CxPlatZeroMemory(&Roots, sizeof(Roots));
+    CxPlatZeroMemory(&Disallowed, sizeof(Disallowed));
+
+    for (size_t i = 0; QUIC_SUCCEEDED(Status) && i < ARRAYSIZE(RootStoreKeys); ++i) {
+        Status = LoadRegistryStore(RootStoreKeys[i], &Roots);
+    }
+    for (size_t i = 0; QUIC_SUCCEEDED(Status) && i < ARRAYSIZE(DisallowedStoreKeys); ++i) {
+        Status = LoadRegistryStore(DisallowedStoreKeys[i], &Disallowed);
+    }
+    if (QUIC_FAILED(Status)) {
+        goto Exit;
+    }
+
+    if (Roots.Count != 0) {
+        TrustStore->Anchors =
+            CXPLAT_ALLOC_PAGED(Roots.Count * sizeof(CXPLAT_PICOTLS_X509), QUIC_POOL_TLS_CERT_DER);
+        if (TrustStore->Anchors == NULL) {
+            QuicTraceEvent(
+                AllocFailure,
+                "Allocation of '%s' failed. (%llu bytes)",
+                "Trust anchors",
+                (uint64_t)(Roots.Count * sizeof(CXPLAT_PICOTLS_X509)));
+            Status = QUIC_STATUS_OUT_OF_MEMORY;
+            goto Exit;
+        }
+    }
+
+    //
+    // Parse the roots once. One that can't be parsed can't anchor a chain.
+    //
+    for (size_t i = 0; i < Roots.Count; ++i) {
+        CXPLAT_PICOTLS_X509* Anchor = &TrustStore->Anchors[TrustStore->AnchorCount];
+        if (QUIC_SUCCEEDED(
+                CxPlatPicotlsParseCertificate(
+                    Roots.Items[i].base, Roots.Items[i].len, Anchor))) {
+            TrustStore->AnchorCount++;
+            Roots.Items[i].base = NULL; // Now owned by the anchor.
+        } else {
+            CXPLAT_FREE(Roots.Items[i].base, QUIC_POOL_TLS_CERT_DER);
+            Roots.Items[i].base = NULL;
+        }
+    }
+    Roots.Count = 0;
+
+    TrustStore->Disallowed = Disallowed.Items;
+    TrustStore->DisallowedCount = Disallowed.Count;
+    CxPlatZeroMemory(&Disallowed, sizeof(Disallowed));
+
+    QuicTraceLogInfo(
+        PicotlsTrustStoreLoaded,
+        "[ tls] Loaded %u trusted root certificates (%u disallowed)",
+        (uint32_t)TrustStore->AnchorCount,
+        (uint32_t)TrustStore->DisallowedCount);
+
+Exit:
+
+    DerListFree(&Roots);
+    DerListFree(&Disallowed);
+    if (QUIC_FAILED(Status)) {
+        TrustStoreFree(TrustStore);
+    }
+    return Status;
+}
+
+#endif // _KERNEL_MODE
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+CxPlatPicotlsVerifierFree(
+    _In_ CXPLAT_PICOTLS_VERIFIER* Verifier
+    )
+{
+#ifdef _KERNEL_MODE
+    TrustStoreFree(&Verifier->TrustStore);
+#endif
+    CryptoClose(&Verifier->Crypto);
+    CXPLAT_FREE(Verifier, QUIC_POOL_TLS_SECCONF);
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatPicotlsVerifierCreate(
+    _In_ QUIC_CREDENTIAL_FLAGS Flags,
+    _Outptr_ CXPLAT_PICOTLS_VERIFIER** Verifier
+    )
+{
+    QUIC_STATUS Status;
+    *Verifier = NULL;
+
+    CXPLAT_PICOTLS_VERIFIER* NewVerifier =
+        CXPLAT_ALLOC_NONPAGED(sizeof(CXPLAT_PICOTLS_VERIFIER), QUIC_POOL_TLS_SECCONF);
+    if (NewVerifier == NULL) {
+        QuicTraceEvent(
+            AllocFailure,
+            "Allocation of '%s' failed. (%llu bytes)",
+            "CXPLAT_PICOTLS_VERIFIER",
+            sizeof(CXPLAT_PICOTLS_VERIFIER));
+        return QUIC_STATUS_OUT_OF_MEMORY;
+    }
+    CxPlatZeroMemory(NewVerifier, sizeof(*NewVerifier));
+    NewVerifier->Flags = Flags;
+
+    CXPLAT_PICOTLS_CRYPTO* Crypto = &NewVerifier->Crypto;
+    Status = OpenAlgorithm(&Crypto->Hash[CXPLAT_PICOTLS_HASH_SHA256], BCRYPT_SHA256_ALGORITHM, 0);
+    if (QUIC_SUCCEEDED(Status)) {
+        Status = OpenAlgorithm(&Crypto->Hash[CXPLAT_PICOTLS_HASH_SHA384], BCRYPT_SHA384_ALGORITHM, 0);
+    }
+    if (QUIC_SUCCEEDED(Status)) {
+        Status = OpenAlgorithm(&Crypto->Hash[CXPLAT_PICOTLS_HASH_SHA512], BCRYPT_SHA512_ALGORITHM, 0);
+    }
+    if (QUIC_SUCCEEDED(Status)) {
+        Status = OpenAlgorithm(&Crypto->Rsa, BCRYPT_RSA_ALGORITHM, 0);
+    }
+    if (QUIC_SUCCEEDED(Status)) {
+        Status = OpenAlgorithm(&Crypto->EcdsaP256, BCRYPT_ECDSA_P256_ALGORITHM, 0);
+    }
+    if (QUIC_SUCCEEDED(Status)) {
+        Status = OpenAlgorithm(&Crypto->EcdsaP384, BCRYPT_ECDSA_P384_ALGORITHM, 0);
+    }
+    if (QUIC_SUCCEEDED(Status)) {
+        Status = OpenAlgorithm(&Crypto->EcdsaP521, BCRYPT_ECDSA_P521_ALGORITHM, 0);
+    }
+#ifdef _KERNEL_MODE
+    if (QUIC_SUCCEEDED(Status)) {
+        Status = TrustStoreLoad(&NewVerifier->TrustStore);
+    }
+#endif
+    if (QUIC_FAILED(Status)) {
+        CxPlatPicotlsVerifierFree(NewVerifier);
+        return Status;
+    }
+
+    *Verifier = NewVerifier;
+    return QUIC_STATUS_SUCCESS;
+}
+
+#ifndef _KERNEL_MODE
+
+//
+// Maps a CryptoAPI chain error to a TLS alert.
+//
+static
+int
+ChainErrorToAlert(
+    _In_ uint32_t Error
+    )
+{
+    switch ((HRESULT)Error) {
+    case CERT_E_EXPIRED:
+    case CERT_E_VALIDITYPERIODNESTING:
+        return PTLS_ALERT_CERTIFICATE_EXPIRED;
+    case CERT_E_UNTRUSTEDROOT:
+    case CERT_E_UNTRUSTEDTESTROOT:
+    case CERT_E_CHAINING:
+        return PTLS_ALERT_UNKNOWN_CA;
+    case CRYPT_E_REVOKED:
+        return PTLS_ALERT_CERTIFICATE_REVOKED;
+    case CERT_E_WRONG_USAGE:
+        return PTLS_ALERT_UNSUPPORTED_CERTIFICATE;
+    default:
+        return PTLS_ALERT_BAD_CERTIFICATE;
+    }
+}
+
+//
+// Validates the chain with CertGetCertificateChain, giving it the
+// certificates the server sent to build it with.
+//
+static
+int
+VerifyChainCapi(
+    _In_ const CXPLAT_PICOTLS_VERIFIER* Verifier,
+    _In_opt_z_ const char* ServerName,
+    _In_reads_(CertificateCount) const ptls_iovec_t* Certificates,
+    _In_ size_t CertificateCount
+    )
+{
+    int Ret = PTLS_ALERT_BAD_CERTIFICATE;
+    PCCERT_CONTEXT Leaf = NULL;
+    HCERTSTORE Store =
+        CertOpenStore(CERT_STORE_PROV_MEMORY, 0, 0, CERT_STORE_CREATE_NEW_FLAG, NULL);
+    if (Store == NULL) {
+        QuicTraceEvent(
+            LibraryErrorStatus,
+            "[ lib] ERROR, %u, %s.",
+            GetLastError(),
+            "CertOpenStore failed");
+        return PTLS_ERROR_LIBRARY;
+    }
+
+    for (size_t i = 0; i < CertificateCount; ++i) {
+        if (Certificates[i].len > ULONG_MAX ||
+            !CertAddEncodedCertificateToStore(
+                Store,
+                X509_ASN_ENCODING,
+                Certificates[i].base,
+                (DWORD)Certificates[i].len,
+                CERT_STORE_ADD_ALWAYS,
+                i == 0 ? &Leaf : NULL)) {
+            QuicTraceEvent(
+                LibraryErrorStatus,
+                "[ lib] ERROR, %u, %s.",
+                GetLastError(),
+                "CertAddEncodedCertificateToStore failed");
+            goto Exit;
+        }
+    }
+
+    uint32_t CertFlags = 0;
+    if (Verifier->Flags & QUIC_CREDENTIAL_FLAG_REVOCATION_CHECK_END_CERT) {
+        CertFlags |= CERT_CHAIN_REVOCATION_CHECK_END_CERT;
+    }
+    if (Verifier->Flags & QUIC_CREDENTIAL_FLAG_REVOCATION_CHECK_CHAIN) {
+        CertFlags |= CERT_CHAIN_REVOCATION_CHECK_CHAIN;
+    }
+    if (Verifier->Flags & QUIC_CREDENTIAL_FLAG_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT) {
+        CertFlags |= CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT;
+    }
+    if (Verifier->Flags & QUIC_CREDENTIAL_FLAG_CACHE_ONLY_URL_RETRIEVAL) {
+        CertFlags |= CERT_CHAIN_CACHE_ONLY_URL_RETRIEVAL;
+    }
+    if (Verifier->Flags & QUIC_CREDENTIAL_FLAG_REVOCATION_CHECK_CACHE_ONLY) {
+        CertFlags |= CERT_CHAIN_REVOCATION_CHECK_CACHE_ONLY;
+    }
+    if (Verifier->Flags & QUIC_CREDENTIAL_FLAG_DISABLE_AIA) {
+        CertFlags |= CERT_CHAIN_DISABLE_AIA;
+    }
+
+    uint32_t Error = 0;
+    if (CxPlatCertValidateChain(
+            (const QUIC_CERTIFICATE*)Leaf,
+            ServerName,
+            CertFlags,
+            Verifier->Flags,
+            &Error)) {
+        Ret = 0;
+    } else {
+        Ret = ChainErrorToAlert(Error);
+    }
+
+Exit:
+
+    if (Leaf != NULL) {
+        CertFreeCertificateContext(Leaf);
+    }
+    CertCloseStore(Store, 0);
+    return Ret;
+}
+
+#endif // !_KERNEL_MODE
+
+//
+// What CertificateVerify is checked with: the leaf's public key. The
+// certificates are only valid during the verify_certificate callback, so the
+// leaf is copied.
+//
+typedef struct CXPLAT_PICOTLS_VERIFY_SIGN {
+    CXPLAT_PICOTLS_VERIFIER* Verifier;
+    CXPLAT_PICOTLS_X509 Leaf;   // Points into the copy, which follows.
+} CXPLAT_PICOTLS_VERIFY_SIGN;
+
+static
+int
+CxPlatPicotlsVerifySign(
+    _In_ void* VerifyContext,
+    _In_ uint16_t Algorithm,
+    _In_ ptls_iovec_t Data,
+    _In_ ptls_iovec_t Signature
+    )
+{
+    CXPLAT_PICOTLS_VERIFY_SIGN* Context = (CXPLAT_PICOTLS_VERIFY_SIGN*)VerifyContext;
+    const CXPLAT_PICOTLS_PUBLIC_KEY* Key = &Context->Leaf.PublicKey;
+    CXPLAT_PICOTLS_SIGNATURE_ALGORITHM SignatureAlgorithm;
+    uint32_t CurveBits = 0;
+    int Ret;
+
+    if (Data.base == NULL) {
+        Ret = 0; // The handshake failed before CertificateVerify: just clean up.
+        goto Exit;
+    }
+
+    CxPlatZeroMemory(&SignatureAlgorithm, sizeof(SignatureAlgorithm));
+    switch (Algorithm) {
+    case PTLS_SIGNATURE_ECDSA_SECP256R1_SHA256:
+        SignatureAlgorithm.Hash = CXPLAT_PICOTLS_HASH_SHA256;
+        SignatureAlgorithm.Padding = CXPLAT_PICOTLS_PADDING_ECDSA;
+        CurveBits = 256;
+        break;
+    case PTLS_SIGNATURE_ECDSA_SECP384R1_SHA384:
+        SignatureAlgorithm.Hash = CXPLAT_PICOTLS_HASH_SHA384;
+        SignatureAlgorithm.Padding = CXPLAT_PICOTLS_PADDING_ECDSA;
+        CurveBits = 384;
+        break;
+    case PTLS_SIGNATURE_ECDSA_SECP521R1_SHA512:
+        SignatureAlgorithm.Hash = CXPLAT_PICOTLS_HASH_SHA512;
+        SignatureAlgorithm.Padding = CXPLAT_PICOTLS_PADDING_ECDSA;
+        CurveBits = 521;
+        break;
+    case PTLS_SIGNATURE_RSA_PSS_RSAE_SHA256:
+        SignatureAlgorithm.Hash = CXPLAT_PICOTLS_HASH_SHA256;
+        break;
+    case PTLS_SIGNATURE_RSA_PSS_RSAE_SHA384:
+        SignatureAlgorithm.Hash = CXPLAT_PICOTLS_HASH_SHA384;
+        break;
+    case PTLS_SIGNATURE_RSA_PSS_RSAE_SHA512:
+        SignatureAlgorithm.Hash = CXPLAT_PICOTLS_HASH_SHA512;
+        break;
+    default:
+        Ret = PTLS_ALERT_ILLEGAL_PARAMETER;
+        goto Exit;
+    }
+    if (CurveBits == 0) {
+        SignatureAlgorithm.Padding = CXPLAT_PICOTLS_PADDING_RSA_PSS;
+        SignatureAlgorithm.SaltLength = HashAlgorithmLength(SignatureAlgorithm.Hash);
+    }
+
+    //
+    // In TLS 1.3 each ECDSA scheme is bound to one curve.
+    //
+    if (!Context->Leaf.PublicKeySupported ||
+        (CurveBits == 0 ?
+            Key->Type != CXPLAT_PICOTLS_KEY_RSA :
+            (Key->Type != CXPLAT_PICOTLS_KEY_EC || Key->CurveBits != CurveBits))) {
+        QuicTraceEvent(
+            LibraryError,
+            "[ lib] ERROR, %s.",
+            "CertificateVerify algorithm doesn't match the server's key");
+        Ret = PTLS_ALERT_ILLEGAL_PARAMETER;
+        goto Exit;
+    }
+
+    if (QUIC_FAILED(
+            CxPlatPicotlsCryptoVerifySignature(
+                &Context->Verifier->Crypto,
+                Key,
+                &SignatureAlgorithm,
+                Data.base,
+                Data.len,
+                Signature.base,
+                Signature.len))) {
+        QuicTraceEvent(
+            LibraryError,
+            "[ lib] ERROR, %s.",
+            "CertificateVerify signature is invalid");
+        Ret = PTLS_ALERT_DECRYPT_ERROR;
+        goto Exit;
+    }
+    Ret = 0;
+
+Exit:
+
+    CXPLAT_FREE(Context, QUIC_POOL_TLS_CERT_DER);
+    return Ret;
+}
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+int
+CxPlatPicotlsVerifyCertificate(
+    _In_ CXPLAT_PICOTLS_VERIFIER* Verifier,
+    _In_opt_z_ const char* ServerName,
+    _In_reads_(CertificateCount) const ptls_iovec_t* Certificates,
+    _In_ size_t CertificateCount,
+    _Out_ int (**VerifySign)(void* VerifyContext, uint16_t Algorithm, ptls_iovec_t Data, ptls_iovec_t Signature),
+    _Out_ void** VerifyContext
+    )
+{
+    int Ret;
+    *VerifySign = NULL;
+    *VerifyContext = NULL;
+
+    if (CertificateCount == 0) {
+        return PTLS_ALERT_CERTIFICATE_REQUIRED;
+    }
+
+#ifdef _KERNEL_MODE
+    Ret =
+        CxPlatPicotlsVerifyChain(
+            &Verifier->Crypto,
+            &Verifier->TrustStore,
+            Certificates,
+            CertificateCount,
+            ServerName,
+            CxPlatTimeEpochMs64() / 1000);
+#else
+    Ret = VerifyChainCapi(Verifier, ServerName, Certificates, CertificateCount);
+#endif
+    if (Ret != 0) {
+        return Ret;
+    }
+
+    const size_t LeafLength = Certificates[0].len;
+    CXPLAT_PICOTLS_VERIFY_SIGN* Context =
+        CXPLAT_ALLOC_NONPAGED(sizeof(CXPLAT_PICOTLS_VERIFY_SIGN) + LeafLength, QUIC_POOL_TLS_CERT_DER);
+    if (Context == NULL) {
+        QuicTraceEvent(
+            AllocFailure,
+            "Allocation of '%s' failed. (%llu bytes)",
+            "CXPLAT_PICOTLS_VERIFY_SIGN",
+            (uint64_t)(sizeof(CXPLAT_PICOTLS_VERIFY_SIGN) + LeafLength));
+        return PTLS_ERROR_NO_MEMORY;
+    }
+    Context->Verifier = Verifier;
+    uint8_t* LeafCopy = (uint8_t*)(Context + 1);
+    memcpy(LeafCopy, Certificates[0].base, LeafLength);
+    if (QUIC_FAILED(CxPlatPicotlsParseCertificate(LeafCopy, LeafLength, &Context->Leaf))) {
+        CXPLAT_FREE(Context, QUIC_POOL_TLS_CERT_DER);
+        return PTLS_ALERT_BAD_CERTIFICATE;
+    }
+
+    *VerifySign = CxPlatPicotlsVerifySign;
+    *VerifyContext = Context;
     return 0;
 }

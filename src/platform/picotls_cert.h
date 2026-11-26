@@ -276,6 +276,176 @@ CxPlatPicotlsSignerFree(
     _In_ CXPLAT_PICOTLS_SIGNER* Signer
     );
 
+//
+// Verification of the server's certificate (client side).
+//
+// picotls_x509.c parses X.509 certificates and, in kernel mode, where there is
+// no CryptoAPI, builds and validates the chain to a trust anchor. It does no
+// cryptography itself: signatures are checked with
+// CxPlatPicotlsCryptoVerifySignature.
+//
+// picotls_cert_win.c implements the TLS verify_certificate callback: it
+// validates the chain (with CertGetCertificateChain in user mode; in kernel
+// mode with picotls_x509.c, against the machine's root store read from the
+// registry), then checks the CertificateVerify signature with BCrypt.
+//
+
+typedef enum CXPLAT_PICOTLS_SIGNATURE_PADDING {
+    CXPLAT_PICOTLS_PADDING_RSA_PKCS1,
+    CXPLAT_PICOTLS_PADDING_RSA_PSS,     // MGF1 with the signature's hash.
+    CXPLAT_PICOTLS_PADDING_ECDSA,       // DER Ecdsa-Sig-Value.
+} CXPLAT_PICOTLS_SIGNATURE_PADDING;
+
+typedef struct CXPLAT_PICOTLS_SIGNATURE_ALGORITHM {
+    CXPLAT_PICOTLS_HASH Hash;
+    CXPLAT_PICOTLS_SIGNATURE_PADDING Padding;
+    uint32_t SaltLength;                // RSA-PSS only.
+} CXPLAT_PICOTLS_SIGNATURE_ALGORITHM;
+
+//
+// A public key, as unsigned big-endian integers without leading zero bytes
+// (RSA) or the uncompressed point 04 || X || Y (EC, CurveBits 256, 384 or 521).
+//
+typedef struct CXPLAT_PICOTLS_PUBLIC_KEY {
+    CXPLAT_PICOTLS_KEY_TYPE Type;
+    ptls_iovec_t Modulus;
+    ptls_iovec_t PublicExponent;
+    uint32_t CurveBits;
+    ptls_iovec_t PublicPoint;
+} CXPLAT_PICOTLS_PUBLIC_KEY;
+
+//
+// The parts of an X.509 certificate needed to verify it. Everything points
+// into Der.
+//
+typedef struct CXPLAT_PICOTLS_X509 {
+    ptls_iovec_t Der;
+    ptls_iovec_t TbsCertificate;        // Whole TLV: what the issuer signed.
+    ptls_iovec_t Issuer;                // Whole Name TLV.
+    ptls_iovec_t Subject;               // Whole Name TLV.
+    int64_t NotBefore;                  // Seconds since 1970-01-01 UTC.
+    int64_t NotAfter;
+
+    BOOLEAN PublicKeySupported;
+    CXPLAT_PICOTLS_PUBLIC_KEY PublicKey;
+
+    BOOLEAN SignatureSupported;
+    CXPLAT_PICOTLS_SIGNATURE_ALGORITHM SignatureAlgorithm;
+    ptls_iovec_t Signature;
+
+    BOOLEAN HasBasicConstraints;
+    BOOLEAN IsCa;
+    int32_t PathLength;                 // -1 when absent.
+    BOOLEAN HasKeyUsage;
+    uint8_t KeyUsage;                   // The first byte of the KeyUsage bits.
+    BOOLEAN HasExtendedKeyUsage;
+    BOOLEAN ServerAuth;                 // id-kp-serverAuth or anyExtendedKeyUsage.
+    BOOLEAN HasSubjectAltName;
+    ptls_iovec_t SubjectAltName;        // Contents of GeneralNames.
+    BOOLEAN UnhandledCriticalExtension;
+} CXPLAT_PICOTLS_X509;
+
+#define CXPLAT_PICOTLS_KEY_USAGE_DIGITAL_SIGNATURE  0x80
+#define CXPLAT_PICOTLS_KEY_USAGE_KEY_CERT_SIGN      0x04
+
+QUIC_STATUS
+CxPlatPicotlsParseCertificate(
+    _In_reads_bytes_(Length) const uint8_t* Der,
+    _In_ size_t Length,
+    _Out_ CXPLAT_PICOTLS_X509* Certificate
+    );
+
+//
+// Whether the certificate is valid for ServerName (a DNS name or an IPv4 or
+// IPv6 literal): by its subjectAltName, or, when it has none, its subject's
+// common name.
+//
+BOOLEAN
+CxPlatPicotlsCertificateMatchesName(
+    _In_ const CXPLAT_PICOTLS_X509* Certificate,
+    _In_z_ const char* ServerName
+    );
+
+//
+// Certificates the chain may end at, and certificates never to accept.
+//
+typedef struct CXPLAT_PICOTLS_TRUST_STORE {
+    CXPLAT_PICOTLS_X509* Anchors;
+    size_t AnchorCount;
+    ptls_iovec_t* Disallowed;
+    size_t DisallowedCount;
+} CXPLAT_PICOTLS_TRUST_STORE;
+
+//
+// Builds a chain from Certificates[0] (the leaf) through the other
+// Certificates (in any order) to a trust anchor, and validates it as a TLS
+// server certificate chain for ServerName (if not NULL) at Now (seconds since
+// 1970). Returns 0 or a PTLS_ALERT_ code.
+//
+int
+CxPlatPicotlsVerifyChain(
+    _Inout_ CXPLAT_PICOTLS_CRYPTO* Crypto,
+    _In_ const CXPLAT_PICOTLS_TRUST_STORE* TrustStore,
+    _In_reads_(CertificateCount) const ptls_iovec_t* Certificates,
+    _In_ size_t CertificateCount,
+    _In_opt_z_ const char* ServerName,
+    _In_ int64_t Now
+    );
+
+//
+// Checks Signature over Data with Key (picotls_cert_win.c). Returns
+// QUIC_STATUS_SUCCESS only for a valid signature.
+//
+QUIC_STATUS
+CxPlatPicotlsCryptoVerifySignature(
+    _Inout_ CXPLAT_PICOTLS_CRYPTO* Crypto,
+    _In_ const CXPLAT_PICOTLS_PUBLIC_KEY* Key,
+    _In_ const CXPLAT_PICOTLS_SIGNATURE_ALGORITHM* Algorithm,
+    _In_reads_bytes_(DataLength) const uint8_t* Data,
+    _In_ size_t DataLength,
+    _In_reads_bytes_(SignatureLength) const uint8_t* Signature,
+    _In_ size_t SignatureLength
+    );
+
+typedef struct CXPLAT_PICOTLS_VERIFIER CXPLAT_PICOTLS_VERIFIER;
+
+//
+// Prepares to verify server certificates for a client credential: opens the
+// algorithms and, in kernel mode, loads the trust store.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+QUIC_STATUS
+CxPlatPicotlsVerifierCreate(
+    _In_ QUIC_CREDENTIAL_FLAGS Flags,
+    _Outptr_ CXPLAT_PICOTLS_VERIFIER** Verifier
+    );
+
+_IRQL_requires_max_(PASSIVE_LEVEL)
+void
+CxPlatPicotlsVerifierFree(
+    _In_ CXPLAT_PICOTLS_VERIFIER* Verifier
+    );
+
+//
+// The TLS 1.3 signature schemes CxPlatPicotlsVerifyCertificate accepts,
+// terminated by UINT16_MAX: for ptls_verify_certificate_t.algos.
+//
+extern const uint16_t CxPlatPicotlsVerifyAlgorithms[];
+
+//
+// The body of a ptls_verify_certificate_t callback.
+//
+_IRQL_requires_max_(PASSIVE_LEVEL)
+int
+CxPlatPicotlsVerifyCertificate(
+    _In_ CXPLAT_PICOTLS_VERIFIER* Verifier,
+    _In_opt_z_ const char* ServerName,
+    _In_reads_(CertificateCount) const ptls_iovec_t* Certificates,
+    _In_ size_t CertificateCount,
+    _Out_ int (**VerifySign)(void* VerifyContext, uint16_t Algorithm, ptls_iovec_t Data, ptls_iovec_t Signature),
+    _Out_ void** VerifyContext
+    );
+
 #if defined(__cplusplus)
 }
 #endif

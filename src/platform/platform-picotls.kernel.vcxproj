@@ -29,6 +29,7 @@
     <ClCompile Include="pcp.c" />
     <ClCompile Include="picotls_cert_win.c" />
     <ClCompile Include="picotls_pkcs12.c" />
+    <ClCompile Include="picotls_x509.c" />
     <ClCompile Include="platform_winkernel.c" />
     <ClCompile Include="storage_winkernel.c" />
     <ClCompile Include="tls_picotls.c" />
