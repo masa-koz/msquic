@@ -24,6 +24,10 @@
 #include "XdpMapModeHelpers.h"
 #endif
 
+#ifdef _WIN32
+#include <wincrypt.h>
+#endif
+
 #ifdef QUIC_TEST_DATAPATH_HOOKS_ENABLED
 #pragma message("Test compiled with datapath hooks enabled")
 #endif
@@ -54,6 +58,106 @@ QuicDriverClient DriverClient;
 bool IsWindows2019() { return OsRunner && strcmp(OsRunner, "windows-2019") == 0; }
 bool IsWindows2022() { return OsRunner && strcmp(OsRunner, "windows-2022") == 0; }
 bool IsWindows2025() { return OsRunner && strcmp(OsRunner, "windows-2025") == 0; }
+
+#ifdef _WIN32
+//
+// Exports a self-signed test certificate and its key as PKCS#12, protected
+// with QUIC_TEST_PKCS12_PASSWORD.
+//
+static bool ExportTestCertificatePkcs12(
+    _In_ const QUIC_CREDENTIAL_CONFIG* CredConfig,
+    _Out_ std::vector<uint8_t>& Pfx
+    )
+{
+    Pfx.clear();
+    HCERTSTORE Store =
+        CertOpenStore(CERT_STORE_PROV_MEMORY, 0, 0, CERT_STORE_CREATE_NEW_FLAG, nullptr);
+    if (Store == nullptr) {
+        return false;
+    }
+
+    WCHAR Password[sizeof(QUIC_TEST_PKCS12_PASSWORD)];
+    for (size_t i = 0; i < sizeof(QUIC_TEST_PKCS12_PASSWORD); ++i) {
+        Password[i] = (WCHAR)QUIC_TEST_PKCS12_PASSWORD[i]; // ASCII.
+    }
+    PKCS12_PBES2_EXPORT_PARAMS Pbes2Params = {};
+    Pbes2Params.dwSize = sizeof(Pbes2Params);
+    Pbes2Params.pwszPbes2Alg = (PWSTR)PKCS12_PBES2_ALG_AES256_SHA256;
+    const DWORD Flags =
+        EXPORT_PRIVATE_KEYS | REPORT_NOT_ABLE_TO_EXPORT_PRIVATE_KEY | PKCS12_EXPORT_PBES2_PARAMS;
+
+    bool Success = false;
+    CRYPT_DATA_BLOB Blob = {};
+    if (CertAddCertificateContextToStore(
+            Store,
+            (PCCERT_CONTEXT)CredConfig->CertificateContext,
+            CERT_STORE_ADD_ALWAYS,
+            nullptr) &&
+        PFXExportCertStoreEx(Store, &Blob, Password, &Pbes2Params, Flags)) {
+        Pfx.resize(Blob.cbData);
+        Blob.pbData = Pfx.data();
+        if (PFXExportCertStoreEx(Store, &Blob, Password, &Pbes2Params, Flags)) {
+            Pfx.resize(Blob.cbData);
+            Success = true;
+        }
+    }
+    if (!Success) {
+        printf("Exporting a test certificate as PKCS#12 failed: 0x%x\n", GetLastError());
+        Pfx.clear();
+    }
+    CertCloseStore(Store, 0);
+    return Success;
+}
+#endif
+
+#ifdef _WIN32
+//
+// Sends the driver a PKCS#12 copy of a test certificate from the machine store,
+// keyed by its hash. Best effort: the certificate may not be installed.
+//
+static void AddTestCertificatePkcs12(
+    _In_ CXPLAT_TEST_CERT_TYPE CertType
+    )
+{
+    QUIC_CREDENTIAL_CONFIG CredConfig;
+    if (!CxPlatGetTestCertificate(
+            CertType,
+            CXPLAT_SELF_SIGN_CERT_MACHINE,
+            QUIC_CREDENTIAL_TYPE_CERTIFICATE_CONTEXT,
+            &CredConfig,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr,
+            nullptr)) {
+        return;
+    }
+
+    QUIC_ADD_CERTIFICATE_PKCS12_PARAMS Params = {};
+    DWORD HashLength = sizeof(Params.CertHash.ShaHash);
+    std::vector<uint8_t> Pfx;
+    if (CertGetCertificateContextProperty(
+            (PCCERT_CONTEXT)CredConfig.CertificateContext,
+            CERT_HASH_PROP_ID,
+            Params.CertHash.ShaHash,
+            &HashLength) &&
+        HashLength == sizeof(Params.CertHash.ShaHash) &&
+        ExportTestCertificatePkcs12(&CredConfig, Pfx)) {
+        Params.PfxLength = (uint32_t)Pfx.size();
+        std::vector<uint8_t> Buffer(sizeof(Params) + Pfx.size());
+        memcpy(Buffer.data(), &Params, sizeof(Params));
+        memcpy(Buffer.data() + sizeof(Params), Pfx.data(), Pfx.size());
+        if (!DriverClient.Run(
+                IOCTL_QUIC_ADD_CERT_PKCS12,
+                (void*)Buffer.data(),
+                (uint32_t)Buffer.size())) {
+            printf("Sending a test certificate as PKCS#12 failed\n");
+        }
+    }
+    CxPlatFreeTestCert(&CredConfig);
+}
+#endif
 
 class QuicTestEnvironment : public ::testing::Environment {
     QuicDriverService DriverService;
@@ -106,6 +210,40 @@ public:
             ASSERT_TRUE(DriverService.Initialize(DriverName, DependentDriverNames));
             ASSERT_TRUE(DriverService.Start());
             ASSERT_TRUE(DriverClient.Initialize(&CertParams, DriverName));
+
+#ifdef _WIN32
+            //
+            // A picotls driver can't reach the certificate store, so it also
+            // gets the certificates as PKCS#12. A Schannel driver ignores them,
+            // so failing to export them only matters to picotls.
+            //
+            std::vector<uint8_t> ServerPfx, ClientPfx;
+            if (ExportTestCertificatePkcs12(SelfSignedCertParams, ServerPfx) &&
+                ExportTestCertificatePkcs12(ClientCertParams, ClientPfx)) {
+                QUIC_RUN_CERTIFICATE_PKCS12_PARAMS Pkcs12Params;
+                Pkcs12Params.ServerPfxLength = (uint32_t)ServerPfx.size();
+                Pkcs12Params.ClientPfxLength = (uint32_t)ClientPfx.size();
+                std::vector<uint8_t> Buffer(sizeof(Pkcs12Params) + ServerPfx.size() + ClientPfx.size());
+                memcpy(Buffer.data(), &Pkcs12Params, sizeof(Pkcs12Params));
+                memcpy(Buffer.data() + sizeof(Pkcs12Params), ServerPfx.data(), ServerPfx.size());
+                memcpy(
+                    Buffer.data() + sizeof(Pkcs12Params) + ServerPfx.size(),
+                    ClientPfx.data(),
+                    ClientPfx.size());
+                ASSERT_TRUE(
+                    DriverClient.Run(
+                        IOCTL_QUIC_SET_CERT_PKCS12,
+                        (void*)Buffer.data(),
+                        (uint32_t)Buffer.size()));
+
+                //
+                // And the certificates the CredValidation tests name by hash.
+                //
+                for (auto CertType : { CXPLAT_TEST_CERT_VALID_SERVER, CXPLAT_TEST_CERT_EXPIRED_SERVER }) {
+                    AddTestCertificatePkcs12(CertType);
+                }
+            }
+#endif
 
             QUIC_TEST_CONFIGURATION_PARAMS Params {
                 UseDuoNic,

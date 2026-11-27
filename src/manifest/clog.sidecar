@@ -8856,6 +8856,110 @@
       ],
       "macroName": "QuicTraceLogConnVerbose"
     },
+    "Picotls1RttDataStart": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Writing 1-RTT data starts at %u",
+      "UniqueId": "Picotls1RttDataStart",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        },
+        {
+          "DefinationEncoding": "u",
+          "MacroVariableName": "arg3"
+        }
+      ],
+      "macroName": "QuicTraceLogConnInfo"
+    },
+    "PicotlsAlpnNegotiationFailure": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Failed to negotiate ALPN",
+      "UniqueId": "PicotlsAlpnNegotiationFailure",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnError"
+    },
+    "PicotlsContextCleaningUp": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Cleaning up",
+      "UniqueId": "PicotlsContextCleaningUp",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
+    "PicotlsContextCreated": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] TLS context Created",
+      "UniqueId": "PicotlsContextCreated",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnVerbose"
+    },
+    "PicotlsHandshakeComplete": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Handshake complete",
+      "UniqueId": "PicotlsHandshakeComplete",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnInfo"
+    },
+    "PicotlsHandshakeDataStart": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Writing Handshake data starts at %u",
+      "UniqueId": "PicotlsHandshakeDataStart",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        },
+        {
+          "DefinationEncoding": "u",
+          "MacroVariableName": "arg3"
+        }
+      ],
+      "macroName": "QuicTraceLogConnInfo"
+    },
+    "PicotlsInvalidAlpnLength": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Invalid negotiated ALPN length",
+      "UniqueId": "PicotlsInvalidAlpnLength",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnError"
+    },
+    "PicotlsNoMatchingAlpn": {
+      "ModuleProperites": {},
+      "TraceString": "[conn][%p] Failed to find a matching ALPN",
+      "UniqueId": "PicotlsNoMatchingAlpn",
+      "splitArgs": [
+        {
+          "DefinationEncoding": "p",
+          "MacroVariableName": "arg1"
+        }
+      ],
+      "macroName": "QuicTraceLogConnError"
+    },
     "PlatformThreadCreateFailed": {
       "ModuleProperites": {},
       "TraceString": "[ lib] pthread_create failed, retrying without affinitization",
@@ -15831,6 +15935,46 @@
         "UniquenessHash": "f7b20b43-0f5a-76ed-71ab-00e2a293b9b4",
         "TraceID": "PhaseShiftUpdated",
         "EncodingString": "[conn][%p] New Phase Shift: %lld us"
+      },
+      {
+        "UniquenessHash": "f82407a8-441c-6ced-940a-6fcaef7bf818",
+        "TraceID": "Picotls1RttDataStart",
+        "EncodingString": "[conn][%p] Writing 1-RTT data starts at %u"
+      },
+      {
+        "UniquenessHash": "6dadf498-97c1-f52c-ad2c-3d2b9db09551",
+        "TraceID": "PicotlsAlpnNegotiationFailure",
+        "EncodingString": "[conn][%p] Failed to negotiate ALPN"
+      },
+      {
+        "UniquenessHash": "75649fb3-c118-aa99-adc5-c134df018797",
+        "TraceID": "PicotlsContextCleaningUp",
+        "EncodingString": "[conn][%p] Cleaning up"
+      },
+      {
+        "UniquenessHash": "6e6650c3-faab-e965-263b-d25b10ee107a",
+        "TraceID": "PicotlsContextCreated",
+        "EncodingString": "[conn][%p] TLS context Created"
+      },
+      {
+        "UniquenessHash": "a12bd80c-e79e-8601-40a1-880aea046880",
+        "TraceID": "PicotlsHandshakeComplete",
+        "EncodingString": "[conn][%p] Handshake complete"
+      },
+      {
+        "UniquenessHash": "55ff915e-4cd4-f8bc-2912-4c9e82bd8b88",
+        "TraceID": "PicotlsHandshakeDataStart",
+        "EncodingString": "[conn][%p] Writing Handshake data starts at %u"
+      },
+      {
+        "UniquenessHash": "adfe5d1c-84f9-e393-68c3-33f83e41b471",
+        "TraceID": "PicotlsInvalidAlpnLength",
+        "EncodingString": "[conn][%p] Invalid negotiated ALPN length"
+      },
+      {
+        "UniquenessHash": "500d05f4-d4db-f7e0-45e1-060b193ce3d1",
+        "TraceID": "PicotlsNoMatchingAlpn",
+        "EncodingString": "[conn][%p] Failed to find a matching ALPN"
       },
       {
         "UniquenessHash": "c77e1439-2c2d-7baf-4509-bd2f7eeea771",

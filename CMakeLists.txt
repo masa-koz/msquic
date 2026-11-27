@@ -441,6 +441,13 @@ if(QUIC_TLS_LIB STREQUAL "schannel")
     list(APPEND QUIC_COMMON_DEFINES QUIC_ENABLE_ANON_CLIENT_AUTH_TESTS)
 endif()
 
+if(QUIC_TLS_LIB STREQUAL "picotls" AND WIN32)
+    # picotls on Windows uses crypt_bcrypt.c, which, as with Schannel, can't
+    # compute ChaCha20 header protection masks.
+    message(STATUS "Disabling ChaCha20 support")
+    list(APPEND QUIC_COMMON_DEFINES QUIC_DISABLE_CHACHA20_TESTS)
+endif()
+
 if(QUIC_TLS_LIB STREQUAL "quictls" OR QUIC_TLS_LIB STREQUAL "openssl")
     message(STATUS "Enabling quictls/openssl configuration tests")
     list(APPEND QUIC_COMMON_DEFINES QUIC_TEST_OPENSSL_FLAGS=1)
@@ -890,6 +897,86 @@ if(QUIC_TLS_LIB STREQUAL "quictls" OR QUIC_TLS_LIB STREQUAL "openssl")
             MsQuic::OpenSSL
         )
     endif()
+elseif(QUIC_TLS_LIB STREQUAL "picotls")
+    add_library(PicoTLS INTERFACE)
+
+    include(FetchContent)
+
+    if (WIN32)
+        # picotls's own CMake project needs pkg-config and builds its tests and
+        # tools, which don't build with MSVC. Build just the two libraries, from
+        # the sources of the kernel-mode projects (cifra.kernel.vcxproj and
+        # picotls-minicrypto.kernel.vcxproj) plus what user mode adds:
+        # gettimeofday and secp256r1 (micro-ecc).
+        set(PICOTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/picotls)
+        set(PICOTLS_INCLUDE_DIRS
+            ${PICOTLS_DIR}/include
+            ${PICOTLS_DIR}/picotlsvs/picotls
+            ${PICOTLS_DIR}/deps/cifra/src
+            ${PICOTLS_DIR}/deps/cifra/src/ext
+            ${PICOTLS_DIR}/deps/micro-ecc)
+        add_library(picotls-core STATIC
+            ${PICOTLS_DIR}/lib/hpke.c
+            ${PICOTLS_DIR}/lib/picotls.c
+            ${PICOTLS_DIR}/picotlsvs/picotls/wintimeofday.c)
+        add_library(picotls-minicrypto STATIC
+            ${PICOTLS_DIR}/deps/cifra/src/aes.c
+            ${PICOTLS_DIR}/deps/cifra/src/blockwise.c
+            ${PICOTLS_DIR}/deps/cifra/src/chacha20.c
+            ${PICOTLS_DIR}/deps/cifra/src/chash.c
+            ${PICOTLS_DIR}/deps/cifra/src/curve25519.c
+            ${PICOTLS_DIR}/deps/cifra/src/drbg.c
+            ${PICOTLS_DIR}/deps/cifra/src/gcm.c
+            ${PICOTLS_DIR}/deps/cifra/src/gf128.c
+            ${PICOTLS_DIR}/deps/cifra/src/hmac.c
+            ${PICOTLS_DIR}/deps/cifra/src/modes.c
+            ${PICOTLS_DIR}/deps/cifra/src/poly1305.c
+            ${PICOTLS_DIR}/deps/cifra/src/sha256.c
+            ${PICOTLS_DIR}/deps/cifra/src/sha512.c
+            ${PICOTLS_DIR}/lib/cifra.c
+            ${PICOTLS_DIR}/lib/cifra/aes128.c
+            ${PICOTLS_DIR}/lib/cifra/aes256.c
+            ${PICOTLS_DIR}/lib/cifra/chacha20.c
+            ${PICOTLS_DIR}/lib/cifra/random.c
+            ${PICOTLS_DIR}/lib/cifra/x25519.c
+            ${PICOTLS_DIR}/deps/micro-ecc/uECC.c
+            ${PICOTLS_DIR}/lib/uecc.c)
+        foreach(PICOTLS_TARGET picotls-core picotls-minicrypto)
+            target_include_directories(${PICOTLS_TARGET} PUBLIC "$<BUILD_INTERFACE:${PICOTLS_INCLUDE_DIRS}>")
+            # picotls.h depends on _WINDOWS, so users must see it defined too.
+            target_compile_definitions(${PICOTLS_TARGET} PUBLIC _WINDOWS PRIVATE _CRT_SECURE_NO_WARNINGS)
+            # Third-party code: don't hold it to msquic's warning level.
+            target_compile_options(${PICOTLS_TARGET} PRIVATE /W1)
+            set_property(TARGET ${PICOTLS_TARGET} PROPERTY FOLDER "${QUIC_FOLDER_PREFIX}libraries")
+        endforeach()
+        target_link_libraries(picotls-minicrypto PUBLIC picotls-core bcrypt)
+    else()
+        FetchContent_Declare(
+            PicoTLSSubmodule
+            SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules/picotls
+        )
+        FetchContent_MakeAvailable(PicoTLSSubmodule)
+    endif()
+
+    add_library(OpenSSL INTERFACE)
+
+    FetchContent_Declare(
+        OpenSSLQuic
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/submodules
+        CMAKE_ARGS "-DQUIC_USE_SYSTEM_LIBCRYPTO=${QUIC_USE_SYSTEM_LIBCRYPTO}"
+    )
+    FetchContent_MakeAvailable(OpenSSLQuic)
+
+    target_link_libraries(PicoTLS
+        INTERFACE
+        picotls-core
+        picotls-minicrypto
+    )
+
+    target_link_libraries(OpenSSL
+        INTERFACE
+        MsQuic::OpenSSL
+    )
 endif()
 
 if (QUIC_USE_SYSTEM_LIBCRYPTO)
