@@ -93,7 +93,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\submodules\picotls\include;..\..\submodules\picotls\picotlsvs\picotls;..\inc;$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\submodules\picotls\include;..\..\submodules\picotls\picotlsvs\picotls;..\inc;$(IntDir);$(SolutionDir)build\winkernel\$(Platform)_$(Configuration)_$(QuicTls)\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalOptions Condition="'$(Platform)'!='x64'">/Gw /kernel /ZH:SHA_256</AdditionalOptions>
@@ -102,6 +102,14 @@
     <Lib>
       <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
+    <!--
+      Generate the ETW header here rather than share platform.kernel's: run in
+      parallel, the two mc.exe runs collide in one directory, and depending on
+      platform.kernel would pass its Schannel TLS on to the drivers' link.
+    -->
+    <PreBuildEvent>
+      <Command>mc.exe -um -h $(IntDir) -r $(IntDir) $(SolutionDir)src\manifest\MsQuicEtw.man</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>

@@ -169,15 +169,28 @@ void QuicTestConnectionExportKeyingMaterial()
         MsQuic->ConnectionExportKeyingMaterial(Client.Handle, &Config, ClientKm);
 
 #ifdef _KERNEL_MODE
-    TEST_QUIC_STATUS(QUIC_STATUS_NOT_SUPPORTED, ServerContext.ExportStatus);
-    TEST_QUIC_STATUS(QUIC_STATUS_NOT_SUPPORTED, ClientExportStatus);
-#else
+    //
+    // Schannel can't export keying material in kernel mode; picotls can.
+    //
+    QUIC_TLS_PROVIDER TlsProvider;
+    uint32_t TlsProviderLength = sizeof(TlsProvider);
+    TEST_QUIC_SUCCEEDED(
+        MsQuic->GetParam(
+            nullptr,
+            QUIC_PARAM_GLOBAL_TLS_PROVIDER,
+            &TlsProviderLength,
+            &TlsProvider));
+    if (TlsProvider == QUIC_TLS_PROVIDER_SCHANNEL) {
+        TEST_QUIC_STATUS(QUIC_STATUS_NOT_SUPPORTED, ServerContext.ExportStatus);
+        TEST_QUIC_STATUS(QUIC_STATUS_NOT_SUPPORTED, ClientExportStatus);
+        return;
+    }
+#endif
     TEST_QUIC_STATUS(QUIC_STATUS_SUCCESS, ServerContext.ExportStatus);
     TEST_QUIC_STATUS(QUIC_STATUS_SUCCESS, ClientExportStatus);
     TEST_EQUAL(
         0,
         memcmp(ClientKm, ServerContext.Km, ExportKeyingMaterialServerContext::KmLength));
-#endif
 }
 #endif // QUIC_API_ENABLE_PREVIEW_FEATURES
 
